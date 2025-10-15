@@ -1,0 +1,41 @@
+<div class="modal fade show" id="addPartyModal" tabindex="-1" style="display:block;" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title">Add New Party</h5>
+        <button type="button" class="btn-close" onclick="closeModal()"></button>
+      </div>
+      <div class="modal-body">
+        <form hx-post="{% url 'add_party' %}" 
+              hx-target="tbody" 
+              hx-swap="innerHTML" 
+              class="row g-3">
+
+          {% csrf_token %}
+          {{ form.as_p }}
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show"></div>
+
+<script>
+  // Listen for the closeModal event from the server
+  document.body.addEventListener('closeModal', function() {
+    closeModal();
+  });
+
+  // Function to close the modal
+  function closeModal() {
+    const dialog = document.getElementById('dialog');
+    dialog.innerHTML = '';
+    document.body.classList.remove('modal-open');
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+  }
+</script>

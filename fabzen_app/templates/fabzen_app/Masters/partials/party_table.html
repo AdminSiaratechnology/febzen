@@ -1,0 +1,168 @@
+
+{% for p in parties %}
+    <tr>
+      <td style="width: 50px; text-align: center;">{{ forloop.counter }}</td>
+      <td><span class="badge bg-primary">{{p.code}}</span></td>
+      <td>{{ p.party_name }}</td>
+      <td>{{ p.party_type }}</td>
+      <td>{{ p.city }}</td>
+      <td>{{ p.gst_number }}</td>
+      <td>{{p.contact_person}}</td>
+      <td>{{p.mobile}}</td>
+      <td>{{p.rating}}</td>
+      <td>{{p.outstanding}}</td>
+      <td>
+  <div class="d-flex align-items-center justify-content-center gap-2">
+    <!-- Edit Icon -->
+    <div class="theme-icons cursor-pointer rounded d-flex align-items-center justify-content-center p-1" style="width:30px; height:30px;">
+      <i class="bx bx-edit text-primary fs-6"></i>
+    </div>
+
+    <!-- View / Eye Icon -->
+    <div class="theme-icons cursor-pointer rounded d-flex align-items-center justify-content-center p-1" style="width:30px; height:30px;">
+      <i class="bx bx-show text-primary fs-6"></i>
+    </div>
+  </div>
+</td>
+
+    </tr>
+    {% empty %}
+    <tr><td colspan="10" class="text-center text-muted">No parties yet.</td></tr>
+    {% endfor %}
+
+
+
+{% if is_paginated %}
+<tr>
+  <td colspan="10">
+    <nav aria-label="Page navigation example">
+      <ul class="pagination round-pagination justify-content-center">
+        
+        {% if parties.has_previous %}
+          <li class="page-item">
+            <a class="page-link" 
+               hx-get="{% url 'party_list' %}?page=1" 
+               hx-target="tbody" 
+               hx-swap="innerHTML"
+               hx-include="[name='search'], [name='type']">First</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" 
+               hx-get="{% url 'party_list' %}?page={{ parties.previous_page_number }}" 
+               hx-target="tbody" 
+               hx-swap="innerHTML"
+               hx-include="[name='search'], [name='type']">Previous</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><a class="page-link">First</a></li>
+          <li class="page-item disabled"><a class="page-link">Previous</a></li>
+        {% endif %}
+
+        {% for i in paginator.page_range %}
+          {% if parties.number == i %}
+            <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+          {% elif i > parties.number|add:'-3' and i < parties.number|add:'3' %}
+            <li class="page-item">
+              <a class="page-link" 
+                 hx-get="{% url 'party_list' %}?page={{ i }}" 
+                 hx-target="tbody" 
+                 hx-swap="innerHTML"
+                 hx-include="[name='search'], [name='type']">{{ i }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if parties.has_next %}
+          <li class="page-item">
+            <a class="page-link" 
+               hx-get="{% url 'party_list' %}?page={{ parties.next_page_number }}" 
+               hx-target="tbody" 
+               hx-swap="innerHTML"
+               hx-include="[name='search'], [name='type']">Next</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" 
+               hx-get="{% url 'party_list' %}?page={{ paginator.num_pages }}" 
+               hx-target="tbody" 
+               hx-swap="innerHTML"
+               hx-include="[name='search'], [name='type']">Last</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><a class="page-link">Next</a></li>
+          <li class="page-item disabled"><a class="page-link">Last</a></li>
+        {% endif %}
+        
+      </ul>
+    </nav>
+  </td>
+</tr>
+{% endif %}
+
+{% comment %} 
+{% if is_paginated %}
+<tr>
+  <td colspan="10">
+    <nav aria-label="Page navigation example">
+      <ul class="pagination round-pagination justify-content-center">
+        
+        {% if parties.has_previous %}
+          <li class="page-item">
+            <a class="page-link" 
+               hx-get="{% url 'party_list' %}?page=1" 
+               hx-target="tbody" 
+               hx-swap="innerHTML">First</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" 
+               hx-get="{% url 'party_list' %}?page={{ parties.previous_page_number }}" 
+               hx-target="tbody" 
+               hx-swap="innerHTML">Previous</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><a class="page-link">First</a></li>
+          <li class="page-item disabled"><a class="page-link">Previous</a></li>
+        {% endif %}
+
+        {% for i in paginator.page_range %}
+          {% if parties.number == i %}
+            <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+          {% elif i > parties.number|add:'-3' and i < parties.number|add:'3' %}
+            <li class="page-item">
+              <a class="page-link" 
+                 hx-get="{% url 'party_list' %}?page={{ i }}" 
+                 hx-target="tbody" 
+                 hx-swap="innerHTML">{{ i }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if parties.has_next %}
+          <li class="page-item">
+            <a class="page-link" 
+               hx-get="{% url 'party_list' %}?page={{ parties.next_page_number }}" 
+               hx-target="tbody" 
+               hx-swap="innerHTML">Next</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" 
+               hx-get="{% url 'party_list' %}?page={{ paginator.num_pages }}" 
+               hx-target="tbody" 
+               hx-swap="innerHTML">Last</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><a class="page-link">Next</a></li>
+          <li class="page-item disabled"><a class="page-link">Last</a></li>
+        {% endif %}
+        
+      </ul>
+    </nav>
+  </td>
+</tr>
+{% endif %}
+ {% endcomment %}
+
+
+
+
+    
+  
