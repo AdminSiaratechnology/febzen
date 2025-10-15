@@ -6,13 +6,15 @@
         <button type="button" class="btn-close" onclick="closeModal()"></button>
       </div>
       <div class="modal-body">
-        <form hx-post="{% url 'add_party' %}" 
+        <form hx-post="{% if request.path == '/party/add/' %}{% url 'add_party' %}{% elif mode == 'edit' %}{% url "edit_party" id %}{% endif %}" 
               hx-target="tbody" 
               hx-swap="innerHTML" 
               class="row g-3">
 
           {% csrf_token %}
           {{ form.as_p }}
+
+          {{request.path}}
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>

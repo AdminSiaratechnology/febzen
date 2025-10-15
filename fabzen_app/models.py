@@ -3,6 +3,29 @@ from django.db.models import Max
 
 # Create your models here.
 
+
+class Company(models.Model):
+    company_name_street = models.CharField(max_length=100)
+    company_name_print = models.CharField(max_length=100)
+    address_line1 = models.TextField()
+    address_line2 = models.TextField()
+    address_line3 = models.CharField(max_length=100)
+    country = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    city = models.CharField(max_length=100)
+    zip_code = models.CharField(max_length=100)
+    default_currency = models.CharField(max_length=100)
+
+
+
+    # telephone = models.CharField(max_length=15)
+    # mobile_no = models.CharField(max_length=15)
+    # fax_number = models.CharField(max_length=15)
+    # email = models.EmailField(unique=True)
+    # website = models.URLField(max_length=200, blank=True, null=True) 
+
+
+
 PARTY_TYPE_PREFIX = {
     'Supplier': 'SUP',
     'Customer': 'CUS',

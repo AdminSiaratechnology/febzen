@@ -1,0 +1,49 @@
+<div class="modal fade show" id="viewPartyModal" tabindex="-1" style="display:block;" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title">View Party</h5>
+        <button type="button" class="btn-close" onclick="closeModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12">
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <tbody>
+                  <tr><th style="width:160px;">Code</th><td>{{ party.code }}</td></tr>
+                  <tr><th>Name</th><td>{{ party.party_name }}</td></tr>
+                  <tr><th>Type</th><td>{{ party.party_type }}</td></tr>
+                  <tr><th>City</th><td>{{ party.city }}</td></tr>
+                  <tr><th>GST No</th><td>{{ party.gst_number }}</td></tr>
+                  <tr><th>Contact</th><td>{{ party.contact_person }}</td></tr>
+                  <tr><th>Mobile</th><td>{{ party.mobile }}</td></tr>
+                  <tr><th>Address</th><td>{{ party.address }}</td></tr>
+                  <tr><th>State</th><td>{{ party.state }}</td></tr>
+                  <tr><th>Pincode</th><td>{{ party.pincode }}</td></tr>
+                  <tr><th>PAN No</th><td>{{ party.pan_number }}</td></tr>
+                  <tr><th>Rating</th><td>{{ party.rating }}</td></tr>
+                  <tr><th>Outstanding</th><td>{{ party.outstanding }}</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show"></div>
+
+<script>
+  // Function to close the modal and clear dialog container
+  function closeModal() {
+    const dialog = document.getElementById('dialog');
+    if (dialog) dialog.innerHTML = '';
+    document.body.classList.remove('modal-open');
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+  }
+</script>

@@ -1,0 +1,124 @@
+    {% extends "fabzen_app/Base/base.html" %}
+
+{% block title %}Party{% endblock title %}
+
+{% block main-content %}
+
+<style>
+.pagination .page-link {
+  cursor: pointer;
+}
+</style>
+
+<div class="page-content">
+
+  <!-- Master Data Header Card -->
+  <div class="card bg-primary text-white w-100">
+    <div class="card-body">
+      <h5 class="card-title text-white">Master Data Management</h5>
+      <p class="card-text">Complete master data for textile operations</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <div class="card">
+        <div class="card-body">
+            
+         
+          <!-- Party Master Header -->
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <h4 class="mb-0">Company Master</h4>
+              {% comment %} <p class="text-muted mb-0">
+                Suppliers, Customers, Job Workers, Dyers, Masters
+              </p> {% endcomment %}
+            </div>
+
+            <!-- Add Party Button -->
+            <button 
+              class="btn btn-primary"
+              hx-get="{% url 'add_company' %}"
+              hx-target="#dialog"
+              hx-swap="OuterHTML"
+              hx-trigger="click">
+              Add Company
+            </button>
+          </div>
+
+          <div class="mb-4 d-flex gap-2 align-items-center">
+  <!-- 🔍 Search Input -->
+  <input 
+    type="text" 
+    class="form-control" 
+    placeholder="Search Company"
+    style="max-width: 300px;"
+    name="search"
+    hx-get="{% url 'party_list' %}"
+    hx-trigger="keyup changed delay:500ms"
+    hx-target="tbody"
+    hx-include="[name='type']"
+  >
+
+  <!-- 🧩 Filter Select -->
+  <select 
+    class="form-select" 
+    style="max-width: 200px;"
+    name="type"
+    hx-get="{% url 'party_list' %}"
+    hx-trigger="change"
+    hx-target="tbody"
+    hx-include="[name='search']"
+  >
+    <option value="">Filter by Status</option>
+    <option value="Active">Active</option>
+    <option value="Inactive">Inactive</option>
+    <option value="All">All</option>
+    
+  </select>
+</div>
+
+
+
+          <hr>
+
+          <!-- Party Table -->
+          <div class="card" id="dialog">
+            <div class="card-body" >
+              <table class="table mb-0 table-striped" >
+                <thead>
+                  <tr>
+                    <th class="text-nowrap">SI No</th>
+                    <th scope="col">Company</th>
+                    <th scope="col">Contact</th>
+                    <th scope="col">Address</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                    
+                  </tr>
+                </thead>
+                <tbody 
+                
+                  hx-get="{% url 'company_list' %}" 
+                  hx-trigger="load" 
+                  hx-target="this" 
+                  hx-swap="innerHTML"
+                  
+                  >
+                  <!-- party_table.html will load here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% comment %} <div id="dialog">heee</div> {% endcomment %}
+{% endblock main-content %}
