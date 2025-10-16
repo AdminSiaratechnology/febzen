@@ -5,10 +5,9 @@ urlpatterns = [
     path('', views.home, name='dashboard'),
     # ----------------------    PARTY     ----------------------------
     path("company/",views.company,name="company"),
-    path('company/add/', views.add_company, name='add_company'),
+    path("add_company/",views.add_company,name="add_company"),
     path('companylist/',views.company_list,name="company_list"),
     # ----------------------   END PARTY     ----------------------------
-
 
     # ----------------------    PARTY     ----------------------------
     path("party/",views.party,name="party"),

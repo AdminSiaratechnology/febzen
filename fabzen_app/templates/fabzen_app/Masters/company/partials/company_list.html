@@ -1,9 +1,23 @@
+{% for cmp in company %}
 <tr>
-    <td>1</td>
-    <td>SiaraTechnology PVT LTD</td>
+    <td>{{forloop.counter}}</td>
+    <td>{{cmp.company_name_street}}</td>
+    
     <td class="d-flex flex-column">
-        <span>Email: armaanalam65@gmail.com</span>
-        <span>Phone: 9973884502</span>
+        {% if cmp.contacts.all %}
+        {% for contact in cmp.contacts.all %}
+            {% if contact.email %}
+            <span>Email: {{ contact.email }}</span>
+            {% endif %}
+            {% if contact.mobile_no %}
+            <span>Phone: {{ contact.mobile_no }}</span>
+            {% endif %}
+        {% empty %}
+            <span class="text-muted">No contact info</span>
+        {% endfor %}
+        {% else %}
+        <span class="text-muted">No contact info</span>
+        {% endif %}
     </td>
 
     <td>Benguluru,Karnataka,India</td>
@@ -28,3 +42,4 @@
         </div>
     </td>
 </tr>
+{% endfor %}

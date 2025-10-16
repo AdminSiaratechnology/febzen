@@ -5,6 +5,11 @@ from django.db.models import Max
 
 
 class Company(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('deleted', 'Deleted'),
+    ]
     company_name_street = models.CharField(max_length=100)
     company_name_print = models.CharField(max_length=100)
     address_line1 = models.TextField()
@@ -15,16 +20,49 @@ class Company(models.Model):
     city = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=100)
     default_currency = models.CharField(max_length=100)
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='active'
+    )
 
 
+class CompanyContact(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='contacts')
+    telephone = models.CharField(max_length=15, null=True,blank=True)
+    mobile_no = models.CharField(max_length=15, null=True,blank=True)
+    fax_no =  models.CharField(max_length=15, null=True,blank=True)
+    email = models.EmailField(blank=True, null=True)
+    website = models.URLField(blank=True, null=True)
 
-    # telephone = models.CharField(max_length=15)
-    # mobile_no = models.CharField(max_length=15)
-    # fax_number = models.CharField(max_length=15)
-    # email = models.EmailField(unique=True)
-    # website = models.URLField(max_length=200, blank=True, null=True) 
+    def __str__(self):
+        return f" ({self.company.company_name_print})"
+
+class CompanyRegistraionDetails(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='register')
+    gst_no =  models.CharField(max_length=15, null=True,blank=True)
+    pan_no =  models.CharField(max_length=15, null=True,blank=True)
+    tan_no =  models.CharField(max_length=15, null=True,blank=True)
+    msme_no =  models.CharField(max_length=15, null=True,blank=True)
+    udyan_no =  models.CharField(max_length=15, null=True,blank=True)
+
+    def __str__(self):
+        return f"{self.gst_no}"
+    
 
 
+class CompanyBank(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='banks')
+    holder_name = models.CharField(max_length=100,null=True,blank=True)
+    account_number = models.CharField(max_length=50,null=True,blank=True)
+    ifsc_code = models.CharField(max_length=20,null=True,blank=True)
+    swift_code = models.CharField(max_length=100,null=True,blank=True)
+    micr_no = models.CharField(max_length=100,null=True,blank=True)
+    bank_name = models.CharField(max_length=100,null=True,blank=True)
+    branch = models.CharField(max_length=100,null=True,blank=True)
+
+    def __str__(self):
+        return f"{self.bank_name} - {self.company.company_name_print}"
 
 PARTY_TYPE_PREFIX = {
     'Supplier': 'SUP',

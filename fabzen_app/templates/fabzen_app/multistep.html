@@ -1,0 +1,244 @@
+{% extends "fabzen_app/Base/base.html" %}
+{% block main-content %}
+
+<div class="page-content">
+
+  <!-- Header Card -->
+  <div class="card bg-primary text-white w-100 mb-4">
+    <div class="card-body">
+      <h5 class="card-title mb-1 text-white">Company Management</h5>
+      <p class="card-text mb-0">Manage and register your company details</p>
+    </div>
+  </div>
+
+  <!-- Stepper Section -->
+  <div class="card">
+    <div class="card-body">
+      <div id="companyStepper" class="bs-stepper vertical gap-4">
+
+        <!-- Step Headers -->
+        <div class="bs-stepper-header" role="tablist">
+          <div class="step" data-target="#step-basic-info">
+            <button type="button" class="step-trigger" role="tab" id="basic-info-trigger" aria-controls="step-basic-info">
+              <span class="bs-stepper-circle"><i class="bx bx-buildings fs-4"></i></span>
+              <span class="bs-stepper-label">
+                <h6 class="mb-0">Basic Info</h6>
+                <small>Enter company details</small>
+              </span>
+            </button>
+          </div>
+          <div class="step" data-target="#step-contact-details">
+            <button type="button" class="step-trigger" role="tab" id="contact-details-trigger" aria-controls="step-contact-details">
+              <span class="bs-stepper-circle"><i class="bx bx-phone fs-4"></i></span>
+              <span class="bs-stepper-label">
+                <h6 class="mb-0">Contact Details</h6>
+                <small>Provide communication info</small>
+              </span>
+            </button>
+          </div>
+          <div class="step" data-target="#step-registration-details">
+            <button type="button" class="step-trigger" role="tab" id="registration-details-trigger" aria-controls="step-registration-details">
+              <span class="bs-stepper-circle"><i class="bx bx-id-card fs-4"></i></span>
+              <span class="bs-stepper-label">
+                <h6 class="mb-0">Registration Details</h6>
+                <small>Company registration details</small>
+              </span>
+            </button>
+          </div>
+          <div class="step" data-target="#step-bank-details">
+            <button type="button" class="step-trigger" role="tab" id="bank-details-trigger" aria-controls="step-bank-details">
+              <span class="bs-stepper-circle"><i class="fadeIn animated bx bx-money fs-4"></i></span>
+              <span class="bs-stepper-label">
+                <h6 class="mb-0">Bank Details</h6>
+                <small>Add multiple bank accounts</small>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Stepper Content -->
+        <div class="bs-stepper-content mt-4">
+          <form method="POST">
+            {% csrf_token %}
+
+            <!-- STEP 1: BASIC INFORMATION -->
+            <div id="step-basic-info" class="bs-stepper-pane fade" role="tabpanel" aria-labelledby="basic-info-trigger">
+              <h5 class="mb-3">Basic Information</h5>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Company Name (Street)</label>
+                  <input type="text" class="form-control" placeholder="Enter Company Name (Street)"name="companystreet" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Company Name (Print)</label>
+                  <input type="text" class="form-control" placeholder="Enter Company Name (Print)" name="cmpprint" >
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Address Line 1</label>
+                  <textarea class="form-control" rows="1" placeholder="Address Line 1" name="addressline1" ></textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Address Line 2</label>
+                  <textarea class="form-control" rows="1" placeholder="Address Line 2" name="addressline2"></textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Address Line 3</label>
+                  <textarea class="form-control" rows="1" placeholder="Address Line 3" name="addressline3"></textarea>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Country</label>
+                  <input type="text" class="form-control" placeholder="Country" name="country" >
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">State</label>
+                  <input type="text" class="form-control" placeholder="State" name="state" >
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">City</label>
+                  <input type="text" class="form-control" placeholder="City" name="city" >
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Zip Code</label>
+                  <input type="text" class="form-control" placeholder="Zip Code" name="zipcode" >
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Default Currency</label>
+                  <input type="text" class="form-control" placeholder="Enter Default Currency" name="currancy" >
+                </div>
+
+                <div class="col-12">
+                  <button class="btn btn-primary" type="button" onclick="nextStep('#step-basic-info')">Next <i class="bx bx-right-arrow-alt ms-2"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 2: CONTACT DETAILS -->
+            <div id="step-contact-details" class="bs-stepper-pane fade" role="tabpanel" aria-labelledby="contact-details-trigger">
+              <h5 class="mb-3">Contact Details</h5>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">Telephone</label><input type="text" class="form-control" placeholder="Telephone" name="telephone" ></div>
+                <div class="col-md-6"><label class="form-label">Mobile Number</label><input type="text" class="form-control" placeholder="Mobile Number" name="mob_no" ></div>
+                <div class="col-md-6"><label class="form-label">Fax Number</label><input type="text" class="form-control" placeholder="Fax Number" name="fax_no" ></div>
+                <div class="col-md-6"><label class="form-label">Email Address</label><input type="text" class="form-control" placeholder="Email Address" name="email" ></div>
+                <div class="col-md-6"><label class="form-label">Website</label><input type="text" class="form-control" placeholder="Website" name="website"></div>
+
+                <div class="col-12 d-flex justify-content-between">
+                  <button class="btn btn-outline-secondary" type="button" onclick="companyStepper.previous()"><i class="bx bx-left-arrow-alt me-2"></i>Previous</button>
+                  <button class="btn btn-primary" type="button" onclick="nextStep('#step-contact-details')">Next <i class="bx bx-right-arrow-alt ms-2"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 3: REGISTRATION DETAILS -->
+            <div id="step-registration-details" class="bs-stepper-pane fade" role="tabpanel" aria-labelledby="registration-details-trigger">
+              <h5 class="mb-3">Registration Details</h5>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">GST Number</label><input type="text" class="form-control" placeholder="GST Number" name="gstno" ></div>
+                <div class="col-md-6"><label class="form-label">PAN Number</label><input type="text" class="form-control" placeholder="PAN Number" name="pan_no" ></div>
+                <div class="col-md-6"><label class="form-label">TAN Number</label><input type="text" class="form-control" placeholder="TAN Number" name="tan_no"></div>
+                <div class="col-md-6"><label class="form-label">MSME Number</label><input type="text" class="form-control" placeholder="MSME Number" name="msme_no"></div>
+                <div class="col-md-6"><label class="form-label">Udyan Number</label><input type="text" class="form-control" placeholder="Udyan Number" name="udyan_no"></div>
+
+                <div class="col-12 d-flex justify-content-between">
+                  <button class="btn btn-outline-secondary" type="button" onclick="companyStepper.previous()"><i class="bx bx-left-arrow-alt me-2"></i>Previous</button>
+                  <button class="btn btn-primary" type="button" onclick="nextStep('#step-registration-details')">Next <i class="bx bx-right-arrow-alt ms-2"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 4: BANK DETAILS -->
+            <div id="step-bank-details" class="bs-stepper-pane fade" role="tabpanel" aria-labelledby="bank-details-trigger">
+              <h5 class="mb-3">Bank Details</h5>
+              <div id="bank-details-container">
+                <div class="bank-details-group border p-3 rounded mb-3">
+                  <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label">Account Holder Name</label><input type="text" class="form-control" placeholder="Account Holder Name" name="holder_name" required></div>
+                    <div class="col-md-6"><label class="form-label">Account Number</label><input type="text" class="form-control" placeholder="Account Number" name="ac_no" required></div>
+                    <div class="col-md-6"><label class="form-label">IFSC Code</label><input type="text" class="form-control" placeholder="IFSC Code" name="ifsc_code" required></div>
+                    <div class="col-md-6"><label class="form-label">SWIFT Code</label><input type="text" class="form-control" placeholder="SWIFT Code" name="swift_code"></div>
+                    <div class="col-md-6"><label class="form-label">MICR Number</label><input type="text" class="form-control" placeholder="MICR Number" name="micr_no"></div>
+                    <div class="col-md-6"><label class="form-label">Bank Name</label><input type="text" class="form-control" placeholder="Bank Name" name="bank_name" required></div>
+                    <div class="col-md-6"><label class="form-label">Branch</label><input type="text" class="form-control" placeholder="Branch" name="branch" required></div>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" class="btn btn-outline-primary mb-3" id="add-more-bank">
+                <i class="bx bx-plus"></i> Add More Bank
+              </button>
+
+              <div class="d-flex justify-content-between">
+                <button class="btn btn-outline-secondary" type="button" onclick="companyStepper.previous()"><i class="bx bx-left-arrow-alt me-2"></i>Previous</button>
+                <button class="btn btn-success" type="submit"><i class="bx bx-check-circle me-2"></i>Submit</button>
+              </div>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function validateStep(stepId) {
+  const step = document.querySelector(stepId);
+  const inputs = step.querySelectorAll("input, textarea");
+  for (let input of inputs) {
+    if (!input.checkValidity()) {
+      input.reportValidity(); // show browser error
+      return false;
+    }
+  }
+  return true;
+}
+
+function nextStep(stepId) {
+  if (validateStep(stepId)) {
+    companyStepper.next();
+  }
+}
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('bank-details-container');
+    const addBtn = document.getElementById('add-more-bank');
+
+    addBtn.addEventListener('click', () => {
+        const original = container.querySelector('.bank-details-group');
+        const clone = original.cloneNode(true);
+
+        // Clear all input values
+        clone.querySelectorAll('input').forEach(input => input.value = '');
+
+        // Create Remove Button for cloned section
+        let removeBtn = clone.querySelector('.remove-bank');
+        if (!removeBtn) {
+            removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-outline-danger btn-sm mt-2 remove-bank';
+            removeBtn.innerHTML = '<i class="bx bx-trash"></i> Remove';
+            clone.appendChild(removeBtn);
+        }
+        removeBtn.style.display = 'inline-block';
+
+        removeBtn.addEventListener('click', () => {
+            clone.remove();
+        });
+
+        container.appendChild(clone);
+    });
+
+    // Hide remove button on first bank details group
+    const firstRemoveBtn = container.querySelector('.bank-details-group .remove-bank');
+    if (firstRemoveBtn) firstRemoveBtn.style.display = 'none';
+
+    // Initialize Stepper
+    window.companyStepper = new Stepper(document.querySelector('#companyStepper'));
+});
+</script>
+
+{% endblock main-content %}
