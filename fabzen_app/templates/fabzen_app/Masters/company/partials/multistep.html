@@ -58,7 +58,7 @@
 
         <!-- Stepper Content -->
         <div class="bs-stepper-content mt-4">
-          <form method="POST">
+          <form method="POST" >
             {% csrf_token %}
 
             <!-- STEP 1: BASIC INFORMATION -->
@@ -67,43 +67,43 @@
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label">Company Name (Street)</label>
-                  <input type="text" class="form-control" placeholder="Enter Company Name (Street)"name="companystreet" required>
+                  <input type="text" class="form-control" placeholder="Enter Company Name (Street)"name="companystreet" value="{{company.company_name_street}}" required>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Company Name (Print)</label>
-                  <input type="text" class="form-control" placeholder="Enter Company Name (Print)" name="cmpprint" >
+                  <input type="text" class="form-control" placeholder="Enter Company Name (Print)" value="{{company.company_name_print}}" name="cmpprint" >
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Address Line 1</label>
-                  <textarea class="form-control" rows="1" placeholder="Address Line 1" name="addressline1" ></textarea>
+                  <textarea class="form-control" rows="1" placeholder="Address Line 1"  name="addressline1" >{{company.address_line1}}</textarea>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Address Line 2</label>
-                  <textarea class="form-control" rows="1" placeholder="Address Line 2" name="addressline2"></textarea>
+                  <textarea class="form-control" rows="1" placeholder="Address Line 2" name="addressline2">{{company.address_line2}}</textarea>
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Address Line 3</label>
-                  <textarea class="form-control" rows="1" placeholder="Address Line 3" name="addressline3"></textarea>
+                  <textarea class="form-control" rows="1" placeholder="Address Line 3" name="addressline3">{{company.address_line3}}</textarea>
                 </div>
                 <div class="col-md-3">
                   <label class="form-label">Country</label>
-                  <input type="text" class="form-control" placeholder="Country" name="country" >
+                  <input type="text" class="form-control" placeholder="Country" name="country" value="{{company.country}}" >
                 </div>
                 <div class="col-md-3">
                   <label class="form-label">State</label>
-                  <input type="text" class="form-control" placeholder="State" name="state" >
+                  <input type="text" class="form-control" placeholder="State" name="state" value="{{company.state}}" >
                 </div>
                 <div class="col-md-3">
                   <label class="form-label">City</label>
-                  <input type="text" class="form-control" placeholder="City" name="city" >
+                  <input type="text" class="form-control" placeholder="City" name="city" value="{{company.city}}" >
                 </div>
                 <div class="col-md-3">
                   <label class="form-label">Zip Code</label>
-                  <input type="text" class="form-control" placeholder="Zip Code" name="zipcode" >
+                  <input type="text" class="form-control" placeholder="Zip Code" name="zipcode"  value="{{company.zip_code}}" >
                 </div>
                 <div class="col-md-6">
                   <label class="form-label">Default Currency</label>
-                  <input type="text" class="form-control" placeholder="Enter Default Currency" name="currancy" >
+                  <input type="text" class="form-control" placeholder="Enter Default Currency" name="currancy" value="{{company.default_currency}}"  >
                 </div>
 
                 <div class="col-12">
@@ -116,11 +116,11 @@
             <div id="step-contact-details" class="bs-stepper-pane fade" role="tabpanel" aria-labelledby="contact-details-trigger">
               <h5 class="mb-3">Contact Details</h5>
               <div class="row g-3">
-                <div class="col-md-6"><label class="form-label">Telephone</label><input type="text" class="form-control" placeholder="Telephone" name="telephone" ></div>
-                <div class="col-md-6"><label class="form-label">Mobile Number</label><input type="text" class="form-control" placeholder="Mobile Number" name="mob_no" ></div>
-                <div class="col-md-6"><label class="form-label">Fax Number</label><input type="text" class="form-control" placeholder="Fax Number" name="fax_no" ></div>
-                <div class="col-md-6"><label class="form-label">Email Address</label><input type="text" class="form-control" placeholder="Email Address" name="email" ></div>
-                <div class="col-md-6"><label class="form-label">Website</label><input type="text" class="form-control" placeholder="Website" name="website"></div>
+                <div class="col-md-6"><label class="form-label">Telephone</label><input type="text" class="form-control" placeholder="Telephone" name="telephone" value="{{company.telephone}}"  ></div>
+                <div class="col-md-6"><label class="form-label">Mobile Number</label><input type="text" class="form-control" placeholder="Mobile Number" name="mob_no" value="{{company.mobile_no}}"  ></div>
+                <div class="col-md-6"><label class="form-label">Fax Number</label><input type="text" class="form-control" placeholder="Fax Number" name="fax_no" value="{{company.fax_no}}" ></div>
+                <div class="col-md-6"><label class="form-label">Email Address</label><input type="text" class="form-control" placeholder="Email Address" name="email" value="{{company.email}}"  ></div>
+                <div class="col-md-6"><label class="form-label">Website</label><input type="text" class="form-control" placeholder="Website" name="website" value="{{company.website}}" ></div>
 
                 <div class="col-12 d-flex justify-content-between">
                   <button class="btn btn-outline-secondary" type="button" onclick="companyStepper.previous()"><i class="bx bx-left-arrow-alt me-2"></i>Previous</button>
@@ -133,11 +133,11 @@
             <div id="step-registration-details" class="bs-stepper-pane fade" role="tabpanel" aria-labelledby="registration-details-trigger">
               <h5 class="mb-3">Registration Details</h5>
               <div class="row g-3">
-                <div class="col-md-6"><label class="form-label">GST Number</label><input type="text" class="form-control" placeholder="GST Number" name="gstno" ></div>
-                <div class="col-md-6"><label class="form-label">PAN Number</label><input type="text" class="form-control" placeholder="PAN Number" name="pan_no" ></div>
-                <div class="col-md-6"><label class="form-label">TAN Number</label><input type="text" class="form-control" placeholder="TAN Number" name="tan_no"></div>
-                <div class="col-md-6"><label class="form-label">MSME Number</label><input type="text" class="form-control" placeholder="MSME Number" name="msme_no"></div>
-                <div class="col-md-6"><label class="form-label">Udyan Number</label><input type="text" class="form-control" placeholder="Udyan Number" name="udyan_no"></div>
+                <div class="col-md-6"><label class="form-label">GST Number</label><input type="text" class="form-control" placeholder="GST Number" name="gstno" value="{{company.gst_no}}" ></div>
+                <div class="col-md-6"><label class="form-label">PAN Number</label><input type="text" class="form-control" placeholder="PAN Number" name="pan_no" value="{{company.pan_no}}"></div>
+                <div class="col-md-6"><label class="form-label">TAN Number</label><input type="text" class="form-control" placeholder="TAN Number" name="tan_no" value="{{company.tan_no}}"></div>
+                <div class="col-md-6"><label class="form-label">MSME Number</label><input type="text" class="form-control" placeholder="MSME Number" name="msme_no" value="{{company.msme_no}}"></div>
+                <div class="col-md-6"><label class="form-label">Udyan Number</label><input type="text" class="form-control" placeholder="Udyan Number" name="udyan_no" value="{{company.udyan_no}}"></div>
 
                 <div class="col-12 d-flex justify-content-between">
                   <button class="btn btn-outline-secondary" type="button" onclick="companyStepper.previous()"><i class="bx bx-left-arrow-alt me-2"></i>Previous</button>
@@ -150,6 +150,35 @@
             <div id="step-bank-details" class="bs-stepper-pane fade" role="tabpanel" aria-labelledby="bank-details-trigger">
               <h5 class="mb-3">Bank Details</h5>
               <div id="bank-details-container">
+              
+              
+                {% if mode == 'edit' %}
+                <div class="accordion" id="bankAccordion">
+                  {% for bank in company_banks %}
+                  <div class="accordion-item mb-3">
+                    <h2 class="accordion-header" id="heading{{ bank.id }}">
+                      <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ bank.id }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ bank.id }}">
+                        {{ bank.bank_name }} - {{ bank.account_number }}
+                      </button>
+                    </h2>
+                    <div id="collapse{{ bank.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="heading{{ bank.id }}" data-bs-parent="#bankAccordion">
+                      <div class="accordion-body">
+                        <div class="row g-3">
+                          <div class="col-md-6"><label class="form-label">Account Holder Name</label><input type="text" class="form-control" placeholder="Account Holder Name" name="holder_name" value="{{ bank.holder_name }}" required></div>
+                          <div class="col-md-6"><label class="form-label">Account Number</label><input type="text" class="form-control" placeholder="Account Number" name="ac_no" value="{{ bank.account_number }}" required></div>
+                          <div class="col-md-6"><label class="form-label">IFSC Code</label><input type="text" class="form-control" placeholder="IFSC Code" name="ifsc_code" value="{{ bank.ifsc_code }}" required></div>
+                          <div class="col-md-6"><label class="form-label">SWIFT Code</label><input type="text" class="form-control" placeholder="SWIFT Code" name="swift_code" value="{{ bank.swift_code }}"></div>
+                          <div class="col-md-6"><label class="form-label">MICR Number</label><input type="text" class="form-control" placeholder="MICR Number" name="micr_no" value="{{ bank.micr_number }}"></div>
+                          <div class="col-md-6"><label class="form-label">Bank Name</label><input type="text" class="form-control" placeholder="Bank Name" name="bank_name" value="{{ bank.bank_name }}" required></div>
+                          <div class="col-md-6"><label class="form-label">Branch</label><input type="text" class="form-control" placeholder="Branch" name="branch" value="{{ bank.branch }}" required></div>
+                          <input type="hidden" name="bank_id" value="{{ bank.id }}">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% else %}
                 <div class="bank-details-group border p-3 rounded mb-3">
                   <div class="row g-3">
                     <div class="col-md-6"><label class="form-label">Account Holder Name</label><input type="text" class="form-control" placeholder="Account Holder Name" name="holder_name" required></div>
@@ -160,18 +189,29 @@
                     <div class="col-md-6"><label class="form-label">Bank Name</label><input type="text" class="form-control" placeholder="Bank Name" name="bank_name" required></div>
                     <div class="col-md-6"><label class="form-label">Branch</label><input type="text" class="form-control" placeholder="Branch" name="branch" required></div>
                   </div>
-                </div>
-              </div>
+                </div> 
+                
+                {% endif %}
+              
 
+                 
+                
+              </div>
+              {% if mode == 'add' %}
               <button type="button" class="btn btn-outline-primary mb-3" id="add-more-bank">
                 <i class="bx bx-plus"></i> Add More Bank
               </button>
+              {% endif %}
+            
+
 
               <div class="d-flex justify-content-between">
                 <button class="btn btn-outline-secondary" type="button" onclick="companyStepper.previous()"><i class="bx bx-left-arrow-alt me-2"></i>Previous</button>
                 <button class="btn btn-success" type="submit"><i class="bx bx-check-circle me-2"></i>Submit</button>
               </div>
             </div>
+
+            
 
           </form>
         </div>
@@ -199,9 +239,17 @@ function nextStep(stepId) {
     companyStepper.next();
   }
 }
+
+// Initialize the stepper
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize the stepper
+  window.companyStepper = new Stepper(document.querySelector('#companyStepper'), {
+    linear: false
+  });
+});
 </script>
 
-
+{% if mode == 'add' %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('bank-details-container');
@@ -235,9 +283,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Hide remove button on first bank details group
     const firstRemoveBtn = container.querySelector('.bank-details-group .remove-bank');
     if (firstRemoveBtn) firstRemoveBtn.style.display = 'none';
+});
+</script>
+{% endif %}
 
-    // Initialize Stepper
-    window.companyStepper = new Stepper(document.querySelector('#companyStepper'));
+<script>
+// Initialize Stepper for both add and edit modes
+document.addEventListener('DOMContentLoaded', function() {
+    window.companyStepper = new Stepper(document.querySelector('#companyStepper'), {
+        linear: false
+    });
 });
 </script>
 

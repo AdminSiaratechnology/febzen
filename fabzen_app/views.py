@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import Party,Company,CompanyContact,CompanyRegistraionDetails,CompanyBank
+from .models import Party,Company,CompanyBank
 from .forms import PartyForm
 from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -18,12 +18,125 @@ def company(request):
 
 
 def company_list(request):
+    search_query = request.GET.get('search', '').strip()
+    status = request.GET.get('status', '').strip()
     company = Company.objects.all().order_by('-id')
+    # company = Company.objects.filter(status ='active').order_by('-id')
+   
+
+    if search_query:
+        company = company.filter(
+            Q(company_name_street__icontains=search_query) |
+            Q(company_name_print__icontains=search_query) |
+            Q(city__icontains=search_query) |
+            Q(zip_code__icontains=search_query)
+        )
+    
+    # if status == '':
+    #     company = Company.objects.all().order_by('-id')
+    if  status:
+        company = Company.objects.filter(status__iexact=status)
+        # company = company.filter(status__iexact=status)
+    
+    page = request.GET.get('page', 10)
+    paginator = Paginator(company, 10)
+    try:
+        companies = paginator.page(page)
+    except PageNotAnInteger:
+        companies = paginator.page(1)
+    except EmptyPage:
+        companies = paginator.page(paginator.num_pages)
     context = {
-        'company':company
+        'company':companies,     
+        'is_paginated': True,
+        'paginator': paginator
 
     }
     return render(request, 'fabzen_app/Masters/company/partials/company_list.html',context)
+
+def edit_company(request,pk):
+    company = get_object_or_404(Company, id=pk)
+    company_banks = CompanyBank.objects.filter(company=company)
+    
+    if request.method == "POST":
+        # ------------------------- Basic Info --------------------
+        company.company_name_street = request.POST.get('companystreet')
+        company.company_name_print = request.POST.get('cmpprint')
+        company.address_line1 = request.POST.get('addressline1')
+        company.address_line2 = request.POST.get('addressline2')
+        company.address_line3 = request.POST.get('addressline3')
+        company.country = request.POST.get('country')
+        company.state = request.POST.get('state')
+        company.city = request.POST.get('city')
+        company.zipcode = request.POST.get('zipcode')
+        company.currency = request.POST.get('currancy')
+
+        # ------------------------- Contact Details -------------------
+        company.telephone = request.POST.get('telephone')
+        company.mobile_no = request.POST.get('mob_no')
+        company.fax_no = request.POST.get('fax_no')
+        company.email = request.POST.get('email')
+        company.website_url = request.POST.get('website')
+
+        # ------------------------- Registration Details -------------------
+        company.gst_number = request.POST.get('gstno')
+        company.pan_no = request.POST.get('pan_no')
+        company.tan_no = request.POST.get('tan_no')
+        company.msme_no = request.POST.get('msme_no')
+        company.udyan_no = request.POST.get('udyan_no')
+        
+        # Save the company data
+        company.save()
+        
+        # ------------------------- Bank Details -------------------
+        # First delete existing bank details to avoid duplicates
+        CompanyBank.objects.filter(company=company).delete()
+        
+        # Get all bank details from the form - handle both field name formats
+        # In edit mode, the field names might be different
+        account_holder_names = request.POST.getlist('account_holder_name') or request.POST.getlist('holder_name')
+        ac_nos = request.POST.getlist('account_number') or request.POST.getlist('ac_no')
+        ifsc_codes = request.POST.getlist('ifsc_code')
+        swift_codes = request.POST.getlist('swift_code')
+        micr_nos = request.POST.getlist('micr_no') or request.POST.getlist('micr_number')
+        bank_names = request.POST.getlist('bank_name')
+        branches = request.POST.getlist('branch')
+        
+        # Create new bank records
+        for i in range(len(bank_names)):
+            if bank_names[i]:  # Only create if bank name is provided
+                CompanyBank.objects.create(
+                    company=company,
+                    holder_name=account_holder_names[i] if i < len(account_holder_names) else "",
+                    account_number=ac_nos[i] if i < len(ac_nos) else "",
+                    ifsc_code=ifsc_codes[i] if i < len(ifsc_codes) else "",
+                    swift_code=swift_codes[i] if i < len(swift_codes) else "",
+                    micr_no=micr_nos[i] if i < len(micr_nos) else "",
+                    bank_name=bank_names[i],
+                    branch=branches[i] if i < len(branches) else ""
+                )
+        
+        # Redirect to company list page after successful update
+        return redirect('company')
+    
+    context = {
+        'company': company,
+        'company_banks': company_banks,
+        'mode': 'edit'
+    }
+    return render(request,'fabzen_app/Masters/company/partials/multistep.html',context)
+def toggle_company_status(request, pk):
+    company = get_object_or_404(Company, id=pk)
+    
+    # Toggle status
+    if company.status == 'active':
+        company.status = 'inactive'
+    else:
+        company.status = 'active'
+    company.save()
+
+    # Re-render only the updated row HTML and return it
+    return render(request, 'fabzen_app/Masters/company/partials/company_list.html', {'cmp': company})
 
 def add_company(request):
     if request.method == "POST":
@@ -44,10 +157,11 @@ def add_company(request):
 
         # ------------------------------ Contact Details -------------------
         telephone = request.POST.get('telephone')
-        mob_no = request.POST.get('mob_no')
-        firstname = request.POST.get('firstname')
+        mobile_no = request.POST.get('mob_no')
+        fax_no = request.POST.get('fax_no')
         email = request.POST.get('email')
-        website = request.POST.get('website')
+        website_url = request.POST.get('website')
+
 
         # ------------------------------ END Contact Details -------------------
 
@@ -77,11 +191,11 @@ def add_company(request):
         # bank_name = request.POST.get('bank_name')
         # branch = request.POST.get('branch')
 
-        account_holder_names = request.POST.getlist('holder_name')
-        ac_nos = request.POST.getlist('ac_no')
+        account_holder_names = request.POST.getlist('account_holder_name') or request.POST.getlist('holder_name')
+        ac_nos = request.POST.getlist('account_number') or request.POST.getlist('ac_no')
         ifsc_codes = request.POST.getlist('ifsc_code')
         swift_codes = request.POST.getlist('swift_code')
-        micr_nos = request.POST.getlist('micr_no')
+        micr_nos = request.POST.getlist('micr_no') or request.POST.getlist('micr_number')
         bank_names = request.POST.getlist('bank_name')
         branches = request.POST.getlist('branch')
 
@@ -97,58 +211,20 @@ def add_company(request):
             state=state,
             city=city,
             zip_code=zipcode,
-            default_currency=currancy
-        )
-
-        telephone = request.POST.get('telephone')
-        mobile_no = request.POST.get('mob_no')
-        fax_no = request.POST.get('fax_no')
-        email = request.POST.get('email')
-        website_url = request.POST.get('website')
-
-
-        print("dddddddddddddddddd",fax_no)
-
-        CompanyContact.objects.create(
-            company=company,
+            default_currency=currancy,
             telephone=telephone,
             mobile_no=mobile_no,
             fax_no=fax_no,
             email=email,
-            website=website_url
-        )
-
-
-         # STEP 3: Registration
-        # gst_no = request.POST.get('gst_no')
-        # pan_no = request.POST.get('pan_no')
-        # tan_no = request.POST.get('tan_no')
-        # msme_no = request.POST.get('msme_no')
-        # udyan_no = request.POST.get('udyan_no')
-
-        CompanyRegistraionDetails.objects.create(
-            company=company,
+            website=website_url,
             gst_no=gst_number,
             pan_no=pan_no,
             tan_no=tan_no,
             msme_no=msme_no,
             udyan_no=udyan_no
         )
-        
 
-         # STEP 4: Banks (Multiple)
-        bank_count = int(request.POST.get('bank_count', 1))  # number of banks dynamically added
-        # for i in range(bank_count):
-        #     CompanyBank.objects.create(
-        #         company=company,
-        #         holder_name= account_holder_name,
-        #         account_number=ac_no,
-        #         ifsc_code=ifsc_code,
-        #         swift_code=swift_code,
-        #         micr_no=micr_no,
-        #         bank_name=bank_name,
-        #         branch=branch
-        #     )
+   
 
         for i in range(len(account_holder_names)):
             CompanyBank.objects.create(
@@ -167,7 +243,7 @@ def add_company(request):
 
 
         
-    return render(request,'fabzen_app/Masters/company/partials/multistep.html')
+    return render(request,'fabzen_app/Masters/company/partials/multistep.html',{'mode': 'add'})
 # def party_list(request):
     
 #     parties_list = Party.objects.all().order_by('-id')

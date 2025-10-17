@@ -47,26 +47,26 @@
               placeholder="Search Company"
               style="max-width: 300px;"
               name="search"
-              hx-get="{% url 'party_list' %}"
+              hx-get="{% url 'company_list' %}"
               hx-trigger="keyup changed delay:500ms"
               hx-target="tbody"
-              hx-include="[name='type']"
+              hx-include="[name='status']"
             >
 
             <!-- 🧩 Filter Select -->
             <select 
               class="form-select" 
               style="max-width: 200px;"
-              name="type"
-              hx-get="{% url 'party_list' %}"
+              name="status"
+              hx-get="{% url 'company_list' %}"
               hx-trigger="change"
               hx-target="tbody"
               hx-include="[name='search']"
             >
-              <option value="">Filter by Status</option>
+              <option value="" disabled selected >Filter by Status</option>
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
-              <option value="All">All</option>
+              <option value="">All</option>
               
             </select>
           </div>

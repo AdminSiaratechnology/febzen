@@ -2,32 +2,45 @@
 <tr>
     <td>{{forloop.counter}}</td>
     <td>{{cmp.company_name_street}}</td>
-    
     <td class="d-flex flex-column">
-        {% if cmp.contacts.all %}
-        {% for contact in cmp.contacts.all %}
-            {% if contact.email %}
-            <span>Email: {{ contact.email }}</span>
-            {% endif %}
-            {% if contact.mobile_no %}
-            <span>Phone: {{ contact.mobile_no }}</span>
-            {% endif %}
-        {% empty %}
-            <span class="text-muted">No contact info</span>
-        {% endfor %}
+        {% if cmp.email %}
+            <span>Email: {{ cmp.email }}</span>
         {% else %}
-        <span class="text-muted">No contact info</span>
+            <span class="text-muted">Email not provided</span>
+        {% endif %}
+
+        {% if cmp.mobile_no %}
+            <span>Phone: {{ cmp.mobile_no }}</span>
+        {% elif cmp.telephone %}
+            <span>Phone: {{ cmp.telephone }}</span>
+        {% else %}
+            <span class="text-muted">Phone not provided</span>
         {% endif %}
     </td>
 
-    <td>Benguluru,Karnataka,India</td>
-    <td><span class="badge bg-success">Active</span></td>
+
+    <td>
+        {% if cmp.address_line1 %}
+
+        {{cmp.address_line1}}
+        {% else %}
+        <span class="text-muted">Address not provided</span>
+        
+        {% endif %}
+    </td>
+    <td>
+        {% if cmp.status == 'active' %}
+        <span class="badge bg-success">Active</span>
+        {% elif cmp.status == 'inactive' %}
+        <span class="badge bg-danger">Inactive</span>
+        {% endif %}
+    </td>
     <td>
         <div class="d-flex align-items-center justify-content-center gap-2">
             <!-- Edit Icon -->
             
             <div class="theme-icons cursor-pointer rounded d-flex align-items-center justify-content-center p-1" style="width:30px; height:30px;">
-            <a href="#"><i class="bx bx-edit text-primary fs-6"></i></a>
+            <a href="{% url "edit_company" cmp.id %}"><i class="bx bx-edit text-primary fs-6"></i></a>
             </div>
 
             <!-- View / Eye Icon -->
@@ -36,10 +49,80 @@
                 <i class="bx bx-show text-primary fs-6"></i>
             </a>
             </div> {% endcomment %}
-            <div class="font-22 text-danger theme-icons cursor-pointer rounded">	<i class="fadeIn animated bx bx-trash"></i>
+            {% comment %} <div class="font-22 text-danger theme-icons cursor-pointer rounded">	<i class="fadeIn animated bx bx-trash"></i>
 			
-            </div>
+            </div> {% endcomment %}
         </div>
     </td>
 </tr>
 {% endfor %}
+
+
+
+
+
+{% if is_paginated %}
+<tr>
+  <td colspan="10">
+    <nav aria-label="Page navigation example">
+      <ul class="pagination round-pagination justify-content-center">
+        
+        {% if company.has_previous %}
+          <li class="page-item">
+            <a class="page-link" 
+               hx-get="{% url 'company_list' %}?page=1" 
+               hx-target="tbody" 
+               hx-swap="innerHTML"
+               hx-include="[name='search'], [name='status']">First</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" 
+               hx-get="{% url 'company_list' %}?page={{ company.previous_page_number }}" 
+               hx-target="tbody" 
+               hx-swap="innerHTML"
+               hx-include="[name='search'], [name='status']">Previous</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><a class="page-link">First</a></li>
+          <li class="page-item disabled"><a class="page-link">Previous</a></li>
+        {% endif %}
+
+        {% for i in paginator.page_range %}
+          {% if company.number == i %}
+            <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+          {% elif i > company.number|add:'-3' and i < company.number|add:'3' %}
+            <li class="page-item">
+              <a class="page-link" 
+                 hx-get="{% url 'company_list' %}?page={{ i }}" 
+                 hx-target="tbody" 
+                 hx-swap="innerHTML"
+                 hx-include="[name='search'], [name='status']">{{ i }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if company.has_next %}
+          <li class="page-item">
+            <a class="page-link" 
+               hx-get="{% url 'company_list' %}?page={{ company.next_page_number }}" 
+               hx-target="tbody" 
+               hx-swap="innerHTML"
+               hx-include="[name='search'], [name='status']">Next</a>
+          </li>
+          <li class="page-item">
+            <a class="page-link" 
+               hx-get="{% url 'company_list' %}?page={{ paginator.num_pages }}" 
+               hx-target="tbody" 
+               hx-swap="innerHTML"
+               hx-include="[name='search'], [name='status']">Last</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><a class="page-link">Next</a></li>
+          <li class="page-item disabled"><a class="page-link">Last</a></li>
+        {% endif %}
+        
+      </ul>
+    </nav>
+  </td>
+</tr>
+{% endif %}

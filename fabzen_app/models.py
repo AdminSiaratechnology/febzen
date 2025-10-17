@@ -27,27 +27,45 @@ class Company(models.Model):
     )
 
 
-class CompanyContact(models.Model):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='contacts')
+    # ---------------------------------- Contact Details -------------------
+
     telephone = models.CharField(max_length=15, null=True,blank=True)
     mobile_no = models.CharField(max_length=15, null=True,blank=True)
     fax_no =  models.CharField(max_length=15, null=True,blank=True)
     email = models.EmailField(blank=True, null=True)
     website = models.URLField(blank=True, null=True)
 
-    def __str__(self):
-        return f" ({self.company.company_name_print})"
 
-class CompanyRegistraionDetails(models.Model):
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='register')
+    # -------------------------------------- Register Details -------------- 
+
     gst_no =  models.CharField(max_length=15, null=True,blank=True)
     pan_no =  models.CharField(max_length=15, null=True,blank=True)
     tan_no =  models.CharField(max_length=15, null=True,blank=True)
     msme_no =  models.CharField(max_length=15, null=True,blank=True)
     udyan_no =  models.CharField(max_length=15, null=True,blank=True)
 
-    def __str__(self):
-        return f"{self.gst_no}"
+
+# class CompanyContact(models.Model):
+#     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='contacts')
+#     telephone = models.CharField(max_length=15, null=True,blank=True)
+#     mobile_no = models.CharField(max_length=15, null=True,blank=True)
+#     fax_no =  models.CharField(max_length=15, null=True,blank=True)
+#     email = models.EmailField(blank=True, null=True)
+#     website = models.URLField(blank=True, null=True)
+
+#     def __str__(self):
+#         return f" ({self.company.company_name_print})"
+
+# class CompanyRegistraionDetails(models.Model):
+#     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='register')
+#     gst_no =  models.CharField(max_length=15, null=True,blank=True)
+#     pan_no =  models.CharField(max_length=15, null=True,blank=True)
+#     tan_no =  models.CharField(max_length=15, null=True,blank=True)
+#     msme_no =  models.CharField(max_length=15, null=True,blank=True)
+#     udyan_no =  models.CharField(max_length=15, null=True,blank=True)
+
+#     def __str__(self):
+#         return f"{self.gst_no}"
     
 
 
