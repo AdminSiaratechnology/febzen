@@ -124,7 +124,7 @@ def edit_company(request,pk):
         'company_banks': company_banks,
         'mode': 'edit'
     }
-    return render(request,'fabzen_app/Masters/company/partials/multistep.html',context)
+    return render(request,'fabzen_app/Masters/company/partials/multistep2.html',context)
 def toggle_company_status(request, pk):
     company = get_object_or_404(Company, id=pk)
     
@@ -243,7 +243,7 @@ def add_company(request):
 
 
         
-    return render(request,'fabzen_app/Masters/company/partials/multistep.html',{'mode': 'add'})
+    return render(request,'fabzen_app/Masters/company/partials/multistep3.html',{'mode': 'add'})
 # def party_list(request):
     
 #     parties_list = Party.objects.all().order_by('-id')

@@ -1,0 +1,573 @@
+{% extends "fabzen_app/Base/base.html" %}
+{% block main-content %}
+
+<style>
+#companyStepper .border-top.bg-light {
+  padding-left: 1.25rem !important;
+}
+</style>
+
+
+<div class="page-content">
+
+  <!-- Header -->
+  <div class="card bg-primary shadow-sm mb-3">
+    <div class="card-body py-2">
+      <h5 class="card-title mb-0 text-white">Company Management</h5>
+      <p class="card-text small mb-0 text-white-50">Manage and register your company details</p>
+    </div>
+  </div>
+
+  <!-- Horizontal Stepper -->
+  <div class="card shadow-sm">
+    <div id="companyStepper" class="bs-stepper">
+      <div class="card-header bg-light py-2">
+        <div class="d-flex flex-wrap justify-content-between align-items-center" role="tablist">
+
+          <!-- Step 1 -->
+          <div class="step" data-target="#step-basic-info">
+            <button type="button" class="step-trigger" onclick="companyStepper.to(1)" role="tab" id="basic-info-trigger" aria-controls="step-basic-info">
+              <span class="bs-stepper-circle bg-primary"><i class="bx bx-buildings"></i></span>
+              <div class="text-start ms-1">
+                <span class="d-block fw-bold small mb-0">Basic Info</span>
+                <small class="text-muted">Company details</small>
+              </div>
+            </button>
+          </div>
+
+          <div class="bs-stepper-line"></div>
+
+          <!-- Step 2 -->
+          <div class="step" data-target="#step-contact-details">
+            <button type="button" class="step-trigger" onclick="companyStepper.to(2)" role="tab" id="contact-details-trigger" aria-controls="step-contact-details">
+              <span class="bs-stepper-circle bg-primary"><i class="bx bx-phone"></i></span>
+              <div class="text-start ms-1">
+                <span class="d-block fw-bold small mb-0">Contact</span>
+                <small class="text-muted">Communication</small>
+              </div>
+            </button>
+          </div>
+
+          <div class="bs-stepper-line"></div>
+
+          <!-- Step 3 -->
+          <div class="step" data-target="#step-registration-details">
+            <button type="button" class="step-trigger" onclick="companyStepper.to(3)" role="tab" id="registration-details-trigger" aria-controls="step-registration-details">
+              <span class="bs-stepper-circle bg-primary"><i class="bx bx-id-card"></i></span>
+              <div class="text-start ms-1">
+                <span class="d-block fw-bold small mb-0">Registration</span>
+                <small class="text-muted">Legal details</small>
+              </div>
+            </button>
+          </div>
+
+          <div class="bs-stepper-line"></div>
+
+          <!-- Step 4 -->
+          <div class="step" data-target="#step-bank-details">
+            <button type="button" class="step-trigger" onclick="companyStepper.to(4)" role="tab" id="bank-details-trigger" aria-controls="step-bank-details">
+              <span class="bs-stepper-circle bg-primary"><i class="bx bx-money"></i></span>
+              <div class="text-start ms-1">
+                <span class="d-block fw-bold small mb-0">Bank</span>
+                <small class="text-muted">Account details</small>
+              </div>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="card-body p-0">
+        <form method="POST" class="needs-validation" novalidate id="companyForm">
+          {% csrf_token %}
+          
+          <!-- Fixed height container for all steps -->
+          <div class="stepper-content-container" style="height: 320px; overflow-y: auto; padding: 1rem;">
+            <div class="bs-stepper-content">
+              
+              <!-- STEP 1 -->
+              <div id="step-basic-info" role="tabpanel" class="bs-stepper-pane fade" aria-labelledby="basic-info-trigger">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bx bx-buildings text-primary me-2"></i>
+                      <h6 class="mb-0">Basic Information</h6>
+                    </div>
+                    <hr class="my-2">
+                  </div>
+                  
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Company Name (Street) <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control form-control-sm" name="companystreet" value="{{company.company_name_street}}" required>
+                    <div class="invalid-feedback">Company name is required</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Company Name (Print)</label>
+                    <input type="text" class="form-control form-control-sm" name="cmpprint" value="{{company.company_name_print}}">
+                  </div>
+                  
+                  <div class="col-md-12">
+                    <label class="form-label small fw-bold">Address</label>
+                    <div class="input-group input-group-sm mb-1">
+                      <span class="input-group-text bg-light"><i class="bx bx-map"></i></span>
+                      <input type="text" class="form-control form-control-sm" placeholder="Address Line 1" name="addressline1" value="{{company.address_line1}}">
+                    </div>
+                    <div class="input-group input-group-sm mb-1">
+                      <span class="input-group-text bg-light"><i class="bx bx-map"></i></span>
+                      <input type="text" class="form-control form-control-sm" placeholder="Address Line 2" name="addressline2" value="{{company.address_line2}}">
+                    </div>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-map"></i></span>
+                      <input type="text" class="form-control form-control-sm" placeholder="Address Line 3" name="addressline3" value="{{company.address_line3}}">
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-3">
+                    <label class="form-label small fw-bold">Country</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-globe"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="country" value="{{company.country}}">
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label small fw-bold">State</label>
+                    <input type="text" class="form-control form-control-sm" name="state" value="{{company.state}}">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label small fw-bold">City</label>
+                    <input type="text" class="form-control form-control-sm" name="city" value="{{company.city}}">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label small fw-bold">Zip Code</label>
+                    <input type="text" class="form-control form-control-sm" name="zipcode" value="{{company.zip_code}}">
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 2 -->
+              <div id="step-contact-details" role="tabpanel" class="bs-stepper-pane fade" aria-labelledby="contact-details-trigger">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bx bx-phone text-primary me-2"></i>
+                      <h6 class="mb-0">Contact Details</h6>
+                    </div>
+                    <hr class="my-2">
+                  </div>
+                  
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">Telephone</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-phone"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="telephone" value="{{company.telephone}}">
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">Mobile <span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-mobile"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="mob_no" value="{{company.mobile_no}}" required>
+                      <div class="invalid-feedback">Mobile number is required</div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">Fax</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-printer"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="fax_no" value="{{company.fax_no}}">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Email</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-envelope"></i></span>
+                      <input type="email" class="form-control form-control-sm" name="email" value="{{company.email}}">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Website</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-globe"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="website" value="{{company.website}}">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 3 -->
+              <div id="step-registration-details" role="tabpanel" class="bs-stepper-pane fade" aria-labelledby="registration-details-trigger">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bx bx-id-card text-primary me-2"></i>
+                      <h6 class="mb-0">Registration Details</h6>
+                    </div>
+                    <hr class="my-2">
+                  </div>
+                  
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">GST <span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-receipt"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="gstno" value="{{company.gst_no}}" required>
+                      <div class="invalid-feedback">GST number is required</div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">PAN</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-card"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="pan_no" value="{{company.pan_no}}">
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">TAN</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-card"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="tan_no" value="{{company.tan_no}}">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">MSME</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-building"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="msme_no" value="{{company.msme_no}}">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Udyan</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-building"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="udyan_no" value="{{company.udyan_no}}">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 4 -->
+              <div id="step-bank-details" role="tabpanel" class="bs-stepper-pane fade" aria-labelledby="bank-details-trigger">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <div class="d-flex align-items-center mb-2">
+                      <i class="bx bx-money text-primary me-2"></i>
+                      <h6 class="mb-0">Bank Details</h6>
+                    </div>
+                    <hr class="my-2">
+                  </div>
+                  
+                  <div class="col-12">
+                    <div id="bank-details-container">
+                      {% if mode == 'edit' %}
+                        {# same accordion bank loop here #}
+                      {% else %}
+                      <div class="bank-details-group border rounded p-2 mb-2 shadow-sm bg-light">
+                        <div class="row g-2">
+                          <div class="col-md-6">
+                            <label class="form-label small fw-bold">Account Holder <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                              <span class="input-group-text bg-white"><i class="bx bx-user"></i></span>
+                              <input type="text" class="form-control form-control-sm" name="holder_name" required>
+                              <div class="invalid-feedback">Account holder name is required</div>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label small fw-bold">Account Number <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                              <span class="input-group-text bg-white"><i class="bx bx-hash"></i></span>
+                              <input type="text" class="form-control form-control-sm" name="ac_no" required>
+                              <div class="invalid-feedback">Account number is required</div>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label small fw-bold">IFSC Code <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                              <span class="input-group-text bg-white"><i class="bx bx-code"></i></span>
+                              <input type="text" class="form-control form-control-sm" name="ifsc_code" required>
+                              <div class="invalid-feedback">IFSC code is required</div>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label small fw-bold">Bank Name <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                              <span class="input-group-text bg-white"><i class="bx bx-building-house"></i></span>
+                              <input type="text" class="form-control form-control-sm" name="bank_name" required>
+                              <div class="invalid-feedback">Bank name is required</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {% endif %}
+                    </div>
+
+                    {% if mode == 'add' %}
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-1" id="add-more-bank">
+                      <i class="bx bx-plus"></i> Add More Bank
+                    </button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+          
+          <!-- Navigation buttons outside the fixed height container -->
+          {% comment %} <div class="d-flex justify-content-end p-3 border-top bg-light">
+            <div>
+              <button id="prevBtn" class="btn btn-outline-secondary btn-sm me-2" type="button" onclick="prevStep()">
+                <i class="bx bx-left-arrow-alt me-1"></i>Previous
+              </button>
+              <button id="nextBtn" class="btn btn-primary btn-sm px-3" type="button" onclick="nextStep()">
+                Next <i class="bx bx-right-arrow-alt ms-1"></i>
+              </button>
+              <button id="submitBtn" class="btn btn-success btn-sm" type="submit" style="display: none;">
+                <i class="bx bx-check-circle me-1"></i>Submit
+              </button>
+            </div>
+          </div> {% endcomment %}
+          <!-- Navigation buttons (left aligned) -->
+<div class="d-flex justify-content-start p-3 border-top bg-light gap-2">
+  <button id="prevBtn" class="btn btn-outline-secondary btn-sm" type="button" onclick="prevStep()">
+    <i class="bx bx-left-arrow-alt me-1"></i>Previous
+  </button>
+
+  <button id="nextBtn" class="btn btn-primary btn-sm px-3" type="button" onclick="nextStep()">
+    Next <i class="bx bx-right-arrow-alt ms-1"></i>
+  </button>
+
+  <button id="submitBtn" class="btn btn-success btn-sm" type="submit" style="display: none;">
+    <i class="bx bx-check-circle me-1"></i>Submit
+  </button>
+</div>
+
+          
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% comment %} 
+<script>
+  // Initialize the stepper
+  document.addEventListener('DOMContentLoaded', function () {
+    var stepperEl = document.querySelector('#companyStepper');
+    var companyStepper = new Stepper(stepperEl, {
+      linear: false,
+      animation: true
+    });
+    
+    // Handle button visibility based on current step
+
+    function updateButtonVisibility() {
+      var stepIndex = companyStepper._currentIndex;
+      var prevBtn = document.getElementById('prevBtn');
+      var nextBtn = document.getElementById('nextBtn');
+      var submitBtn = document.getElementById('submitBtn');
+
+      // ✅ Show "Previous" only after Basic Info (step 1)
+      if (stepIndex === 0) {
+        prevBtn.style.display = 'none';
+      } else {
+        prevBtn.style.display = 'inline-block';
+      }
+
+      // ✅ Show "Submit" only on last step (Bank details)
+      if (stepIndex === 3) {
+        nextBtn.style.display = 'none';
+        submitBtn.style.display = 'inline-block';
+      } else {
+        nextBtn.style.display = 'inline-block';
+        submitBtn.style.display = 'none';
+      }
+    }
+
+    // Update button visibility on step change
+    stepperEl.addEventListener('shown.bs-stepper', updateButtonVisibility);
+    
+    // Initial button visibility setup
+    updateButtonVisibility();
+    
+    // Add more bank details functionality
+    var addMoreBankBtn = document.getElementById('add-more-bank');
+    if (addMoreBankBtn) {
+      addMoreBankBtn.addEventListener('click', function() {
+        var container = document.getElementById('bank-details-container');
+        var bankGroup = document.querySelector('.bank-details-group');
+        var newBankGroup = bankGroup.cloneNode(true);
+        
+        // Clear input values in the cloned group
+        var inputs = newBankGroup.querySelectorAll('input');
+        inputs.forEach(function(input) {
+          input.value = '';
+        });
+        
+        // Add remove button
+        var removeBtn = document.createElement('button');
+        removeBtn.className = 'btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-1';
+        removeBtn.innerHTML = '<i class="bx bx-x"></i>';
+        removeBtn.onclick = function() {
+          container.removeChild(newBankGroup);
+        };
+        
+        newBankGroup.style.position = 'relative';
+        newBankGroup.appendChild(removeBtn);
+        container.appendChild(newBankGroup);
+      });
+    }
+    
+    // Make stepper globally accessible
+    window.companyStepper = companyStepper;
+    
+    // Form validation
+    var form = document.getElementById('companyForm');
+    
+    // Prevent form submission
+    form.addEventListener('submit', function(event) {
+      if (!form.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      form.classList.add('was-validated');
+    });
+    
+    // Next step function with validation
+    window.nextStep = function() {
+      var currentStepIndex = companyStepper._currentIndex;
+      var isValid = true;
+      
+      // Validate fields in current step
+      var currentStep = document.querySelector('.bs-stepper-pane.active');
+      if (currentStep) {
+        var requiredFields = currentStep.querySelectorAll('[required]');
+        requiredFields.forEach(function(field) {
+          if (!field.value) {
+            field.classList.add('is-invalid');
+            isValid = false;
+          } else {
+            field.classList.remove('is-invalid');
+          }
+        });
+      }
+      
+      if (isValid) {
+        companyStepper.next();
+      }
+    };
+    
+    // Previous step function
+    window.prevStep = function() {
+      companyStepper.previous();
+    };
+  });
+</script> {% endcomment %}
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Make it globally accessible
+  window.companyStepper = new Stepper(document.querySelector('#companyStepper'), {
+    linear: false,
+    animation: true
+  });
+
+  const stepperEl = document.querySelector('#companyStepper');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const submitBtn = document.getElementById('submitBtn');
+
+  // ✅ Update button visibility based on current step
+  function updateButtonVisibility() {
+    const totalSteps = stepperEl.querySelectorAll('.step').length;
+    const stepIndex = window.companyStepper._currentIndex; // 0-based index
+    console.log("steppp Index,,,",stepIndex)
+
+    // Hide "Previous" only on first step
+    prevBtn.style.display = stepIndex === 0 ? 'none' : 'inline-block';
+
+    // Show "Submit" only on last step
+    if (stepIndex === totalSteps - 1) {
+      nextBtn.style.display = 'none';
+      submitBtn.style.display = 'inline-block';
+    } else {
+      nextBtn.style.display = 'inline-block';
+      submitBtn.style.display = 'none';
+    }
+  }
+
+  // Run once on page load
+  updateButtonVisibility();
+
+  // Listen for step changes (including clicks)
+  stepperEl.addEventListener('shown.bs-stepper', updateButtonVisibility);
+
+  // ✅ Make top step buttons clickable (and trigger visibility updates)
+ // ✅ Make top step buttons clickable and ensure correct index tracking
+document.querySelectorAll('.step-trigger').forEach((btn, index) => {
+  btn.addEventListener('click', function () {
+    window.companyStepper.to(index + 1); // Stepper expects 1-based
+    setTimeout(() => {
+      console.log("Active step:", index); // Debugging check
+      updateButtonVisibility();
+    }, 200);
+  });
+});
+
+
+  // ✅ Navigation functions
+  window.nextStep = function () {
+    const currentStep = document.querySelector('.bs-stepper-pane.active');
+    let isValid = true;
+
+    currentStep.querySelectorAll('[required]').forEach(field => {
+      if (!field.value.trim()) {
+        field.classList.add('is-invalid');
+        isValid = false;
+      } else {
+        field.classList.remove('is-invalid');
+      }
+    });
+
+    if (isValid) {
+      window.companyStepper.next();
+    }
+  };
+
+  window.prevStep = function () {
+    window.companyStepper.previous();
+  };
+
+  // ✅ Bank "Add More" logic (unchanged)
+  const addMoreBankBtn = document.getElementById('add-more-bank');
+  if (addMoreBankBtn) {
+    addMoreBankBtn.addEventListener('click', function() {
+      const container = document.getElementById('bank-details-container');
+      const bankGroup = document.querySelector('.bank-details-group');
+      const newBankGroup = bankGroup.cloneNode(true);
+      newBankGroup.querySelectorAll('input').forEach(i => i.value = '');
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-1';
+      removeBtn.innerHTML = '<i class="bx bx-x"></i>';
+      removeBtn.onclick = () => container.removeChild(newBankGroup);
+
+      newBankGroup.style.position = 'relative';
+      newBankGroup.appendChild(removeBtn);
+      container.appendChild(newBankGroup);
+    });
+  }
+
+  // ✅ Validation on form submit
+  const form = document.getElementById('companyForm');
+  form.addEventListener('submit', e => {
+    if (!form.checkValidity()) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    form.classList.add('was-validated');
+  });
+});
+</script>
+
+
+
+{% endblock main-content %}

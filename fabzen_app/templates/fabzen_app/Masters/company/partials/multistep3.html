@@ -1,0 +1,401 @@
+{% extends "fabzen_app/Base/base.html" %}
+{% block main-content %}
+
+<style>
+/* Highlight active step */
+.bs-stepper .step.active .bs-stepper-circle {
+  background-color: #fff !important;
+  color: #0d6efd !important; /* Bootstrap primary color */
+  border: 2px solid #fff;
+}
+
+/* Highlight active step text */
+.bs-stepper .step.active h6,
+.bs-stepper .step.active small {
+  color: #fff !important;
+  font-weight: 600;
+}
+
+/* Dim inactive steps */
+.bs-stepper .step:not(.active) h6,
+.bs-stepper .step:not(.active) small {
+  opacity: 0.7;
+}
+
+/* Make active step-circle glow a bit */
+.bs-stepper .step.active .bs-stepper-circle {
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+/* Optional: Change line color when step is completed */
+.bs-stepper .step.completed ~ .bs-stepper-line {
+  border-top-color: #0d6efd !important;
+}
+</style>
+
+<div class="page-content">
+   
+   <h6 class="text-uppercase">Linear Stepper</h6>
+   <hr>
+   <div id="stepper2" class="bs-stepper">
+      <div class="card">
+         {% comment %} <div class="card-header ">
+            <div class="d-lg-flex flex-lg-row align-items-lg-center justify-content-lg-between" role="tablist">
+               <div class="step" data-target="#test-nl-1">
+                  <div class="step-trigger" role="tab" id="stepper2trigger1" aria-controls="test-nl-1">
+                     <div class="bs-stepper-circle"><i class='bx bx-buildings fs-4'></i></div>
+                     <div class="">
+                        <h5 class="mb-0 steper-title">Basic Info</h5>
+                        <p class="mb-0 steper-sub-title">Company details</p>
+                     </div>
+                  </div>
+               </div>
+               <div class="bs-stepper-line"></div>
+               <div class="step" data-target="#test-nl-2">
+                  <div class="step-trigger" role="tab" id="stepper2trigger2" aria-controls="test-nl-2">
+                     <div class="bs-stepper-circle"><i class='bx bx-phone fs-4'></i></div>
+                     <div class="">
+                        <h5 class="mb-0 steper-title">Contact</h5>
+                        <p class="mb-0 steper-sub-title">Communication</p>
+                     </div>
+                  </div>
+               </div>
+               <div class="bs-stepper-line"></div>
+               <div class="step" data-target="#test-nl-3">
+                  <div class="step-trigger" role="tab" id="stepper2trigger3" aria-controls="test-nl-3">
+                     <div class="bs-stepper-circle"><i class='bx bx-id-card fs-4'></i></div>
+                     <div class="">
+                        <h5 class="mb-0 steper-title">Registration</h5>
+                        <p class="mb-0 steper-sub-title">Legal Details</p>
+                     </div>
+                  </div>
+               </div>
+               <div class="bs-stepper-line"></div>
+               <div class="step" data-target="#test-nl-4">
+                  <div class="step-trigger" role="tab" id="stepper2trigger4" aria-controls="test-nl-4">
+                     <div class="bs-stepper-circle"><i class='bx bx-money fs-4'></i></div>
+                     <div class="">
+                        <h5 class="mb-0 steper-title">Bank</h5>
+                        <p class="mb-0 steper-sub-title">Account Details</p>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div> {% endcomment %}
+		 <div class="card-header bg-primary text-white">
+  <div class="d-flex flex-wrap flex-lg-row align-items-center justify-content-between" role="tablist">
+
+    <!-- Step 1 -->
+    <div class="step" data-target="#test-nl-1">
+      <div class="step-trigger d-flex align-items-center" role="tab" id="stepper2trigger1" aria-controls="test-nl-1">
+        <div class="bs-stepper-circle bg-white text-primary me-2"><i class='bx bx-buildings fs-4'></i></div>
+        <div class="text-white">
+          <h6 class="mb-0 fw-bold text-white">Basic Info</h6>
+          <small>Company Details</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="bs-stepper-line flex-grow-1 mx-2 border-top border-light"></div>
+
+    <!-- Step 2 -->
+    <div class="step" data-target="#test-nl-2">
+      <div class="step-trigger d-flex align-items-center" role="tab" id="stepper2trigger2" aria-controls="test-nl-2">
+        <div class="bs-stepper-circle bg-white text-primary me-2"><i class='bx bx-phone fs-4'></i></div>
+        <div class="text-white">
+          <h6 class="mb-0 fw-bold text-white">Contact</h6>
+          <small>Communication</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="bs-stepper-line flex-grow-1 mx-2 border-top border-light"></div>
+
+    <!-- Step 3 -->
+    <div class="step" data-target="#test-nl-3">
+      <div class="step-trigger d-flex align-items-center" role="tab" id="stepper2trigger3" aria-controls="test-nl-3">
+        <div class="bs-stepper-circle bg-white text-primary me-2"><i class='bx bx-id-card fs-4'></i></div>
+        <div class="text-white">
+          <h6 class="mb-0 fw-bold text-white">Registration</h6>
+          <small>Legal Details</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="bs-stepper-line flex-grow-1 mx-2 border-top border-light"></div>
+
+    <!-- Step 4 -->
+    <div class="step" data-target="#test-nl-4">
+      <div class="step-trigger d-flex align-items-center" role="tab" id="stepper2trigger4" aria-controls="test-nl-4">
+        <div class="bs-stepper-circle bg-white text-primary me-2"><i class='bx bx-money fs-4'></i></div>
+        <div class="text-white">
+          <h6 class="mb-0 fw-bold text-white">Bank</h6>
+          <small>Account Details</small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+         <div class="card-body">
+            <div class="bs-stepper-content">
+               <form method="POST" class="needs-validation" novalidate id="companyForm">
+				{% csrf_token %}
+
+                  <div id="test-nl-1" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper2trigger1">
+                     <h5 class="mb-1">Your Personal Information</h5>
+                     
+                     <div class="row g-3">
+                       
+					<div class="col-md-6">
+						<label class="form-label small fw-bold">Company Name (Street) <span class="text-danger">*</span></label>
+						<input type="text" class="form-control form-control-sm" name="companystreet" value="{{company.company_name_street}}" required>
+						<div class="invalid-feedback">Company name is required</div>
+					</div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Company Name (Print)</label>
+                    <input type="text" class="form-control form-control-sm" name="cmpprint" value="{{company.company_name_print}}">
+                  </div>
+                  
+                  <div class="col-md-12">
+                    <label class="form-label small fw-bold">Address</label>
+                    <div class="input-group input-group-sm mb-1">
+                      <span class="input-group-text bg-light"><i class="bx bx-map"></i></span>
+                      <input type="text" class="form-control form-control-sm" placeholder="Address Line 1" name="addressline1" value="{{company.address_line1}}">
+                    </div>
+                    <div class="input-group input-group-sm mb-1">
+                      <span class="input-group-text bg-light"><i class="bx bx-map"></i></span>
+                      <input type="text" class="form-control form-control-sm" placeholder="Address Line 2" name="addressline2" value="{{company.address_line2}}">
+                    </div>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-map"></i></span>
+                      <input type="text" class="form-control form-control-sm" placeholder="Address Line 3" name="addressline3" value="{{company.address_line3}}">
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-3">
+                    <label class="form-label small fw-bold">Country</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-globe"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="country" value="{{company.country}}">
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label small fw-bold">State</label>
+                    <input type="text" class="form-control form-control-sm" name="state" value="{{company.state}}">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label small fw-bold">City</label>
+                    <input type="text" class="form-control form-control-sm" name="city" value="{{company.city}}">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label small fw-bold">Zip Code</label>
+                    <input type="text" class="form-control form-control-sm" name="zipcode" value="{{company.zip_code}}">
+                  </div>
+                        <div class="col-12 col-lg-6">
+                           {% comment %} <button class="btn btn-primary px-4" onclick="stepper2.next()">Next<i class='bx bx-right-arrow-alt ms-2'></i></button> {% endcomment %}
+						   <button class="btn btn-primary px-4" type="button" onclick="nextStep()">Next<i class='bx bx-right-arrow-alt ms-2'></i></button>
+
+                        </div>
+                     </div>
+                     <!---end row-->
+                  </div>
+                  <div id="test-nl-2" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper2trigger2">
+                     <h5 class="mb-1">Account Details</h5>
+                     <p class="mb-4">Enter Your Account Details.</p>
+                     <div class="row g-3">
+                        
+						<div class="col-md-4">
+                    <label class="form-label small fw-bold">Telephone</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-phone"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="telephone" value="{{company.telephone}}">
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">Mobile <span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-mobile"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="mob_no" value="{{company.mobile_no}}" required>
+                      <div class="invalid-feedback">Mobile number is required</div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">Fax</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-printer"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="fax_no" value="{{company.fax_no}}">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Email</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-envelope"></i></span>
+                      <input type="email" class="form-control form-control-sm" name="email" value="{{company.email}}">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Website</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-globe"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="website" value="{{company.website}}">
+                    </div>
+                  </div>
+                        <div class="col-12">
+                           <div class="d-flex align-items-center gap-3">
+                              <button class="btn btn-outline-secondary px-4" type="button" onclick="stepper2.previous()"><i class='bx bx-left-arrow-alt me-2'></i>Previous</button>
+                              <button class="btn btn-primary px-4" type="button" onclick="nextStep()">Next<i class='bx bx-right-arrow-alt ms-2'></i></button>
+
+                           </div>
+                        </div>
+                     </div>
+                     <!---end row-->
+                  </div>
+                  <div id="test-nl-3" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper2trigger3">
+                     <h5 class="mb-1">Your Education Information</h5>
+                     <p class="mb-4">Inform companies about your education life</p>
+                     <div class="row g-3">
+                        <div class="col-md-4">
+                    <label class="form-label small fw-bold">GST <span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-receipt"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="gstno" value="{{company.gst_no}}" required>
+                      <div class="invalid-feedback">GST number is required</div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">PAN</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-card"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="pan_no" value="{{company.pan_no}}">
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label small fw-bold">TAN</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-card"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="tan_no" value="{{company.tan_no}}">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">MSME</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-building"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="msme_no" value="{{company.msme_no}}">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Udyan</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-light"><i class="bx bx-building"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="udyan_no" value="{{company.udyan_no}}">
+                    </div>
+                  </div>
+                        <div class="col-12">
+                           <div class="d-flex align-items-center gap-3">
+                              <button class="btn btn-outline-secondary px-4" type="button" onclick="stepper2.previous()"><i class='bx bx-left-arrow-alt me-2'></i>Previous</button>
+                              {% comment %} <button class="btn btn-primary px-4" onclick="stepper2.next()">Next<i class='bx bx-right-arrow-alt ms-2'></i></button> {% endcomment %}
+							  <button class="btn btn-primary px-4" type="button" onclick="nextStep()">Next<i class='bx bx-right-arrow-alt ms-2'></i></button>
+
+                           </div>
+                        </div>
+                     </div>
+                     <!---end row-->
+                  </div>
+                  <div id="test-nl-4" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper2trigger4">
+                     <h5 class="mb-1">Bank Details</h5>
+                     <p class="mb-4">Can you talk about your past work experience?</p>
+                     <div class="row g-3">
+                        {% comment %} <div class="col-12 col-lg-6">
+                           <label for="Experience1" class="form-label">Experience 1</label>
+                           <input type="text" class="form-control" id="Experience1" placeholder="Experience 1">
+                        </div>
+                        <div class="col-12 col-lg-6">
+                           <label for="Position1" class="form-label">Position</label>
+                           <input type="text" class="form-control" id="Position1" placeholder="Position">
+                        </div>
+                        <div class="col-12 col-lg-6">
+                           <label for="Experience2" class="form-label">Experience 2</label>
+                           <input type="text" class="form-control" id="Experience2" placeholder="Experience 2">
+                        </div>
+                        <div class="col-12 col-lg-6">
+                           <label for="PhoneNumber" class="form-label">Position</label>
+                           <input type="text" class="form-control" id="PhoneNumber" placeholder="Position">
+                        </div>
+                        <div class="col-12 col-lg-6">
+                           <label for="Experience3" class="form-label">Experience 3</label>
+                           <input type="text" class="form-control" id="Experience3" placeholder="Experience 3">
+                        </div>
+                        <div class="col-12 col-lg-6">
+                           <label for="PhoneNumber" class="form-label">Position</label>
+                           <input type="text" class="form-control" id="PhoneNumber" placeholder="Position">
+                        </div> {% endcomment %}
+
+						 <div class="col-12">
+                    <div id="bank-details-container">
+                      {% if mode == 'edit' %}
+                        {# same accordion bank loop here #}
+                      {% else %}
+                      <div class="bank-details-group border rounded p-2 mb-2 shadow-sm bg-light">
+                        <div class="row g-2">
+                          <div class="col-md-6">
+                            <label class="form-label small fw-bold">Account Holder <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                              <span class="input-group-text bg-white"><i class="bx bx-user"></i></span>
+                              <input type="text" class="form-control form-control-sm" name="holder_name" required>
+                              <div class="invalid-feedback">Account holder name is required</div>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label small fw-bold">Account Number <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                              <span class="input-group-text bg-white"><i class="bx bx-hash"></i></span>
+                              <input type="text" class="form-control form-control-sm" name="ac_no" required>
+                              <div class="invalid-feedback">Account number is required</div>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label small fw-bold">IFSC Code <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                              <span class="input-group-text bg-white"><i class="bx bx-code"></i></span>
+                              <input type="text" class="form-control form-control-sm" name="ifsc_code" required>
+                              <div class="invalid-feedback">IFSC code is required</div>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label small fw-bold">Bank Name <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                              <span class="input-group-text bg-white"><i class="bx bx-building-house"></i></span>
+                              <input type="text" class="form-control form-control-sm" name="bank_name" required>
+                              <div class="invalid-feedback">Bank name is required</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {% endif %}
+                    </div>
+
+                    {% if mode == 'add' %}
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-1" id="add-more-bank">
+                      <i class="bx bx-plus"></i> Add More Bank
+                    </button>
+                    {% endif %}
+                  </div>
+                        <div class="col-12">
+                           <div class="d-flex align-items-center gap-3">
+                              <button class="btn btn-primary px-4" type="button" onclick="stepper2.previous()"><i class='bx bx-left-arrow-alt me-2'></i>Previous</button>
+                              <button class="btn btn-success px-4" onclick="stepper2.next()">Submit</button>
+                           </div>
+                        </div>
+                     </div>
+                     <!---end row-->
+                  </div>
+               </form>
+            </div>
+         </div>
+      </div>
+   </div>
+  
+</div>
+{% endblock main-content %}
