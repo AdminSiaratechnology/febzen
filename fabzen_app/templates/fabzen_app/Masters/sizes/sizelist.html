@@ -1,0 +1,75 @@
+<div class="row g-4">
+
+      <!-- 🩳 Shirts / T-Shirts -->
+      {% if shirts %}
+      <div class="col-12 col-md-6">
+        <div class="card h-86" style="background-color:#fceef6; border: 1px solid #ccc; border-radius: 18px;">
+          <div class="card-body">
+            <h5 class="fw-bold mb-3">Shirts / T-Shirts</h5>
+            <div>
+              {% for s in shirts %}
+                <div class="d-inline-block border rounded-pill px-3 py-1 me-2 mb-2" style="background-color:#fceef6; font-size: 0.9rem;">
+                  {{ s.size_label }}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- 👖 Pants / Trousers -->
+      {% if pants %}
+      <div class="col-12 col-md-6">
+        <div class="card h-86" style="background-color:#fceef6; border: 1px solid #ccc; border-radius: 18px;">
+          <div class="card-body">
+            <h5 class="fw-bold mb-3">Pants / Trousers</h5>
+            <div>
+              {% for s in pants %}
+                <div class="d-inline-block border rounded-pill px-3 py-1 me-2 mb-2" style="background-color:#fceef6; font-size: 0.9rem;">
+                  {{ s.size_label }}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- 👗 Ladies Wear -->
+      {% if ladies %}
+      <div class="col-12 col-md-6">
+        <div class="card h-86" style="background-color:#fceef6; border: 1px solid #ccc; border-radius: 16px;">
+          <div class="card-body">
+            <h5 class="fw-bold mb-3">Ladies Wear</h5>
+            <div>
+              {% for s in ladies %}
+                <div class="d-inline-block border rounded-pill px-3 py-1 me-2 mb-2" style="background-color:#fceef6; font-size: 0.9rem;">
+                  {{ s.size_label }}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- 👶 Kids Wear -->
+      {% if kids %}
+      <div class="col-12 col-md-6">
+        <div class="card h-86" style="background-color:#fceef6; border: 1px solid #ccc; border-radius: 16px;">
+          <div class="card-body">
+            <h5 class="fw-bold mb-3">Kids Wear</h5>
+            <div>
+              {% for s in kids %}
+                <div class="d-inline-block border rounded-pill px-3 py-1 me-2 mb-2" style="background-color:#fceef6; font-size: 0.9rem;">
+                  {{ s.size_label }}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>

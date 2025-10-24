@@ -1,0 +1,74 @@
+<div class="modal fade" id="exampleLargeModal2-{{ fabric.id }}" tabindex="-1" aria-labelledby="exampleLargeModalLabel-{{ fabric.id }}" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white d-flex align-items-center justify-content-between mb-2">
+            <div class="d-flex align-items-center">
+               <i class="bi bi-card-text fs-4 me-2"></i>
+               <h5 class="modal-title fw-bold mb-0 text-white">Edit Garment Type</h5>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+         </div>
+
+      <div class="modal-body">
+        <form method="POST" action="{% url 'edit_garment' fabric.id %}">
+          {% csrf_token %}
+
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <label class="form-label">Garment Code</label>
+              <input type="text" class="form-control" name="garment_code" value="{{ fabric.garment_code }}" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Garment Name</label>
+              <input type="text" class="form-control" name="garment_name" value="{{ fabric.garment_name }}" required>
+            </div>
+          </div>
+
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <label class="form-label">Category</label>
+              <select class="form-select" name="garment_category" required>
+                <option value="">Select Category</option>
+                <option value="Shirts" {% if fabric.category == "Shirts" %}selected{% endif %}>Shirts</option>
+                <option value="Casual" {% if fabric.category == "Casual" %}selected{% endif %}>Casual</option>
+                <option value="Pants" {% if fabric.category == "Pants" %}selected{% endif %}>Pants</option>
+                <option value="Ethnic" {% if fabric.category == "Ethnic" %}selected{% endif %}>Ethnic</option>
+                <option value="Ladies" {% if fabric.category == "Ladies" %}selected{% endif %}>Ladies</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Rate per Piece</label>
+              <input type="number" step="0.01" class="form-control" name="rate_per_meter" value="{{ fabric.rate_per_piece }}" required>
+            </div>
+          </div>
+
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <label class="form-label">Avg Fabric Consumption</label>
+              <input type="text" class="form-control" name="avg_fabric_consumption" value="{{ fabric.avg_fabric_consumption }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Avg Production Time</label>
+              <input type="text" class="form-control" name="avg_production_time" value="{{ fabric.avg_production_time }}">
+            </div>
+          </div>
+
+          <div class="row mb-2">
+            <div class="col-md-12">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" name="description">{{ fabric.description }}</textarea>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Update</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

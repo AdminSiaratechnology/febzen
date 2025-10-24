@@ -1,11 +1,12 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import Party,Company,CompanyBank
-from .forms import PartyForm
+from .models import Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine
+from .forms import PartyForm,FabricForm
 from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 from django.urls import reverse_lazy
-
+from django.views.generic import ListView,CreateView
+from django.urls import reverse_lazy
 import json
 # Create your views here.
 
@@ -286,7 +287,7 @@ def party_list(request):
         parties_list = parties_list.filter(party_type__iexact=party_type)
 
     # Pagination
-    page = request.GET.get('page', 10)
+    page = request.GET.get('page', 1)
     paginator = Paginator(parties_list, 10)
 
     try:
@@ -309,9 +310,23 @@ def party(request):
 
 def add_party(request):
     if request.method == 'POST':
-        form = PartyForm(request.POST)
-        if form.is_valid():
-            form.save()
+        # form = PartyForm(request.POST)
+        # if form.is_valid():
+        #     form.save()
+            party_name = request.POST.get('party_name')
+            party_type = request.POST.get('party_type')
+            contact_person = request.POST.get('contact_person')
+            mobile = request.POST.get('mobile')
+            address = request.POST.get('address')
+            city = request.POST.get('city')
+            state = request.POST.get('state')
+            pincode = request.POST.get('pincode')
+            gstno = request.POST.get('gstno')
+            panno = request.POST.get('panno')
+
+            party = Party.objects.create(party_name=party_name,party_type=party_type,contact_person=contact_person,mobile=mobile,address=address,city=city,state=state,pincode=pincode,gst_number=gstno,pan_number=panno)
+            party.save()
+            
             parties_list = Party.objects.all().order_by('-id')
             
             # पेजिनेशन लॉजिक
@@ -339,7 +354,7 @@ def add_party(request):
 
     return render(request, 'fabzen_app/Masters/partials/party_form.html', {'form': form})
 
-
+from django.contrib import messages
 def edit_party(request, id):
     party = get_object_or_404(Party, id=id)  # fetch existing record
 
@@ -358,7 +373,8 @@ def edit_party(request, id):
                 parties = paginator.page(1)
             except EmptyPage:
                 parties = paginator.page(paginator.num_pages)
-
+            # request.notifications.add('Hello world.')
+            messages.success(request, "Company updated successfully!")
             response = render(request, 'fabzen_app/Masters/partials/party_table.html', {
                 'parties': parties,
                 'is_paginated': True,
@@ -392,3 +408,584 @@ def view_party(request, id):
 #     else:
 #         form = PartyForm()
 #     return render(request, 'fabzen_app/Masters/partials/party_form.html', {'form': form})
+
+
+
+
+
+
+# ----------------------------------- FABRIC QUALITIEST ---------------------
+
+class FabricListView(ListView):
+    model = Fabric
+    template_name = 'fabzen_app/Masters/fabrics/fabric.html'
+    context_object_name = 'fabrics'
+    ordering = ['-id']
+    paginate_by = 10
+
+    # def get_template_names(self):
+    #     # HTMX request par sirf list partial bhejo
+    #     if self.request.htmx:
+    #         return ['fabzen_app/Masters/fabrics/partials/fabric_list.html']
+    #     return [self.template_name]
+
+
+
+# def fabric_list(request):
+#     fabric = Fabric.objects.all().order_by('-id')
+#     context={
+#         'fabrics':fabric
+#     }
+
+#     return render(request,'fabzen_app/Masters/fabrics/partials/fabric_list.html',context)
+
+def fabric_list(request):
+    fabrics_qs = Fabric.objects.all().order_by('-id')
+
+    # --- Pagination logic ---
+    page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
+    paginator = Paginator(fabrics_qs, 10)     # Show 10 fabrics per page
+
+    try:
+        fabrics = paginator.page(page_number)
+    except Exception:
+        fabrics = paginator.page(1)
+
+    context = {
+        'fabrics': fabrics,
+        'paginator': paginator,
+        'is_paginated': True,  # Used by your template
+    }
+
+    return render(request, 'fabzen_app/Masters/fabrics/partials/fabric_list.html', context)
+
+
+def create_fabric(request):
+    if request.method == 'POST':
+        code = request.POST.get('code')
+        quality_name = request.POST.get('quality_name')
+        construction = request.POST.get('construction')
+        width = request.POST.get('width')
+        gsm = request.POST.get('gsm')
+        category = request.POST.get('category')
+        rate_per_meter = request.POST.get('rate_per_meter')
+        description = request.POST.get('description')
+
+        
+    
+        fabric = Fabric.objects.create(quality_name=quality_name,construction=construction,width=width,gsm=gsm,category=category,rate_per_meter=rate_per_meter,description=description)
+        if not fabric.code:
+            last = Fabric.objects.order_by('-id').first()
+            next_num = (last.id + 1) if last else 1
+            fabric.code = f"Q-{next_num:04d}"
+            fabric.save()
+        print("codeeeeeeeee",code,'quality nameeeeee',quality_name)
+        return redirect('fabric')
+       
+
+def update_fabric(request, pk):
+    fabric = get_object_or_404(Fabric, pk=pk)
+    
+    
+    form = FabricForm(request.POST, instance=fabric)
+    if form.is_valid():
+        updated = form.save(commit=False)
+        # preserve existing code if not provided
+        if not updated.code:
+            updated.code = fabric.code
+        updated.save()
+        return redirect('fabric')
+            # Return updated list partial with pagination
+            
+
+# ----------------------------------- FABRIC QUALITIEST ---------------------
+
+# ----------------------------------- SIZES ---------------------
+
+
+def SizesListView(request):
+    if request.method == "POST":
+        print("workingggggggggggg")
+        size_category = request.POST.get("size_category")
+        size_label = request.POST.get("size_label")
+        display_order = request.POST.get("display_order")
+        chest = request.POST.get("chest") or None
+        waist = request.POST.get("waist") or None
+        length = request.POST.get("length") or None
+
+        # Validation (optional but recommended)
+        if not size_category or not size_label:
+            messages.error(request, "Please fill in all required fields.")
+        else:
+            size = Size.objects.create(
+                size_category=size_category,
+                size_label=size_label,
+                display_order=display_order,
+                chest=chest,
+                waist=waist,
+                length=length,
+            )
+            messages.success(request, f"Size '{size.size_label}' added successfully!")
+            return redirect("size")  # <- apne URL name ke hisaab se change karein
+
+    # GET request (show list)
+    # sizes = Size.objects.all().order_by("display_order")
+    return render(request, "fabzen_app/Masters/sizes/size.html")
+
+# class SizesListView(ListView):
+#     model = Size
+#     template_name = 'fabzen_app/Masters/sizes/size.html'
+#     context_object_name = 'sizes'
+#     ordering = ['-id']
+#     paginate_by = 10
+
+
+
+
+def size_list(request):
+    context = {
+        "shirts": Size.objects.filter(size_category="shirts").order_by("display_order"),
+        "pants": Size.objects.filter(size_category="pants").order_by("display_order"),
+        "ladies": Size.objects.filter(size_category="ladies").order_by("display_order"),
+        "kids": Size.objects.filter(size_category="kids").order_by("display_order"),
+    }
+
+    return render(request, 'fabzen_app/Masters/sizes/sizelist.html', context)
+
+# def size_list(request):
+#     size_qs = Size.objects.all().order_by('-id')
+
+#     # --- Pagination logic ---
+#     page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
+#     paginator = Paginator(size_qs, 10)     # Show 10 fabrics per page
+
+#     try:
+#         sizes = paginator.page(page_number)
+#     except Exception:
+#         sizes = paginator.page(1)
+
+
+
+
+#     context = {
+#         'fabrics': sizes,
+#         'paginator': paginator,
+#         'is_paginated': True,  # Used by your template
+#     }
+
+#     return render(request, 'fabzen_app/Masters/sizes/sizelist.html', context)
+
+
+# ----------------------------------- END SIZES ---------------------
+
+# -----------------------------------  Garments ---------------------
+
+
+def GarmentsListView(request):
+    garments = Garment.objects.all().order_by('-id')
+
+    # CREATE Garment
+    if request.method == "POST":
+        garment_code = request.POST.get('garment_code', '').strip()
+        garment_name = request.POST.get('garment_name', '').strip()
+        garment_category = request.POST.get('garment_category', '').strip()
+        rate_per_meter = request.POST.get('rate_per_meter', '').strip()
+        avg_fabric_consumption = request.POST.get('avg_fabric_consumption', '').strip()
+        avg_production_time = request.POST.get('avg_production_time', '').strip()
+        description = request.POST.get('description', '').strip()
+
+        # Validate required fields
+        if not garment_code or not garment_name or not garment_category or not rate_per_meter:
+            messages.error(request, "Please fill all required fields.")
+            return redirect('garments')
+
+        # Check for duplicate garment code
+        if Garment.objects.filter(garment_code__iexact=garment_code).exists():
+            messages.error(request, f"Garment code '{garment_code}' already exists!")
+            return redirect('garments')
+
+        # Create new garment
+        Garment.objects.create(
+            garment_code=garment_code,
+            garment_name=garment_name,
+            category=garment_category,
+            rate_per_piece=rate_per_meter,
+            avg_fabric_consumption=avg_fabric_consumption,
+            avg_production_time=avg_production_time,
+            description=description,
+        )
+
+        messages.success(request, "Garment added successfully!")
+        return redirect('garments')
+
+    return render(request, 'fabzen_app/Masters/garments/garments.html', {'garments': garments})
+
+
+def edit_garment(request, garment_id):
+    garment = get_object_or_404(Garment, id=garment_id)
+    print("garmenstssssssssssss",garment)
+
+    if request.method == "POST":
+        print("noooooooooooooooo")
+        garment_code = request.POST.get('garment_code', '').strip()
+        garment_name = request.POST.get('garment_name', '').strip()
+        garment_category = request.POST.get('garment_category', '').strip()
+        rate_per_meter = request.POST.get('rate_per_meter', '').strip()
+        avg_fabric_consumption = request.POST.get('avg_fabric_consumption', '').strip()
+        avg_production_time = request.POST.get('avg_production_time', '').strip()
+        description = request.POST.get('description', '').strip()
+
+        # Check if code changed & is unique
+        if garment.garment_code != garment_code:
+            if Garment.objects.filter(garment_code__iexact=garment_code).exists():
+                messages.error(request, f"Garment code '{garment_code}' already exists!")
+                return redirect('edit_garment', garment_id=garment.id)
+
+        garment.garment_code = garment_code
+        garment.garment_name = garment_name
+        garment.category = garment_category
+        garment.rate_per_piece = rate_per_meter
+        garment.avg_fabric_consumption = avg_fabric_consumption
+        garment.avg_production_time = avg_production_time
+        garment.description = description
+        garment.save()
+
+        messages.success(request, "Garment updated successfully!")
+        return redirect('garments')
+
+    # return render(request, 'fabzen_app/Masters/garments/partials/edit_garments.html', {'garment': garment})
+
+
+def delete_garment(request, garment_id):
+    garment = get_object_or_404(Garment, id=garment_id)
+    garment.delete()
+    messages.success(request, "Garment deleted successfully!")
+    return redirect('garments_list')
+
+
+def garments_list(request):
+    search_query = request.GET.get('search', '').strip()
+    category_type = request.GET.get('type', '').strip()
+    garments_qs = Garment.objects.all().order_by('-id')
+
+    if search_query:
+        garments_qs = garments_qs.filter(
+            Q(garment_code__icontains=search_query) |
+            Q(garment_name__icontains=search_query) |
+            Q(category__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+    
+    if category_type:
+        garments_qs = garments_qs.filter(category__iexact=category_type)
+
+    # --- Pagination logic ---
+    page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
+    paginator = Paginator(garments_qs, 10)     # Show 10 fabrics per page
+
+    try:
+        garments = paginator.page(page_number)
+    except Exception:
+        garments = paginator.page(1)
+
+    context = {
+        'fabrics': garments,
+        'paginator': paginator,
+        'is_paginated': True,  # Used by your template
+    }
+
+    return render(request, 'fabzen_app/Masters/garments/partials/garments_list.html', context)
+
+
+# ----------------------------------- END Garments ---------------------
+
+# ----------------------------------- Processes ---------------------
+
+
+
+# def ProcessesListView(request):
+#     garments = Garment.objects.all().order_by('-id')
+
+#     # CREATE Garment
+#     if request.method == "POST":
+#         process_code = request.POST.get('process_code', '').strip()
+        
+
+#         # Validate required fields
+#         if not process_code or not garment_name or not garment_category or not rate_per_meter:
+#             messages.error(request, "Please fill all required fields.")
+#             return redirect('garments')
+
+#         # Check for duplicate garment code
+#         if Garment.objects.filter(garment_code__iexact=garment_code).exists():
+#             messages.error(request, f"Garment code '{garment_code}' already exists!")
+#             return redirect('garments')
+
+#         # Create new garment
+#         Garment.objects.create(
+#             garment_code=garment_code,
+#             garment_name=garment_name,
+#             category=garment_category,
+#             rate_per_piece=rate_per_meter,
+#             avg_fabric_consumption=avg_fabric_consumption,
+#             avg_production_time=avg_production_time,
+#             description=description,
+#         )
+
+#         messages.success(request, "Garment added successfully!")
+#         return redirect('garments')
+
+#     return render(request, 'fabzen_app/Masters/processes/processes.html', {'garments': garments})
+
+
+
+def ProcessesListView(request):
+    processes = Process.objects.all().order_by('-id')
+
+    if request.method == "POST":
+        process_code = request.POST.get('process_code', '').strip()
+        process_name = request.POST.get('process_name', '').strip()
+        process_type = request.POST.get('type', '').strip()
+        unit = request.POST.get('unit', '').strip()
+        rate = request.POST.get('rate', '').strip()
+        average_time = request.POST.get('avg_time', '').strip()
+        description = request.POST.get('description', '').strip()
+
+        # Validate required fields
+        if not process_code or not process_name or not process_type or not unit or not rate:
+            messages.error(request, "Please fill all required fields.")
+            return redirect('processes')
+
+        # Check for duplicate process code
+        if Process.objects.filter(process_code__iexact=process_code).exists():
+            messages.error(request, f"Process code '{process_code}' already exists!")
+            return redirect('processes')
+
+        # Create the new process
+        Process.objects.create(
+            process_code=process_code,
+            process_name=process_name,
+            process_type=process_type,
+            unit=unit,
+            rate=rate,
+            average_time=average_time,
+            description=description
+        )
+
+        messages.success(request, f"Process '{process_name}' added successfully!")
+        return redirect('processes')
+
+    return render(request, 'fabzen_app/Masters/processes/processes.html', {'processes': processes})
+
+
+
+
+def process_list(request):
+    search_query = request.GET.get('search', '').strip()
+    category_type = request.GET.get('type', '').strip()
+    process_qs = Process.objects.all().order_by('-id')
+
+    if search_query:
+        process_qs = process_qs.filter(
+            Q(process_code__icontains=search_query) |
+            Q(process_name__icontains=search_query) |
+            Q(process_type__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+    
+    if category_type:
+        process_qs = process_qs.filter(process_type__iexact=category_type)
+
+    # --- Pagination logic ---
+    page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
+    paginator = Paginator(process_qs, 10)     # Show 10 fabrics per page
+
+    try:
+        garments = paginator.page(page_number)
+    except Exception:
+        garments = paginator.page(1)
+
+    context = {
+        'fabrics': garments,
+        'paginator': paginator,
+        'is_paginated': True,  # Used by your template
+    }
+
+    return render(request, 'fabzen_app/Masters/processes/partials/process_list.html', context)
+
+
+
+def edit_process(request, pk):
+    process = get_object_or_404(Process, pk=pk)
+
+    if request.method == "POST":
+        print("edit processssssssss")
+        # process.process_code = request.POST.get('process_code', '').strip()
+        process.process_name = request.POST.get('process_name', '').strip()
+        process.process_type = request.POST.get('type', '').strip()
+        process.unit = request.POST.get('unit', '').strip()
+        process.rate = request.POST.get('rate', '').strip()
+        process.average_time = request.POST.get('avg_time', '').strip()
+        process.description = request.POST.get('description', '').strip()
+
+        # Validation
+        # if not process.process_code or not process.process_name:
+        #     messages.error(request, "Please fill all required fields.")
+        #     return redirect('processes')
+
+        process.save()
+        messages.success(request, "Process updated successfully!")
+        return redirect('processes')
+
+    
+
+
+# ----------------------------------- END Processes ---------------------
+
+
+# -----------------------------------  Machine ---------------------
+
+
+
+
+def MachineListView(request):
+    
+
+    if request.method == "POST":
+        machine_code = request.POST.get('machine_code', '').strip()
+        machine_name = request.POST.get('machine_name', '').strip()
+        machine_type = request.POST.get('machine_type', '').strip()
+        brand = request.POST.get('brand', '').strip()
+        capacity = request.POST.get('capacity', '').strip()
+        purchase_date = request.POST.get('purchase_date', '').strip()
+        assign_operator = request.POST.get('assign_operator', '').strip()
+
+        notes  = request.POST.get('notes', '').strip()
+
+       
+
+        # Check for duplicate process code
+        if Machine.objects.filter(machine_code__iexact=machine_code).exists():
+            messages.error(request, f"Process code '{machine_code}' already exists!")
+            return redirect('processes')
+
+        # Create the new process
+        Machine.objects.create(
+            machine_code=machine_code,
+            machine_name=machine_name,
+            machine_type=machine_type,
+            brand=brand,
+            capacity_per_day=capacity,
+            purchase_date=purchase_date,
+            assigned_operator=assign_operator,
+            notes=notes
+        )
+        messages.success(request, f"Process '{machine_name}' added successfully!")
+        return redirect('machine')
+
+    return render(request, 'fabzen_app/Masters/machine/machine.html')
+
+
+
+
+
+def machine_list(request):
+    
+    search_query = request.GET.get('search', '').strip()
+    type = request.GET.get('type', '').strip()
+    machine_qs = Machine.objects.all().order_by('-id')
+
+    if search_query:
+        machine_qs = machine_qs.filter(
+            Q(machine_code__icontains=search_query) |
+            Q(machine_name__icontains=search_query) |
+            Q(machine_type__icontains=search_query) |
+            Q(brand__icontains=search_query)
+        )
+    
+    if type:
+        machine_qs = machine_qs.filter(machine_type__iexact=type)
+
+    # --- Pagination logic ---
+    page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
+    paginator = Paginator(machine_qs, 10)     # Show 10 fabrics per page
+
+    try:
+        garments = paginator.page(page_number)
+    except Exception:
+        garments = paginator.page(1)
+
+    context = {
+        'fabrics': garments,
+        'paginator': paginator,
+        'is_paginated': True,  # Used by your template
+    }
+
+    return render(request, 'fabzen_app/Masters/machine/partials/machine_listcopy.html', context)
+
+
+# def machine_list(request):
+    
+#     search_query = request.GET.get('search', '').strip()
+#     type = request.GET.get('type', '').strip()
+#     machine_qs = Machine.objects.all().order_by('-id')
+
+#     if search_query:
+#         machine_qs = machine_qs.filter(
+#             Q(machine_code__icontains=search_query) |
+#             Q(machine_name__icontains=search_query) |
+#             Q(machine_type__icontains=search_query) |
+#             Q(brand__icontains=search_query)
+#         )
+    
+#     if type:
+#         machine_qs = machine_qs.filter(machine_type__iexact=type)
+
+#     # --- Pagination logic ---
+#     page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
+#     paginator = Paginator(machine_qs, 10)     # Show 10 fabrics per page
+
+#     try:
+#         garments = paginator.page(page_number)
+#     except Exception:
+#         garments = paginator.page(1)
+
+#     context = {
+#         'fabrics': garments,
+#         'paginator': paginator,
+#         'is_paginated': True,  # Used by your template
+#     }
+
+#     return render(request, 'fabzen_app/Masters/machine/partials/machine_list.html', context)
+
+
+
+from datetime import datetime
+def edit_machine(request, pk):
+    print("oooooooooooooooooooooooooooooooooo")
+    machine = get_object_or_404(Machine, pk=pk)
+
+    if request.method == "POST":
+        print("edit machineeeeeeeeeeeeeeeeeeee")
+        # process.process_code = request.POST.get('process_code', '').strip()
+        machine.machine_name = request.POST.get('machine_name', '').strip()
+        machine.machine_type  = request.POST.get('machine_type', '').strip()
+        machine.brand = request.POST.get('brand', '').strip()
+        machine.capacity_per_day = request.POST.get('capacity', '').strip()
+        # machine.purchase_date = request.POST.get('purchase_date', '').strip()
+        machine.assigned_operator = request.POST.get('assign_operator', '').strip()
+        machine.notes = request.POST.get('notes', '').strip()
+        purchase_date_str = request.POST.get('purchase_date', '').strip()
+        # Validation
+        # if not process.process_code or not process.process_name:
+        #     messages.error(request, "Please fill all required fields.")
+        #     return redirect('processes')
+
+
+        # if purchase_date_str:
+        #         machine.purchase_date = datetime.strptime(purchase_date_str, '%Y-%m-%d').date()
+        machine.save()
+        messages.success(request, "Machine updated successfully!")
+        return redirect('machine')
+
+# ----------------------------------- END Machine ---------------------

@@ -5799,3 +5799,16 @@ input::placeholder {
 
 
 }
+
+
+ /* Applies to all input fields */
+  input.form-control,
+  textarea.form-control,
+  select.form-select {
+      background-color: #f0f0f0;
+  }
+
+
+.page-link {
+  cursor: pointer;
+}

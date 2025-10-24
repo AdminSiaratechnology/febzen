@@ -1,20 +1,84 @@
-<div class="modal fade show" id="addPartyModal" tabindex="-1" style="display:block;" aria-modal="true" role="dialog">
-  <div class="modal-dialog modal-dialog-scrollable">
+<div class="modal fade show" id="" tabindex="-1" style="display:block;" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header bg-warning">
-        <h5 class="modal-title">Add New Party</h5>
+        <h5 class="modal-title">{% if mode == 'edit' %}Edit Party{% else %}Add New Party{% endif %}</h5>
         <button type="button" class="btn-close" onclick="closeModal()"></button>
       </div>
       <div class="modal-body">
-        <form hx-post="{% if request.path == '/party/add/' %}{% url 'add_party' %}{% elif mode == 'edit' %}{% url "edit_party" id %}{% endif %}" 
-              hx-target="tbody" 
-              hx-swap="innerHTML" 
-              class="row g-3">
+        <form 
+          hx-post="{% if mode == 'edit' %}{% url 'edit_party' id %}{% else %}{% url 'add_party' %}{% endif %}"
+          hx-target="tbody"
+          hx-swap="innerHTML"
+          class="row g-3">
 
           {% csrf_token %}
-          {{ form.as_p }}
 
-          {{request.path}}
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <label class="form-label">Party Name</label>
+              <input type="text" class="form-control" name="party_name"
+                     placeholder="Enter Party Name"
+                     value="{{ form.party_name.value|default_if_none:'' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Party Type</label>
+              <select class="form-select" name="party_type" required>
+                <option value="" disabled {% if not form.party_type.value %}selected{% endif %}>Select Type</option>
+                {% for key, val in form.fields.party_type.choices %}
+                  <option value="{{ key }}" {% if form.party_type.value == key %}selected{% endif %}>{{ val }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Contact Person</label>
+              <input type="text" class="form-control" name="contact_person"
+                     value="{{ form.contact_person.value|default_if_none:'' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Mobile</label>
+              <input type="text" class="form-control" name="mobile"
+                     value="{{ form.mobile.value|default_if_none:'' }}">
+            </div>
+
+            <div class="col-md-12">
+              <label class="form-label">Address</label>
+              <textarea class="form-control" name="address">{{ form.address.value|default_if_none:'' }}</textarea>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">City</label>
+              <input type="text" class="form-control" name="city"
+                     value="{{ form.city.value|default_if_none:'' }}">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">State</label>
+              <input type="text" class="form-control" name="state"
+                     value="{{ form.state.value|default_if_none:'' }}">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Pincode</label>
+              <input type="number" class="form-control" name="pincode"
+                     value="{{ form.pincode.value|default_if_none:'' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">GST Number</label>
+              <input type="text" class="form-control" name="gstno"
+                     value="{{ form.gstno.value|default_if_none:'' }}">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">PAN Number</label>
+              <input type="text" class="form-control" name="panno"
+                     value="{{ form.panno.value|default_if_none:'' }}">
+            </div>
+          </div>
 
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
@@ -28,12 +92,7 @@
 <div class="modal-backdrop fade show"></div>
 
 <script>
-  // Listen for the closeModal event from the server
-  document.body.addEventListener('closeModal', function() {
-    closeModal();
-  });
-
-  // Function to close the modal
+  document.body.addEventListener('closeModal', () => closeModal());
   function closeModal() {
     const dialog = document.getElementById('dialog');
     dialog.innerHTML = '';

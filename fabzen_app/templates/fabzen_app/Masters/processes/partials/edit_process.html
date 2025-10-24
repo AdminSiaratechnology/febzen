@@ -1,0 +1,62 @@
+<div class="modal fade" id="editProcessModal-{{fabric.id}}" tabindex="-1" aria-hidden="true">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+         <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title text-white">Edit Process</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+         </div>
+         <form action="{% url "edit_process" fabric.id %}" method="POST" id="editProcessForm">
+            {% csrf_token %}
+            <div class="modal-body">
+               <div class="row mb-2">
+                  <div class="col-md-6">
+                     <label class="form-label">Process Code</label>
+                     <input type="text" class="form-control" name="process_code" id="edit_process_code" value="{{fabric.process_code}}" disabled required>
+                  </div>
+                  <div class="col-md-6">
+                     <label class="form-label">Process Name</label>
+                     <input type="text" class="form-control" name="process_name" id="edit_process_name" value="{{fabric.process_name}}" required>
+                  </div>
+               </div>
+
+               <div class="row mb-2">
+                  <div class="col-md-4">
+                     <label class="form-label">Process Type</label>
+                     <select class="form-select" name="type" id="edit_process_type">
+                        <option value="Job Work" {% if fabric.process_type == 'Job Work' %}selected{% endif %}>Job Work</option>
+                        <option value="In-house" {% if fabric.process_type == 'In-house' %}selected{% endif %}>In-house</option>
+                     </select>
+                  </div>
+                  <div class="col-md-4">
+                     <label class="form-label">Unit</label>
+                     <select class="form-select" name="unit" id="edit_unit">
+                        <option value="Meter" {% if fabric.unit == 'Meter' %}selected{% endif %}>Meter</option>
+                        <option value="Piece" {% if fabric.unit == 'Piece' %}selected{% endif %}>Piece</option>
+                        <option value="Kg" {% if fabric.unit == 'Kg' %}selected{% endif %}>Kg</option>
+                     </select>
+                  </div>
+                  <div class="col-md-4">
+                     <label class="form-label">Rate</label>
+                     <input type="number" step="0.01" class="form-control" name="rate" id="edit_rate" value="{{fabric.rate}}" required>
+                  </div>
+               </div>
+
+               <div class="mb-2">
+                  <label class="form-label">Average Time</label>
+                  <input type="text" class="form-control" name="avg_time" id="edit_avg_time" value="{{fabric.average_time}}">
+               </div>
+
+               <div class="mb-2">
+                  <label class="form-label">Description</label>
+                  <textarea class="form-control" name="description" id="edit_description">{{fabric.description}}</textarea>
+               </div>
+            </div>
+
+            <div class="modal-footer">
+               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+               <button type="submit" class="btn btn-primary">Update Process</button>
+            </div>
+         </form>
+      </div>
+   </div>
+</div>

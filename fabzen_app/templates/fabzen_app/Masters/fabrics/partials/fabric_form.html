@@ -1,0 +1,208 @@
+{% comment %} <!-- Modal -->
+<div class="modal fade show" id="exampleLargeModal" tabindex="-1" style="display:block;" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header bg-primary text-white d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-card-text fs-4 me-2"></i> <!-- Optional icon -->
+          <h5 class="modal-title fw-bold mb-0 text-white">Add Fabric Quality</h5>
+        </div>
+        <button type="button" class="btn-close btn-close-white" onclick="closeModal()" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <form hx-post="{% if request.path == '/party/add/' %}{% url 'add_party' %}{% elif mode == 'edit' %}{% url 'edit_party' id %}{% endif %}" 
+              hx-target="tbody" 
+              hx-swap="innerHTML"
+              class="row g-3">
+
+          {% csrf_token %}
+
+          <!-- Row 1 -->
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <label for="inputQualityCode" class="form-label">Quality Code</label>
+              <input type="text" class="form-control text-muted" id="inputQualityCode" placeholder="Auto: Q-XXXX" disabled>
+            </div>
+            <div class="col-md-6">
+              <label for="inputQualityName" class="form-label">Quality Name</label>
+              <input type="text" class="form-control" id="inputQualityName" placeholder="e.g., 60x60 Voile">
+            </div>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="row mb-2">
+            <div class="col-md-4">
+              <label for="inputConstruction" class="form-label">Construction</label>
+              <input type="text" class="form-control" id="inputConstruction" placeholder="eg. 60x60">
+            </div>
+            <div class="col-md-4">
+              <label for="inputWidth" class="form-label">Width (inches)</label>
+              <input type="text" class="form-control" id="inputWidth" placeholder="58">
+            </div>
+            <div class="col-md-4">
+              <label for="inputGSM" class="form-label">GSM</label>
+              <input type="text" class="form-control" id="inputGSM" placeholder="85">
+            </div>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <label for="inputCategory" class="form-label">Category</label>
+              <select class="form-select" id="inputCategory">
+                <option value="">Poplin</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="inputRate" class="form-label">Rate per Meter</label>
+              <input type="text" class="form-control" id="inputRate" placeholder="58">
+            </div>
+          </div>
+
+          <!-- Row 4 -->
+          <div class="row mb-2">
+            <div class="col-md-12">
+              <label for="inputDescription" class="form-label">Description</label>
+              <textarea class="form-control" id="inputDescription" placeholder="Additional specifications"></textarea>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal()">Close</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Backdrop -->
+<div class="modal-backdrop fade show"></div>
+
+
+<!-- Close Modal Script -->
+ 
+<script>
+  document.body.addEventListener('closeModal', function() {
+    closeModal();
+  });
+
+  function closeModal() {
+    const dialog = document.getElementById('dialog');
+    if(dialog) dialog.innerHTML = '';
+    document.body.classList.remove('modal-open');
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+  }
+</script> {% endcomment %}
+
+
+
+<div class="modal fade" id="exampleLargeModal" tabindex="-1" aria-hidden="true" hx-on="htmx:afterSwap: bootstrap.Modal.getOrCreateInstance(document.getElementById('exampleLargeModal')).show()">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+         <div class="modal-header bg-primary text-white d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+               <i class="bi bi-card-text fs-4 me-2"></i>
+               <h5 class="modal-title fw-bold mb-0 text-white">{% if fabric %}Edit Fabric Quality{% else %}Add Fabric Quality{% endif %}</h5>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+         </div>
+         <div class="modal-body">
+            <form hx-post="{% if fabric %}{% url 'fabric_update' fabric.id %}{% else %}{% url 'create_Fabric' %}{% endif %}" 
+               hx-target="#exampleLargeModal" 
+               hx-swap="outerHTML"
+               class="row g-3">
+               {% csrf_token %}
+               <!-- Row 1 -->
+               <div class="row mb-2">
+                  <div class="col-md-6">
+                     <label for="inputQualityCode" class="form-label">Quality Code</label>
+                     <input type="text" class="form-control text-muted" id="inputQualityCode" placeholder="Auto: Q-XXXX" value="{% if form %}{{ form.data.code }}{% elif fabric %}{{ fabric.code }}{% endif %}" disabled>
+                  </div>
+                  <div class="col-md-6">
+                     <label for="inputQualityName" class="form-label">Quality Name</label>
+                     <input type="text" class="form-control" id="inputQualityName" name="quality_name" placeholder="e.g., 60x60 Voile" required value="{% if form %}{{ form.data.quality_name }}{% elif fabric %}{{ fabric.quality_name }}{% endif %}">
+                     {% if form and form.errors.quality_name %}<div class="text-danger small">{{ form.errors.quality_name.0 }}</div>{% endif %}
+                  </div>
+               </div>
+               <!-- Row 2 -->
+               <div class="row mb-2">
+                  <div class="col-md-4">
+                     <label for="inputConstruction" class="form-label">Construction</label>
+                     <input type="text" class="form-control" id="inputConstruction" name="construction" placeholder="eg. 60x60" required value="{% if form %}{{ form.data.construction }}{% elif fabric %}{{ fabric.construction }}{% endif %}">
+                     {% if form and form.errors.construction %}<div class="text-danger small">{{ form.errors.construction.0 }}</div>{% endif %}
+                  </div>
+                  <div class="col-md-4">
+                     <label for="inputWidth" class="form-label">Width (inches)</label>
+                     <input type="text" class="form-control" id="inputWidth" name="width" placeholder="58" required value="{% if form %}{{ form.data.width }}{% elif fabric %}{{ fabric.width }}{% endif %}">
+                     {% if form and form.errors.width %}<div class="text-danger small">{{ form.errors.width.0 }}</div>{% endif %}
+                  </div>
+                  <div class="col-md-4">
+                     <label for="inputGSM" class="form-label">GSM</label>
+                     <input type="number" class="form-control" id="inputGSM" name="gsm" placeholder="85" required value="{% if form %}{{ form.data.gsm }}{% elif fabric %}{{ fabric.gsm }}{% endif %}">
+                     {% if form and form.errors.gsm %}<div class="text-danger small">{{ form.errors.gsm.0 }}</div>{% endif %}
+                  </div>
+               </div>
+               <!-- Row 3 -->
+               <div class="row mb-2">
+                  <div class="col-md-6">
+                     <label for="inputCategory" class="form-label">Category</label>
+                     <select class="form-select" id="inputCategory" name="category" required>
+                        {% if form %}
+                           {% with selected=form.data.category %}
+                           <option value="Poplin" {% if selected == 'Poplin' %}selected{% endif %}>Poplin</option>
+                           <option value="Voile" {% if selected == 'Voile' %}selected{% endif %}>Voile</option>
+                           <option value="Synthetic" {% if selected == 'Synthetic' %}selected{% endif %}>Synthetic</option>
+                           <option value="Cambric" {% if selected == 'Cambric' %}selected{% endif %}>Cambric</option>
+                           <option value="Knit" {% if selected == 'Knit' %}selected{% endif %}>Knit</option>
+                           {% endwith %}
+                        {% elif fabric %}
+                           {% with selected=fabric.category %}
+                           <option value="Poplin" {% if selected == 'Poplin' %}selected{% endif %}>Poplin</option>
+                           <option value="Voile" {% if selected == 'Voile' %}selected{% endif %}>Voile</option>
+                           <option value="Synthetic" {% if selected == 'Synthetic' %}selected{% endif %}>Synthetic</option>
+                           <option value="Cambric" {% if selected == 'Cambric' %}selected{% endif %}>Cambric</option>
+                           <option value="Knit" {% if selected == 'Knit' %}selected{% endif %}>Knit</option>
+                           {% endwith %}
+                        {% else %}
+                           <option value="Poplin">Poplin</option>
+                           <option value="Voile">Voile</option>
+                           <option value="Synthetic">Synthetic</option>
+                           <option value="Cambric">Cambric</option>
+                           <option value="Knit">Knit</option>
+                        {% endif %}
+                     </select>
+                     {% if form and form.errors.category %}<div class="text-danger small">{{ form.errors.category.0 }}</div>{% endif %}
+                  </div>
+                  <div class="col-md-6">
+                     <label for="inputRate" class="form-label">Rate per Meter</label>
+                     <input type="number" step="0.01" class="form-control" id="inputRate" name="rate_per_meter" placeholder="58" required value="{% if form %}{{ form.data.rate_per_meter }}{% elif fabric %}{{ fabric.rate_per_meter }}{% endif %}">
+                     {% if form and form.errors.rate_per_meter %}<div class="text-danger small">{{ form.errors.rate_per_meter.0 }}</div>{% endif %}
+                  </div>
+               </div>
+               <!-- Row 4 -->
+               <div class="row mb-2">
+                  <div class="col-md-12">
+                     <label for="inputDescription" class="form-label">Description</label>
+                     <textarea class="form-control" id="inputDescription" placeholder="Additional specifications"></textarea>
+                  </div>
+               </div>
+            
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">{% if fabric %}Save Changes{% else %}Save changes{% endif %}</button>
+         </div>
+         </form>
+      </div>
+   </div>
+</div>
+
+

@@ -28,3 +28,34 @@ class PartyForm(forms.ModelForm):
             'gst_number': forms.TextInput(attrs={'class': 'form-control'}),
             'pan_number': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+
+
+
+
+
+from django import forms
+from .models import Fabric
+
+# class FabricForm(forms.ModelForm):
+#     class Meta:
+#         model = Fabric
+#         fields = ['code', 'quality_name', 'construction', 'width', 'gsm', 'category', 'rate_per_meter']
+#         widgets = {
+#             'category': forms.Select(attrs={'class': 'form-select'}),
+#             'quality_name': forms.TextInput(attrs={'class': 'form-control'}),
+#             'construction': forms.TextInput(attrs={'class': 'form-control'}),
+#             'width': forms.TextInput(attrs={'class': 'form-control'}),
+#             'gsm': forms.NumberInput(attrs={'class': 'form-control'}),
+#             'rate_per_meter': forms.NumberInput(attrs={'class': 'form-control'}),
+#             'code': forms.TextInput(attrs={'class': 'form-control'}),
+# }
+
+
+class FabricForm(forms.ModelForm):
+    class Meta:
+        model = Fabric
+        fields = ['quality_name', 'construction', 'width', 'gsm', 'category', 'rate_per_meter', 'description']
+
+
+

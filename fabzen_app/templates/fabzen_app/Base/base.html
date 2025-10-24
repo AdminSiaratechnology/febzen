@@ -185,28 +185,7 @@
 		new PerfectScrollbar('.product-list');
 	</script>
 
-	<script>
-document.body.addEventListener("partyAdded", function() {
-    // Close modal when HTMX tells us form was saved
-    const modalEl = document.querySelector('#addPartyModal');
-    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-    modal.hide();
-
-    // Remove leftover backdrop (Bootstrap bug fix)
-    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
-});
-</script>
-
-<script>
-  function closeModal() {
-    const modalEl = document.getElementById('addPartyModal');
-    const modal = bootstrap.Modal.getInstance(modalEl);
-    if (modal) {
-      modal.hide();
-    }
-  }
-</script>
-
+	
 
 <script>
   // Listen for HTMX custom event for party added

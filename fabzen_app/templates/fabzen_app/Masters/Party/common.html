@@ -1,6 +1,18 @@
-<ul class="nav nav-pills mb-3" role="tablist">
+
+<style>
+   .nav-link {
+    cursor: pointer;
+}
+
+.nav-link:hover {
+    /* You can customize the hover effect here */
+    text-decoration: underline;
+}
+
+</style>
+<ul class="nav nav-pills mb-3" role="tablist" >
    <li class="nav-item" role="presentation">
-      <a class="nav-link active" data-bs-toggle="pill" hx-get="{% url "party_list" %}" hx-target="#primary-pills-home"  role="tab" aria-selected="true">
+      <a class="nav-link {% if request.path == '/party/' %}active{% endif %}" href="{% url "party" %}">
       <div class="d-flex align-items-center">
          <div class="tab-icon">
          </div>
@@ -8,8 +20,9 @@
       </div>
       </a>
    </li>
+   
    <li class="nav-item" role="presentation">
-      <a class="nav-link" data-bs-toggle="pill" href="#primary-pills-profile" role="tab" aria-selected="false">
+      <a class="nav-link {% if request.path == '/fabric/' %}active{% endif %}"  href="{% url "fabric" %}"  >
          <div class="d-flex align-items-center">
             <div class="tab-icon"><i class='bx bxs-user-pin font-18 me-1'></i>
             </div>
@@ -26,4 +39,41 @@
          </div>
       </a>
    </li>
+   <li class="nav-item" role="presentation">
+      <a class="nav-link {% if request.path == '/size/' %}active{% endif %}"  href="{% url "size" %}" >
+         <div class="d-flex align-items-center">
+            <div class="tab-icon"><i class='bx bxs-microphone font-18 me-1'></i>
+            </div>
+            <div class="tab-title">Sizes</div>
+         </div>
+      </a>
+   </li>
+   <li class="nav-item" role="presentation">
+      <a class="nav-link {% if request.path == '/garments/' %}active{% endif %}"  href="{% url "garments" %}" >
+         <div class="d-flex align-items-center">
+            <div class="tab-icon"><i class='bx bxs-microphone font-18 me-1'></i>
+            </div>
+            <div class="tab-title">Garments</div>
+         </div>
+      </a>
+   </li>
+   <li class="nav-item" role="presentation">
+      <a class="nav-link {% if request.path == '/processes/' %}active{% endif %}"  href="{% url "processes" %}" >
+         <div class="d-flex align-items-center">
+            <div class="tab-icon"><i class='bx bxs-microphone font-18 me-1'></i>
+            </div>
+            <div class="tab-title">Processes</div>
+         </div>
+      </a>
+   </li>
+   <li class="nav-item" role="presentation">
+      <a class="nav-link {% if request.path == '/machines/' %}active{% endif %}"  href="{% url "machine" %}" >
+         <div class="d-flex align-items-center">
+            <div class="tab-icon"><i class='bx bxs-microphone font-18 me-1'></i>
+            </div>
+            <div class="tab-title">Machines</div>
+         </div>
+      </a>
+   </li>
 </ul>
+

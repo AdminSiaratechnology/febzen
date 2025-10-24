@@ -1,0 +1,104 @@
+
+
+<div class="modal fade" id="exampleLargeModal2" tabindex="-1" aria-hidden="true">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+         <div class="modal-header bg-primary text-white d-flex align-items-center justify-content-between mb-2">
+            <div class="d-flex align-items-center">
+               <i class="bi bi-card-text fs-4 me-2"></i>
+               <h5 class="modal-title fw-bold mb-0 text-white">Add Machine</h5>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+         </div>
+         <div class="modal-body">
+            <form  method="POST" class="row g-3">
+               {% csrf_token %}
+               
+               <!-- Row 1 -->
+               <div class="row mb-2">
+                  <div class="col-md-6">
+                     <label for="inputQualityCode" class="form-label">Machine Code</label>
+                     <input type="text" class="form-control text-muted" id="inputQualityCode" placeholder="Auto: M-XXXX"  name="machine_code">
+                  </div>
+                  <div class="col-md-6">
+                     <label for="inputQualityName" class="form-label">Machine Name</label>
+                     <input type="text" class="form-control" id="inputQualityName" name="machine_name" placeholder="e.g., Single Needle Machine 1" required >
+                     
+                  </div>
+               </div>
+
+               <div class="row mb-2">
+                  <div class="col-md-6">
+                    <label for="inputCategory" class="form-label">Machine Type</label>
+                    <select class="form-select" id="inputCategory" name="machine_type" required>
+                        <option value="" selected disabled>Select Type</option>
+                        
+                        <option value="Stitching" >Stitching</option>
+                        <option value="Cutting" >Cutting</option>
+                        <option value="Finishing" >Finishing</option>
+                        <option value="Ironing" >Ironing</option>
+                       
+                           
+                           
+                          
+                    </select>
+                     
+                  </div>
+                 
+                  <div class="col-md-6">
+                     <label for="inputCategory" class="form-label">Brand</label>
+                     <input type="text"  class="form-control" id="inputRate" name="brand" placeholder="eg., Juki" required >
+                  </div>
+                  
+               </div>
+               <!-- Row 2 -->
+               <div class="row mb-2">
+                  <div class="col-md-6">
+                     <label for="inputConstruction" class="form-label">Capacity Per Day</label>
+                     <input type="text" class="form-control" id="inputConstruction" name="capacity" placeholder="eg., 30 pc/day" required >
+                     
+                  </div>
+                  <div class="col-md-6">
+                     <label for="inputConstruction" class="form-label">Purchase Date</label>
+                     <input type="date" class="form-control" id="inputConstruction" name="purchase_date" placeholder="eg., 30 pc/day" required >
+                     
+                  </div>
+                  
+                  
+               </div>
+               <!-- Row 3 -->
+               
+               <!-- Row 4 -->
+               <div class="row mb-2">
+                  <div class="col-md-12">
+                     <label for="inputCategory" class="form-label">Assigned Operator</label>
+                     <select class="form-select" id="inputCategory" name="assign_operator" required>
+                        <option value="" selected disabled>Select</option>
+                        
+                        <option value="Rajesh Kumar" >Rajesh Kumar</option>
+                        <option value="Suresh Patel" >Suresh Patel</option>
+                        <option value="Rajesh Singh" >Rajesh Singh</option>
+                        
+                    
+                     </select>
+                     
+                  </div>
+               </div>
+               <div class="row mb-2">
+                  <div class="col-md-12">
+                     <label for="inputDescription" class="form-label">Notes</label>
+                     <textarea class="form-control" id="inputDescription" placeholder="Machine specifications and maintenance notes..." name="notes"></textarea>
+                  </div>
+               </div>
+            
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Save Process</button>
+         </div>
+         </form>
+      </div>
+   </div>
+</div>
+
+
