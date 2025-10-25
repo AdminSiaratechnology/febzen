@@ -346,8 +346,8 @@ def add_party(request):
                 'is_paginated': True,
                 'paginator': paginator
             })
-            # response['HX-Trigger'] = 'closeModal'
-            response['HX-Trigger'] = json.dumps({"partyAdded": "पार्टी सफलतापूर्वक जोड़ी गई है!", "closeModal": True})
+            response['HX-Trigger'] = 'closeModal'
+            # response['HX-Trigger'] = json.dumps({"partyAdded": "पार्टी सफलतापूर्वक जोड़ी गई है!", "closeModal": True})
             return response
     else:
         form = PartyForm()

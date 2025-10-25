@@ -330,3 +330,36 @@ class Operator(models.Model):
 
     def __str__(self):
         return f"{self.operator_code} - {self.full_name}"
+
+
+
+
+
+
+class Ledger(models.Model):
+    LEDGER_GROUP_CHOICES = [
+        ('Direct Income', 'Direct Income'),
+        ('Indirect Income', 'Indirect Income'),
+        ('Direct Expenses', 'Direct Expenses'),
+        ('Indirect Expenses', 'Indirect Expenses'),
+        ('Miscellaneous Expenses', 'Miscellaneous Expenses'),
+        ('Bank Accounts', 'Bank Accounts'),
+        ('Cash', 'Cash'),
+        ('Duties & Taxes', 'Duties & Taxes'),
+    ]
+
+    BALANCE_TYPE_CHOICES = [
+        ('Debit', 'Debit'),
+        ('Credit', 'Credit'),
+    ]
+
+    ledger_code = models.CharField(max_length=20, unique=True)
+    ledger_name = models.CharField(max_length=100)
+    ledger_group = models.CharField(max_length=50, choices=LEDGER_GROUP_CHOICES)
+    opening_balance = models.BigIntegerField(default=0)
+    balance_type = models.CharField(max_length=10, choices=BALANCE_TYPE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.ledger_code} - {self.ledger_name}"
