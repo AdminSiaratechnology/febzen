@@ -300,3 +300,33 @@ class Machine(models.Model):
 
     def __str__(self):
         return f"{self.machine_name} ({self.machine_code})"
+
+
+class Operator(models.Model):
+    DEPARTMENT_CHOICES = [
+        ('Stitching', 'Stitching'),
+        ('Cutting', 'Cutting'),
+        ('Ironing', 'Ironing'),
+        ('Packing', 'Packing'),
+        ('Quality Control', 'Quality Control'),
+    ]
+
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('leave', 'Leave'),
+        
+    ]
+
+    operator_code = models.CharField(max_length=20, unique=True)
+    full_name = models.CharField(max_length=100)
+    department = models.CharField(max_length=50, choices=DEPARTMENT_CHOICES)
+    mobile_number = models.CharField(max_length=15)
+    skills = models.TextField(blank=True, null=True)
+    date_of_joining = models.DateField()
+    daily_wage = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    address = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=50,choices=STATUS_CHOICES, default="active")
+    
+
+    def __str__(self):
+        return f"{self.operator_code} - {self.full_name}"

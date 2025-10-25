@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine
+from .models import Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine,Operator
 from .forms import PartyForm,FabricForm
 from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -462,7 +462,7 @@ def fabric_list(request):
 
 def create_fabric(request):
     if request.method == 'POST':
-        code = request.POST.get('code')
+        code = request.POST.get('fabric_code')
         quality_name = request.POST.get('quality_name')
         construction = request.POST.get('construction')
         width = request.POST.get('width')
@@ -473,13 +473,13 @@ def create_fabric(request):
 
         
     
-        fabric = Fabric.objects.create(quality_name=quality_name,construction=construction,width=width,gsm=gsm,category=category,rate_per_meter=rate_per_meter,description=description)
-        if not fabric.code:
-            last = Fabric.objects.order_by('-id').first()
-            next_num = (last.id + 1) if last else 1
-            fabric.code = f"Q-{next_num:04d}"
-            fabric.save()
-        print("codeeeeeeeee",code,'quality nameeeeee',quality_name)
+        fabric = Fabric.objects.create(code=code,quality_name=quality_name,construction=construction,width=width,gsm=gsm,category=category,rate_per_meter=rate_per_meter,description=description)
+        # if not fabric.code:
+        #     last = Fabric.objects.order_by('-id').first()
+        #     next_num = (last.id + 1) if last else 1
+        #     fabric.code = f"Q-{next_num:04d}"
+        #     fabric.save()
+        messages.success(request, f"Fabic '{fabric.quality_name}' added successfully!")
         return redirect('fabric')
        
 
@@ -494,6 +494,7 @@ def update_fabric(request, pk):
         if not updated.code:
             updated.code = fabric.code
         updated.save()
+        messages.success(request, f"Fabic '{fabric.quality_name}' Updated successfully!")
         return redirect('fabric')
             # Return updated list partial with pagination
             
@@ -505,7 +506,7 @@ def update_fabric(request, pk):
 
 def SizesListView(request):
     if request.method == "POST":
-        print("workingggggggggggg")
+       
         size_category = request.POST.get("size_category")
         size_label = request.POST.get("size_label")
         display_order = request.POST.get("display_order")
@@ -623,10 +624,10 @@ def GarmentsListView(request):
 
 def edit_garment(request, garment_id):
     garment = get_object_or_404(Garment, id=garment_id)
-    print("garmenstssssssssssss",garment)
+    
 
     if request.method == "POST":
-        print("noooooooooooooooo")
+       
         garment_code = request.POST.get('garment_code', '').strip()
         garment_name = request.POST.get('garment_name', '').strip()
         garment_category = request.POST.get('garment_category', '').strip()
@@ -880,7 +881,7 @@ def MachineListView(request):
             assigned_operator=assign_operator,
             notes=notes
         )
-        messages.success(request, f"Process '{machine_name}' added successfully!")
+        messages.success(request, f"Machine '{machine_name}' added successfully!")
         return redirect('machine')
 
     return render(request, 'fabzen_app/Masters/machine/machine.html')
@@ -911,62 +912,27 @@ def machine_list(request):
     paginator = Paginator(machine_qs, 10)     # Show 10 fabrics per page
 
     try:
-        garments = paginator.page(page_number)
+        machines = paginator.page(page_number)
     except Exception:
-        garments = paginator.page(1)
+        machines = paginator.page(1)
 
     context = {
-        'fabrics': garments,
+        'fabrics': machines,
         'paginator': paginator,
         'is_paginated': True,  # Used by your template
     }
 
-    return render(request, 'fabzen_app/Masters/machine/partials/machine_listcopy.html', context)
-
-
-# def machine_list(request):
-    
-#     search_query = request.GET.get('search', '').strip()
-#     type = request.GET.get('type', '').strip()
-#     machine_qs = Machine.objects.all().order_by('-id')
-
-#     if search_query:
-#         machine_qs = machine_qs.filter(
-#             Q(machine_code__icontains=search_query) |
-#             Q(machine_name__icontains=search_query) |
-#             Q(machine_type__icontains=search_query) |
-#             Q(brand__icontains=search_query)
-#         )
-    
-#     if type:
-#         machine_qs = machine_qs.filter(machine_type__iexact=type)
-
-#     # --- Pagination logic ---
-#     page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
-#     paginator = Paginator(machine_qs, 10)     # Show 10 fabrics per page
-
-#     try:
-#         garments = paginator.page(page_number)
-#     except Exception:
-#         garments = paginator.page(1)
-
-#     context = {
-#         'fabrics': garments,
-#         'paginator': paginator,
-#         'is_paginated': True,  # Used by your template
-#     }
-
-#     return render(request, 'fabzen_app/Masters/machine/partials/machine_list.html', context)
+    return render(request, 'fabzen_app/Masters/machine/partials/machine_list.html', context)
 
 
 
 from datetime import datetime
 def edit_machine(request, pk):
-    print("oooooooooooooooooooooooooooooooooo")
+    
     machine = get_object_or_404(Machine, pk=pk)
 
     if request.method == "POST":
-        print("edit machineeeeeeeeeeeeeeeeeeee")
+        
         # process.process_code = request.POST.get('process_code', '').strip()
         machine.machine_name = request.POST.get('machine_name', '').strip()
         machine.machine_type  = request.POST.get('machine_type', '').strip()
@@ -982,10 +948,208 @@ def edit_machine(request, pk):
         #     return redirect('processes')
 
 
-        # if purchase_date_str:
-        #         machine.purchase_date = datetime.strptime(purchase_date_str, '%Y-%m-%d').date()
+        if purchase_date_str:
+                machine.purchase_date = datetime.strptime(purchase_date_str, '%Y-%m-%d').date()
         machine.save()
         messages.success(request, "Machine updated successfully!")
         return redirect('machine')
 
 # ----------------------------------- END Machine ---------------------
+
+
+
+# ----------------------------------- Operator ---------------------
+
+
+
+# def OperatorListView(request):
+    
+
+#     if request.method == "POST":
+#         machine_code = request.POST.get('machine_code', '').strip()
+#         machine_name = request.POST.get('machine_name', '').strip()
+#         machine_type = request.POST.get('machine_type', '').strip()
+#         brand = request.POST.get('brand', '').strip()
+#         capacity = request.POST.get('capacity', '').strip()
+#         purchase_date = request.POST.get('purchase_date', '').strip()
+#         assign_operator = request.POST.get('assign_operator', '').strip()
+
+#         notes  = request.POST.get('notes', '').strip()
+
+       
+
+#         # Check for duplicate process code
+#         if Machine.objects.filter(machine_code__iexact=machine_code).exists():
+#             messages.error(request, f"Process code '{machine_code}' already exists!")
+#             return redirect('processes')
+
+#         # Create the new process
+#         Machine.objects.create(
+#             machine_code=machine_code,
+#             machine_name=machine_name,
+#             machine_type=machine_type,
+#             brand=brand,
+#             capacity_per_day=capacity,
+#             purchase_date=purchase_date,
+#             assigned_operator=assign_operator,
+#             notes=notes
+#         )
+#         messages.success(request, f"Process '{machine_name}' added successfully!")
+#         return redirect('machine')
+
+#     return render(request, 'fabzen_app/Masters/operators/operator.html')
+
+
+def OperatorListView(request):
+    if request.method == "POST":
+        operator_code = request.POST.get('operator_code', '').strip()
+        full_name = request.POST.get('full_name', '').strip()
+        department = request.POST.get('department', '').strip()
+        mobile_number = request.POST.get('mobile_number', '').strip()
+        skills = request.POST.get('skills', '').strip()
+        date_of_joining = request.POST.get('date_of_joining', '').strip()
+        daily_wage = request.POST.get('daily_wage', '').strip()
+        address = request.POST.get('address', '').strip()
+
+        # ✅ Check for duplicate operator code
+        if Operator.objects.filter(operator_code__iexact=operator_code).exists():
+            messages.error(request, f"Operator code '{operator_code}' already exists!")
+            return redirect('operator-list')
+
+        # ✅ Create and save operator
+        Operator.objects.create(
+            operator_code=operator_code,
+            full_name=full_name,
+            department=department,
+            mobile_number=mobile_number,
+            skills=skills,
+            date_of_joining=date_of_joining,
+            daily_wage=daily_wage,
+            address=address,
+        )
+
+        messages.success(request, f"Operator '{full_name}' added successfully!")
+        return redirect('operator')
+
+    # ✅ Fetch all operators for listing
+    operators = Operator.objects.all().order_by('operator_code')
+    return render(request, 'fabzen_app/Masters/operators/operator.html', {'operators': operators})
+
+
+
+
+def operator_list(request):
+    
+    search_query = request.GET.get('search', '').strip()
+    type = request.GET.get('type', '').strip()
+    operator_qs = Operator.objects.all().order_by('-id')
+    
+
+    if search_query:
+        operator_qs = operator_qs.filter(
+            Q(operator_code__icontains=search_query) |
+            Q(full_name__icontains=search_query) |
+            Q(department__icontains=search_query) |
+            Q(mobile_number__icontains=search_query) |
+            Q(skills__icontains=search_query) 
+            
+        )
+    
+    if type:
+        operator_qs = operator_qs.filter(department__iexact=type)
+
+    # --- Pagination logic ---
+    page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
+    paginator = Paginator(operator_qs, 10)     # Show 10 fabrics per page
+    print("paginatorsssss",paginator)
+
+    try:
+        operator = paginator.page(page_number)
+    except Exception:
+        operator = paginator.page(1)
+
+    context = {
+        'operator': operator,
+        'paginator': paginator,
+        'is_paginated': True,  # Used by your template
+    }
+
+    return render(request, 'fabzen_app/Masters/operators/partials/operator_list.html', context)
+
+
+
+
+
+# def edit_operator(request, pk):
+    
+#     operator = get_object_or_404(Operator, pk=pk)
+
+#     if request.method == "POST":
+        
+#         # process.process_code = request.POST.get('process_code', '').strip()
+#         machine.machine_name = request.POST.get('machine_name', '').strip()
+#         machine.machine_type  = request.POST.get('machine_type', '').strip()
+#         machine.brand = request.POST.get('brand', '').strip()
+#         machine.capacity_per_day = request.POST.get('capacity', '').strip()
+#         # machine.purchase_date = request.POST.get('purchase_date', '').strip()
+#         machine.assigned_operator = request.POST.get('assign_operator', '').strip()
+#         machine.notes = request.POST.get('notes', '').strip()
+#         purchase_date_str = request.POST.get('purchase_date', '').strip()
+#         # Validation
+#         # if not process.process_code or not process.process_name:
+#         #     messages.error(request, "Please fill all required fields.")
+#         #     return redirect('processes')
+
+
+#         if purchase_date_str:
+#                 machine.purchase_date = datetime.strptime(purchase_date_str, '%Y-%m-%d').date()
+#         machine.save()
+#         messages.success(request, "Machine updated successfully!")
+#         return redirect('operator')
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import Operator
+from datetime import datetime
+
+def edit_operator(request, pk):
+    operator = get_object_or_404(Operator, pk=pk)
+
+    if request.method == "POST":
+        # We don't allow editing of operator_code since it’s disabled in HTML
+        operator.full_name = request.POST.get('full_name', '').strip()
+        operator.department = request.POST.get('department', '').strip()
+        operator.mobile_number = request.POST.get('mobile_number', '').strip()
+        operator.skills = request.POST.get('skills', '').strip()
+        operator.address = request.POST.get('address', '').strip()
+        operator.status = request.POST.get('status', '').strip()
+
+        # Handle date_of_joining (convert string to date)
+        date_of_joining_str = request.POST.get('date_of_joining', '').strip()
+        if date_of_joining_str:
+            try:
+                operator.date_of_joining = datetime.strptime(date_of_joining_str, '%Y-%m-%d').date()
+            except ValueError:
+                messages.error(request, "Invalid date format for Date of Joining.")
+                return redirect('operator')
+
+        # Handle daily_wage (convert to decimal)
+        daily_wage_str = request.POST.get('daily_wage', '').strip()
+        if daily_wage_str:
+            try:
+                operator.daily_wage = float(daily_wage_str)
+            except ValueError:
+                messages.error(request, "Invalid value for Daily Wage.")
+                return redirect('operator')
+
+        # Save the updated record
+        operator.save()
+
+        messages.success(request, f"Operator '{operator.full_name}' updated successfully!")
+        return redirect('operator')
+
+    # In case of GET request (optional — e.g., if editing via separate page)
+    
+
+# ----------------------------------- END Operator ---------------------

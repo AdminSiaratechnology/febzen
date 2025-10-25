@@ -34,7 +34,7 @@
             hx-get="{% url 'machine_list' %}?page=1" 
             hx-target="#fabric-table" 
             hx-swap="innerHTML"
-            hx-include="[name='search'], [name='process_type']"
+            hx-include="[name='search'], [name='type']"
             >First</a>
       </li>
       <li class="page-item">
@@ -42,7 +42,7 @@
             hx-get="{% url 'machine_list' %}?page={{ fabrics.previous_page_number }}" 
             hx-target="#fabric-table" 
             hx-swap="innerHTML"
-            hx-include="[name='search'], [name='process_type']">Previous</a>
+            hx-include="[name='search'], [name='type']">Previous</a>
       </li>
       {% else %}
       <li class="page-item disabled"><a class="page-link">First</a></li>
@@ -57,7 +57,7 @@
             hx-get="{% url 'machine_list' %}?page={{ i }}" 
             hx-target="#fabric-table" 
             hx-swap="innerHTML"
-            hx-include="[name='search'], [name='process_type']"
+            hx-include="[name='search'], [name='type']"
             >{{ i }}</a>
       </li>
       {% endif %}
@@ -68,14 +68,14 @@
             hx-get="{% url 'machine_list' %}?page={{ fabrics.next_page_number }}" 
             hx-target="#fabric-table" 
             hx-swap="innerHTML"
-            hx-include="[name='search'], [name='process_type']">Next</a>
+            hx-include="[name='search'], [name='type']">Next</a>
       </li>
       <li class="page-item">
          <a class="page-link" 
             hx-get="{% url 'machine_list' %}?page={{ paginator.num_pages }}" 
             hx-target="#fabric-table"
             hx-swap="innerHTML"
-            hx-include="[name='search'], [name='process_type']">Last</a>
+            hx-include="[name='search'], [name='type']">Last</a>
       </li>
       {% else %}
       <li class="page-item disabled"><a class="page-link">Next</a></li>

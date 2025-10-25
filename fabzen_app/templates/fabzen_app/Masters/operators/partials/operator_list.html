@@ -1,0 +1,92 @@
+
+{% for operator in operator %}
+<tr>
+   <td><span class="badge bg-primary">{{ operator.operator_code }}</span></td>
+   <td>{{ operator.full_name }}</td>
+   <td>{{ operator.department }}</td>
+   <td>{{ operator.skills }}</td>
+   
+   <td>{{operator.mobile_number}}</td>
+   <td>{% if operator.status == 'active' %}<span class="badge bg-success">{{operator.status}}</span> {% elif operator.status == 'leave' %}<span class="badge bg-warning">{{operator.status}}</span>{% endif %}</td>
+   
+   
+   
+   
+   
+   <td>
+      <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editOperatorModal-{{operator.id}}">Edit</button>
+      {% include "fabzen_app/Masters/operators/partials/edit_operator.html" %}
+   </td>
+</tr>
+{% empty %}
+<tr>
+   <td colspan="8" class="text-center">No operators found.</td>
+</tr>
+{% endfor %}
+
+{% if is_paginated %}
+
+<tr>
+  <td colspan="8">
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-end">
+
+        {% if operator.has_previous %}
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'operator_list' %}?page=1" 
+              hx-target="#operator-table" 
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">First</a>
+        </li>
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'operator_list' %}?page={{ operator.previous_page_number }}" 
+              hx-target="#operator-table" 
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">Previous</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><a class="page-link">First</a></li>
+        <li class="page-item disabled"><a class="page-link">Previous</a></li>
+        {% endif %}
+
+        {% for i in paginator.page_range %}
+        {% if operator.number == i %}
+        <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+        {% elif i > operator.number|add:'-3' and i < operator.number|add:'3' %}
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'operator_list' %}?page={{ i }}" 
+              hx-target="#operator-table" 
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">{{ i }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+
+        {% if operator.has_next %}
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'operator_list' %}?page={{ operator.next_page_number }}" 
+              hx-target="#operator-table" 
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">Next</a>
+        </li>
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'operator_list' %}?page={{ paginator.num_pages }}" 
+              hx-target="#operator-table"
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">Last</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><a class="page-link">Next</a></li>
+        <li class="page-item disabled"><a class="page-link">Last</a></li>
+        {% endif %}
+
+      </ul>
+    </nav>
+  </td>
+</tr>
+{% endif %}

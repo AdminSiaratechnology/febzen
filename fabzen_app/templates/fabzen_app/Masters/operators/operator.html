@@ -1,9 +1,6 @@
 {% extends "fabzen_app/Base/base.html" %}
-
-{% block title %}Processes{% endblock title %}
-
+{% block title %}Machine{% endblock title %}
 {% block main-content %}
-
 <div class="page-content">
     {% include "fabzen_app/Base/master_header.html" %}
     <div class="row">
@@ -11,16 +8,16 @@
             <div class="card">
                 <div class="card-body">
                     {% include "fabzen_app/Masters/Party/common.html" %}    
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
                         <div>
-                            <h4 class="mb-0">Process Master</h4>
+                            <h4 class="mb-0">Operator Master</h4>
                             <p class="text-muted mb-0">
-                                Job work processes and rates
+                                Manage production workers and operators
                             </p>
                         </div>
                         <!-- Add Party Button -->
-                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleLargeModal2">Add Process</button>
-                        {% include "fabzen_app/Masters/processes/partials/add_process.html" %}
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleLargeModal2">Add Operator</button>
+                        {% include "fabzen_app/Masters/operators/partials/add_operator.html" %}
 
 
                     </div>
@@ -29,27 +26,31 @@
                         <input 
                             type="text" 
                             class="form-control" 
-                            placeholder="Search garments..."
+                            placeholder="Search Operators..."
                             style="max-width: 300px;"
                             name="search"
-                            hx-get="{% url 'process_list' %}"
+                            hx-get="{% url 'operator_list' %}"
                             hx-trigger="keyup changed delay:500ms"
                             hx-target="tbody"
-                            hx-include="[name='process_type']"
+                            hx-include="[name='type']"
                             >
                         <!-- 🧩 Filter Select -->
                         <select 
                             class="form-select" 
                             style="max-width: 200px;"
                             name="type"
-                            hx-get="{% url 'process_list' %}"
+                            hx-get="{% url 'operator_list' %}"
                             hx-trigger="change"
                             hx-target="tbody"
                             hx-include="[name='search']"
                             >
-                            <option value="">Filter by Type</option>
-                            <option value="Job Work">Job Work</option>
-                            <option value="In-house">In-house</option>
+                            <option value="">Filter by Department</option>
+                            <option value="Stitching">Stitching</option>
+                            <option value="Cutting">Cutting</option>
+                            <option value="Finishing">Finishing</option>
+                            <option value="Ironing">Ironing</option>
+                            <option value="Packing">Packing</option>
+                            <option value="Quality Control">Quality Control</option>
                            
                         </select>
                     </div>
@@ -60,19 +61,19 @@
                             <table class="table mb-0 table-striped" >
                                 <thead class="table-light">
                                 <tr>
-                                    {% comment %} <th class="text-nowrap">SI No</th> {% endcomment %}
+                                    
                                     <th scope="col">Code</th>
-                                    <th scope="col">Process Name</th>
-                                    <th scope="col">Type</th>
-                                    <th>Unit</th>
-                                    <th>Rate</th>
-                                    <th>Avg Time</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Department</th>
+                                    <th>Skills</th>
+                                    <th>Mobile</th>
+                                    <th>Status</th>
                                     <th>Action</th>
                                 </tr>
                                 </thead>
                                 <tbody 
-                                id="fabric-table"
-                                hx-get="{% url 'process_list' %}" 
+                                id="operator-table"
+                                hx-get="{% url 'operator_list' %}" 
                                 hx-trigger="load" 
                                 hx-target="this" 
                                 hx-swap="innerHTML"
@@ -87,5 +88,4 @@
         </div>
     </div>
 </div>
-
-{% endblock main-content %}
+{% endblock main-content%}

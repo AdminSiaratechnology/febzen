@@ -1,0 +1,87 @@
+<div class="modal fade" id="exampleLargeModal2" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white d-flex align-items-center justify-content-between mb-2">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-person-fill fs-4 me-2"></i>
+          <h5 class="modal-title fw-bold mb-0 text-white">Add Operator</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <form method="POST" class="row g-3">
+          {% csrf_token %}
+
+          <!-- Row 1 -->
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <label class="form-label">Operator Code</label>
+              <input type="text" class="form-control" name="operator_code" placeholder="e.g., OP-001" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Full Name</label>
+              <input type="text" class="form-control" name="full_name" placeholder="e.g., Rajesh Kumar" required>
+            </div>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <label class="form-label">Department</label>
+              <select class="form-select" name="department" required>
+                <option value="" disabled selected>Select Department</option>
+                <option value="Stitching">Stitching</option>
+                <option value="Cutting">Cutting</option>
+                <option value="Ironing">Ironing</option>
+                <option value="Packing">Packing</option>
+                <option value="Quality Control">Quality Control</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Mobile Number</label>
+              <input type="text" class="form-control" name="mobile_number" placeholder="e.g., 9876543210" required>
+            </div>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="row mb-2">
+            <div class="col-md-12">
+              <label class="form-label">Skills</label>
+              {% comment %} <input type="text" class="form-control" name="skills" placeholder="e.g., Single Needle, Overlock"> {% endcomment %}
+              <textarea class="form-control" name="skills" id="" placeholder="e.g., Single Needle, Overlock"></textarea>
+            </div>
+            
+          </div>
+
+          <!-- Row 4 -->
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <label class="form-label">Date of Joining</label>
+              <input type="date" class="form-control" name="date_of_joining" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Daily Wage / Salary</label>
+              <input type="number" step="0.01" class="form-control" name="daily_wage" placeholder="e.g., 500" required>
+            </div>
+            
+          </div>
+
+          <!-- Row 5 -->
+          <div class="row mb-2">
+            <div class="col-md-12">
+              <label class="form-label">Address</label>
+              <textarea class="form-control" name="address" placeholder="Enter operator address..."></textarea>
+            </div>
+          </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Save Operator</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>

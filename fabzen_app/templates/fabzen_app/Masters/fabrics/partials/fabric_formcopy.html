@@ -18,7 +18,7 @@
                <div class="row mb-2">
                   <div class="col-md-6">
                      <label for="inputQualityCode" class="form-label">Quality Code</label>
-                     <input type="text" class="form-control text-muted" id="inputQualityCode" placeholder="Auto: Q-XXXX" value="{% if form %}{{ form.data.code }}{% elif fabric %}{{ fabric.code }}{% endif %}" disabled>
+                     <input type="text" class="form-control text-muted" id="inputQualityCode" name="fabric_code" placeholder="Auto: Q-XXXX" value="{% if form %}{{ form.data.code }}{% elif fabric %}{{ fabric.code }}{% endif %}">
                   </div>
                   <div class="col-md-6">
                      <label for="inputQualityName" class="form-label">Quality Name</label>

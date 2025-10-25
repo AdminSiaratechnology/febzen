@@ -20,11 +20,12 @@
                   {% include "fabzen_app/Masters/fabrics/partials/fabric_formcopy.html" %}
                </div>
                <hr>
+               {% include "fabzen_app/Base/messages.html" %}
                <!-- Party Table -->
                <div class="card">
                   <div class="card-body">
                      {% comment %} Table wrapper without id; tbody will carry swap target id {% endcomment %}
-                     <table class="table table-hover align-middle">
+                     <table class="table table-striped align-middle">
                         <thead class="table-light">
                            <tr>
                               <th>Code</th>

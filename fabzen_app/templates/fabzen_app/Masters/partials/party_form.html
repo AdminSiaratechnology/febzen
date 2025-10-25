@@ -1,8 +1,8 @@
 <div class="modal fade show" id="" tabindex="-1" style="display:block;" aria-modal="true" role="dialog">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <div class="modal-header bg-warning">
-        <h5 class="modal-title">{% if mode == 'edit' %}Edit Party{% else %}Add New Party{% endif %}</h5>
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title text-white">{% if mode == 'edit' %}Edit Party{% else %}Add New Party{% endif %}</h5>
         <button type="button" class="btn-close" onclick="closeModal()"></button>
       </div>
       <div class="modal-body">
@@ -14,7 +14,7 @@
 
           {% csrf_token %}
 
-          <div class="row mb-2">
+          <div class="row mb-2 mt-2">
             <div class="col-md-6">
               <label class="form-label">Party Name</label>
               <input type="text" class="form-control" name="party_name"
@@ -22,7 +22,7 @@
                      value="{{ form.party_name.value|default_if_none:'' }}">
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-6 mb-2">
               <label class="form-label">Party Type</label>
               <select class="form-select" name="party_type" required>
                 <option value="" disabled {% if not form.party_type.value %}selected{% endif %}>Select Type</option>
@@ -32,36 +32,36 @@
               </select>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-6 mb-2">
               <label class="form-label">Contact Person</label>
               <input type="text" class="form-control" name="contact_person"
                      value="{{ form.contact_person.value|default_if_none:'' }}">
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-6 mb-2">
               <label class="form-label">Mobile</label>
               <input type="text" class="form-control" name="mobile"
                      value="{{ form.mobile.value|default_if_none:'' }}">
             </div>
 
-            <div class="col-md-12">
+            <div class="col-md-12 mb-2">
               <label class="form-label">Address</label>
               <textarea class="form-control" name="address">{{ form.address.value|default_if_none:'' }}</textarea>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-4 mb-2">
               <label class="form-label">City</label>
               <input type="text" class="form-control" name="city"
                      value="{{ form.city.value|default_if_none:'' }}">
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-4 mb-2">
               <label class="form-label">State</label>
               <input type="text" class="form-control" name="state"
                      value="{{ form.state.value|default_if_none:'' }}">
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-4 mb-2">
               <label class="form-label">Pincode</label>
               <input type="number" class="form-control" name="pincode"
                      value="{{ form.pincode.value|default_if_none:'' }}">

@@ -70,6 +70,15 @@ urlpatterns = [
 
     # --------------------      End Machine  --------------------------
 
+    
+    # --------------------      Operators  --------------------------
+
+    path('operator/', views.OperatorListView, name='operator'),
+    path('operatorList/', views.operator_list, name='operator_list'),
+    path('operator/edit/<int:pk>/', views.edit_operator, name='edit_operator'),
+
+    # --------------------      End Operators  --------------------------
+
 
     
 ]
