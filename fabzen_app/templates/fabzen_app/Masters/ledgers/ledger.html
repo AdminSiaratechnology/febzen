@@ -1,59 +1,61 @@
 {% extends "fabzen_app/Base/base.html" %}
-
-{% block title %}Garments{% endblock title %}
-
+{% block title %}Ledger{% endblock title %}
 {% block main-content %}
 <div class="page-content">
-    {% comment %} {% include "fabzen_app/Base/master_header.html" %} {% endcomment %}
-    <div class="row">
-        <div class="col">
-            <div class="card">
-                <div class="card-body">
-                    {% include "fabzen_app/Masters/Party/common.html" %}
-                    <!-- Party Master Header -->
+   {% comment %} {% include "fabzen_app/Masters/ledgers/header.html" %} {% endcomment %}
+   <div class="row">
+      <div class="col">
+         <div class="card">
+            <div class="card-body">
+               {% include "fabzen_app/Masters/ledgers/common.html" %}    
                <div class="d-flex justify-content-between align-items-center mb-2">
                   <div>
-                     <h4 class="mb-0">Product Master</h4>
+                     {% comment %} 
+                     <h4 class="mb-0">Operator Master</h4>
+                     {% endcomment %}
                      <p class="text-muted mb-0">
-                        Define product types and specifications
+                        Manage production workers and operators
                      </p>
                   </div>
                   <!-- Add Party Button -->
-                  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleLargeModal2">Add Product</button>
-                  {% include "fabzen_app/Masters/garments/partials/add_garments.html" %}
-
-
+                  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleLargeModal2">Add Ledger</button>
+                  {% include "fabzen_app/Masters/ledgers/add_ledger.html" %}
                </div>
                <div class="mb-4 d-flex gap-2 align-items-center">
                   <!-- 🔍 Search Input -->
                   <input 
                      type="text" 
                      class="form-control" 
-                     placeholder="Search products..."
+                     placeholder="Search Ledgers..."
                      style="max-width: 300px;"
                      name="search"
-                     hx-get="{% url 'garments_list' %}"
+                     hx-get="{% url 'ledger_list' %}"
                      hx-trigger="keyup changed delay:500ms"
                      hx-target="tbody"
-                     hx-include="[name='garment_category']"
+                     hx-include="[name='type']"
                      >
                   <!-- 🧩 Filter Select -->
+                  {% comment %} 
                   <select 
                      class="form-select" 
                      style="max-width: 200px;"
                      name="type"
-                     hx-get="{% url 'garments_list' %}"
+                     hx-get="{% url 'operator_list' %}"
                      hx-trigger="change"
                      hx-target="tbody"
                      hx-include="[name='search']"
                      >
-                     <option value="">Filter by Category</option>
-                     <option value="Shirts">Shirts</option>
-                     <option value="Casual">Casual</option>
-                     <option value="Pants">Pants</option>
-                     <option value="Ethnic">Ethnic</option>
-                     <option value="Ladies">Ladies</option>
+                     <option value="">Filter by Department</option>
+                     <option value="Stitching">Stitching</option>
+                     <option value="Cutting">Cutting</option>
+                     <option value="Finishing">Finishing</option>
+                     <option value="Ironing">Ironing</option>
+                     <option value="Packing">Packing</option>
+                     <option value="Quality Control">Quality Control</option>
                   </select>
+                  {% endcomment %}
+                  <div class="d-flex flex-wrap gap-2 mb-3">
+                  </div>
                </div>
                <hr>
                {% include "fabzen_app/Base/messages.html" %}
@@ -62,19 +64,18 @@
                      <table class="table mb-0 table-striped" >
                         <thead class="table-light">
                            <tr>
-                              {% comment %} <th class="text-nowrap">SI No</th> {% endcomment %}
                               <th scope="col">Code</th>
-                              <th scope="col">Product Name</th>
-                              <th scope="col">Category</th>
-                              <th>Avg Consumption</th>
-                              <th>Avg Time</th>
-                              <th>Rate/Pc</th>
+                              <th scope="col">Ledger Name</th>
+                              <th scope="col">Group</th>
+                              <th>Type</th>
+                              <th>Opening Balance</th>
+                              <th>Current Balance</th>
                               <th>Action</th>
                            </tr>
                         </thead>
                         <tbody 
-                           id="fabric-table"
-                           hx-get="{% url 'garments_list' %}" 
+                           id="ledger-table"
+                           hx-get="{% url 'ledger_list' %}" 
                            hx-trigger="load" 
                            hx-target="this" 
                            hx-swap="innerHTML"
@@ -84,9 +85,9 @@
                      </table>
                   </div>
                </div>
-                </div>
             </div>
-        </div>
-    </div>
+         </div>
+      </div>
+   </div>
 </div>
-{% endblock main-content %}
+{% endblock main-content%}

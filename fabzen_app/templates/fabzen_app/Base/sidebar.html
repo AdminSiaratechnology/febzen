@@ -1,18 +1,19 @@
 {% load static %}
+
 <div class="sidebar-wrapper" data-simplebar="true">
    <div class="sidebar-header">
       <div>
          <img src="{% static "assets/images/logo-icon.png" %}" class="logo-icon" alt="logo icon">
       </div>
       <div>
-         <h4 class="logo-text">Febzen</h4>
+         <h4 class="logo-text text-white">Febzen</h4>
       </div>
-      <div class="toggle-icon ms-auto"><i class='bx bx-first-page'></i>
+      <div class="toggle-icon ms-auto"><i class='bx bx-first-page text-white'></i>
       </div>
    </div>
    <!--navigation-->
    <ul class="metismenu" id="menu" hx-boost="true">
-      <li>
+      <li style=>
          <a href="{% url "dashboard" %}">
             <div class="parent-icon"><i class='bx bx-home'></i>
             </div>
@@ -20,6 +21,7 @@
          </a>
          
       </li>
+      <hr>
       
       <li class="menu-label">Company</li>
       <li >
@@ -29,14 +31,61 @@
             <div class="menu-title">Company </div>
          </a>
       </li>
+      
       <li class="menu-label">Masters</li>
       <li>
-         <a href="{% url "party" %}">
-            <div class="parent-icon"><i class='bx bx-briefcase-alt-2'></i>
+         <a href="{% url "party" %}" >
+            <div class="parent-icon"><i class='bx bx-cog'></i>
             </div>
             <div class="menu-title">Masters </div>
          </a>
       </li>
+      <li>
+         <a href="{% url "bom" %}">
+            <div class="parent-icon"><i class='bx bx-briefcase-alt-2'></i>
+            </div>
+            <div class="menu-title">BOM & Boo </div>
+         </a>
+      </li>
+      <li>
+         <a href="{% url "bom" %}">
+            <div class="parent-icon"><i class='fadeIn animated bx bx-photo-album'></i>
+            </div>
+            <div class="menu-title">Brochure </div>
+         </a>
+      </li>
+      <li>
+         <a href="{% url "bom" %}">
+            <div class="parent-icon"><i class='fadeIn animated bx bx-been-here'></i>
+            </div>
+            <div class="menu-title">Locations </div>
+         </a>
+      </li>
+      <li>
+         <a href="{% url "ledger" %}">
+            <div class="parent-icon"><i class='fadeIn animated bx bx-book-content'></i>
+            </div>
+            <div class="menu-title">Ledgers </div>
+         </a>
+      </li>
+
+      <li class="menu-label">Purchase</li>
+      <li >
+         <a href="{% url "indent" %}">
+            <div class="parent-icon"><i class='bx bx-briefcase-alt-2'></i>
+            </div>
+            <div class="menu-title">Indent/Requisition </div>
+         </a>
+      </li>
+      <li >
+         <a href="{% url "purchaseorder" %}">
+            <div class="parent-icon"><i class='bx bx-briefcase-alt-2'></i>
+            </div>
+            <div class="menu-title">Purchase Order </div>
+         </a>
+      </li>
+      
+      
       {% comment %} <li>
          <a href="javascript:;" class="has-arrow">
             <div class="parent-icon"><i class='bx bx-cart-alt'></i>
@@ -305,3 +354,102 @@
    </ul>
    <!--end navigation-->
 </div>
+
+
+<style>
+   /* Modern Sidebar Styling */
+.sidebar-wrapper {
+   background: #fff;
+   border-right: 1px solid #e9ecef;
+   width: 260px;
+   transition: all 0.3s ease;
+   box-shadow: 0 0 20px rgba(0,0,0,0.05);
+}
+
+.sidebar-header {
+   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+   color: white;
+}
+
+.logo-text {
+   font-size: 1.4rem;
+   font-weight: 700;
+}
+
+.metismenu .menu-label {
+   font-size: 0.7rem;
+   letter-spacing: 0.5px;
+   margin-bottom: 0.5rem;
+}
+
+.metismenu a {
+   color: #495057;
+   text-decoration: none;
+   transition: all 0.2s ease;
+   font-weight: 500;
+}
+
+.metismenu a:hover,
+.metismenu .mm-active > a {
+   background: #f8f9fa;
+   color: #5a67d8;
+   border-radius: 8px;
+   margin: 0 8px;
+}
+
+.parent-icon {
+   width: 36px;
+   height: 36px;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   border-radius: 8px;
+   background: rgba(90, 103, 216, 0.1);
+   transition: 0.3s;
+}
+
+.metismenu a:hover .parent-icon,
+.metismenu .mm-active > a .parent-icon {
+   background: #5a67d8;
+   color: white;
+   transform: scale(1.1);
+}
+
+/* Icon Colors */
+.text-primary { color: #5a67d8 !important; }
+.text-info { color: #0dcaf0 !important; }
+.text-success { color: #198754 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-danger { color: #dc3545 !important; }
+.text-purple { color: #6f42c1 !important; }
+.text-teal { color: #20c997 !important; }
+.text-indigo { color: #6610f2 !important; }
+.text-pink { color: #d63384 !important; }
+
+/* Hover Background */
+.hover-bg:hover {
+   background: #f1f3ff !important;
+}
+
+/* Active State */
+.mm-active > a {
+   background: #e0e7ff;
+   color: #5a67d8;
+   font-weight: 600;
+}
+
+/* Submenu */
+.mm-collapse a {
+   color: #6c757d;
+   font-size: 0.9rem;
+}
+
+.mm-collapse a:hover {
+   color: #5a67d8;
+   background: #f8f9fa;
+}
+
+
+
+
+</style>

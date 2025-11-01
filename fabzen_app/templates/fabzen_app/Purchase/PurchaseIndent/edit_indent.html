@@ -1,0 +1,195 @@
+<div class="modal fade" id="editIndentModal-{{ indent.id }}" tabindex="-1" aria-hidden="true">
+   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+         <div class="modal-header bg-primary text-white d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+               <i class="bi bi-card-text fs-4 me-2"></i>
+               <h5 class="modal-title fw-bold mb-0 text-white">Edit Purchase Indent</h5>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+         </div>
+
+         <div class="modal-body">
+            {{indent.id}}
+            <form method="POST" action="{% url "edit_indent" indent.id %}">
+               {% csrf_token %}
+               <div class="row mb-2">
+                  <div class="col-md-3">
+                     <label class="form-label">Indent Date <span class="text-danger">*</span></label>
+                     <input type="date" class="form-control" name="indent_date" value="{{ indent.indent_date|date:'Y-m-d' }}" required>
+                  </div>
+
+                  <div class="col-md-3">
+                     <label class="form-label">Department <span class="text-danger">*</span></label>
+                     <select name="department" class="form-select" required>
+                        <option value="" disabled>Select</option>
+                        <option value="Production" {% if indent.department == 'Production' %}selected{% endif %}>Production</option>
+                        <option value="Cutting" {% if indent.department == 'Cutting' %}selected{% endif %}>Cutting</option>
+                        <option value="Finishing" {% if indent.department == 'Finishing' %}selected{% endif %}>Finishing</option>
+                     </select>
+                  </div>
+
+                  <div class="col-md-3">
+                     <label class="form-label">Priority <span class="text-danger">*</span></label>
+                     <select name="priority" class="form-select" required>
+                        <option value="" disabled>Select</option>
+                        <option value="High" {% if indent.priority == 'High' %}selected{% endif %}>High</option>
+                        <option value="Medium" {% if indent.priority == 'Medium' %}selected{% endif %}>Medium</option>
+                        <option value="Low" {% if indent.priority == 'Low' %}selected{% endif %}>Low</option>
+                     </select>
+                  </div>
+                  <div class="col-md-3">
+                     <label class="form-label fw-semibold">Requested By <span class="text-danger">*</span></label>
+                     <input type="text" class="form-control shadow-sm" name="requested_by" value="{{indent.requested_by}}" required>
+                  </div>
+               </div>
+
+               <div class="mb-3">
+                  <label class="form-label">Required by Date <span class="text-danger">*</span></label>
+                  <input type="date" class="form-control" name="required_date" value="{{ indent.required_date|date:'Y-m-d' }}" required>
+               </div>
+
+               <!-- Items Section -->
+               <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                     <h6 class="mb-0">Items Required</h6>
+                     <button type="button" id="addItemBtn-{{ indent.id }}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i> Add Item
+                     </button>
+                  </div>
+
+                  <div class="table-responsive border rounded">
+                     <table class="table mb-0">
+                        <thead class="bg-light">
+                           <tr>
+                              <th>#</th>
+                              <th>Item Description</th>
+                              <th>Quantity</th>
+                              <th>Unit</th>
+                              <th>Remarks</th>
+                              <th>Action</th>
+                           </tr>
+                        </thead>
+                        <tbody id="itemsTableBody-{{ indent.id }}">
+                           {% for item in indent.items.all %}
+                           
+                           <tr class="item-row">
+                              <td>{{ forloop.counter }}</td>
+                              <td>
+                                 <select class="form-select" name="item_description[]" required>
+                                    <option value="" disabled>Select</option>
+                                    {% for i in garment %}
+                                    <option value="{{ i.id }}" {% if i.id == item.garment.id %}selected{% endif %}>{{ i.garment_name }}</option>
+                                    {% endfor %}
+                                 </select>
+                              </td>
+                              <td>
+                                 <input type="number" class="form-control form-control-sm" name="quantity[]" value="{{ item.quantity }}" min="1">
+                              </td>
+                              <td>
+                                 <select class="form-select form-select-sm" name="unit[]">
+                                    <option value="" disabled>Select</option>
+                                    <option value="Pcs" {% if item.uom == 'Pcs' %}selected{% endif %}>Pcs</option>
+                                    <option value="Kg" {% if item.uom == 'Kg' %}selected{% endif %}>Kg</option>
+                                    <option value="Meter" {% if item.uom == 'Meter' %}selected{% endif %}>Meter</option>
+                                    <option value="Liter" {% if item.uom == 'Liter' %}selected{% endif %}>Liter</option>
+                                 </select>
+                              </td>
+                              <td>
+                                 <input type="text" class="form-control form-control-sm" name="remarks[]" value="{{ item.remarks }}">
+                              </td>
+                              <td>
+                                 <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                                    <i class="bx bx-trash"></i>
+                                 </button>
+                              </td>
+                           </tr>
+                           {% endfor %}
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+
+               <!-- Purpose -->
+               <div class="mb-3">
+                  <label class="form-label">Purpose/Justification</label>
+                  <textarea class="form-control" name="purpose" rows="2">{{ indent.remarks }}</textarea>
+               </div>
+
+               <button type="submit" class="btn btn-primary">Update</button>
+            </form>
+         </div>
+      </div>
+   </div>
+</div>
+
+
+
+{% block extra_js %}
+<script>
+if (!window.indentScriptLoaded) {
+    window.indentScriptLoaded = true; // Prevent multiple bindings
+
+    document.addEventListener('click', function(e) {
+
+        // ➕ Add Item Button
+        if (e.target.closest('[id^="addItemBtn-"]')) {
+            const btn = e.target.closest('[id^="addItemBtn-"]');
+            const modalId = btn.id.split('-')[1];
+            const tableBody = document.getElementById(`itemsTableBody-${modalId}`);
+            if (!tableBody) return;
+
+            const rowCount = tableBody.querySelectorAll('tr').length;
+            const newRow = document.createElement('tr');
+            newRow.className = 'item-row';
+            newRow.innerHTML = `
+                <td>${rowCount + 1}</td>
+                <td>
+                    <select class="form-select" name="item_description[]" required>
+                        <option value="" selected>Select</option>
+                        {% for i in garment %}
+                        <option value="{{i.id}}">{{i.garment_name}}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><input type="number" class="form-control form-control-sm" name="quantity[]" placeholder="Qty" min="1"></td>
+                <td>
+                    <select class="form-select form-select-sm" name="unit[]" required>
+                        <option value="" selected disabled>Select</option>
+                        <option value="Pcs">Pcs</option>
+                        <option value="Kg">Kg</option>
+                        <option value="Meter">Meter</option>
+                        <option value="Liter">Liter</option>
+                    </select>
+                </td>
+                <td><input type="text" class="form-control form-control-sm" name="remarks[]" placeholder="Remarks"></td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                        <i class="bx bx-trash"></i>
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(newRow);
+
+            // Recalculate serial numbers
+            tableBody.querySelectorAll('tr').forEach((r, i) => {
+                r.cells[0].textContent = i + 1;
+            });
+        }
+
+        // 🗑️ Remove Row
+        if (e.target.closest('.remove-row')) {
+            const btn = e.target.closest('.remove-row');
+            const row = btn.closest('tr');
+            const tableBody = row.parentElement;
+            row.remove();
+
+            // Recalculate serial numbers after remove
+            tableBody.querySelectorAll('tr').forEach((r, i) => {
+                r.cells[0].textContent = i + 1;
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

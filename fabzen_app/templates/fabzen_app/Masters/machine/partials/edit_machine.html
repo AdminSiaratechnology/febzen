@@ -65,15 +65,14 @@
                <div class="row mb-2">
                   <div class="col-md-12">
                      <label for="inputCategory" class="form-label">Assigned Operator</label>
+                     
                      <select class="form-select" id="inputCategory" name="assign_operator" required>
-                        <option value="" selected disabled>Select</option>
-                        
-                        <option value="Rajesh Kumar" {% if fabric.assigned_operator == 'Rajesh Kumar' %}selected{% endif %}>Rajesh Kumar</option>
-                        <option value="Suresh Patel" {% if fabric.assigned_operator == 'Suresh Patel' %}selected{% endif %} >Suresh Patel</option>
-                        <option value="Rajesh Singh" {% if fabric.assigned_operator == 'Rajesh Singh' %}selected{% endif %} >Rajesh Singh</option>
-                        
-                    
+                        <option value="" disabled>Select</option>
+                        {% for i in operator %}
+                           <option value="{{ i.id }}" {% if fabric.assigned_operator_id == i.id %}selected{% endif %}>{{ i.full_name }}</option>
+                        {% endfor %}
                      </select>
+
                      
                   </div>
                </div>

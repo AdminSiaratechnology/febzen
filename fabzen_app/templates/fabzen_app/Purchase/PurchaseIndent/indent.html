@@ -1,0 +1,154 @@
+{% extends "fabzen_app/Base/base.html" %}
+{% block title %}Indent{% endblock title %}
+{% block main-content %}
+
+<div class="page-content">
+   
+   <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
+      <div class="col">
+         <div class="card radius-10" style="background-color:#fd5b00;">
+            <div class="card-body">
+               <div class="d-flex align-items-center">
+                  <div>
+                     <p class="mb-0 text-light">Pending Approval</p>
+                     <h4 class="my-1 text-light"></h4>
+                     <br>
+                     <h4 class="my-1 text-light">{{pending}}</h4>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="col">
+         <div class="card radius-10" style="background-color:#00ba48;">
+            <div class="card-body">
+               <div class="d-flex align-items-center">
+                  <div>
+                     <p class="mb-0 text-light">Approved</p>
+                     <h4 class="my-1 text-light"></h4>
+                     <br>
+                     <h4 class="my-1 text-light">{{approved}}</h4>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="col">
+         <div class="card radius-10 bg-danger">
+            <div class="card-body">
+               <div class="d-flex align-items-center">
+                  <div>
+                     <p class="mb-0 text-light">Rejected</p>
+                     <h4 class="my-1 text-light"></h4>
+                     <br>
+                     <h4 class="my-1 text-light">{{rejected}}</h4>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="col">
+         <div class="card radius-10 bg-primary">
+            <div class="card-body">
+               <div class="d-flex align-items-center">
+                  <div>
+                     <p class="mb-0 text-light">Converted to PO</p>
+                     <h4 class="my-1 text-light"></h4>
+                     <br>
+                     <h4 class="my-1 text-light">{{converted}}</h4>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+   <!-- --------------------------------------- Table Section here ----------------------- -->
+   <div class="row">
+      <div class="col">
+         <div class="card">
+            <div class="card-body">
+              <div class="mb-4 d-flex justify-content-between align-items-center">
+  
+  <!-- 🔍 Search Input -->
+  <div class="d-flex gap-2 align-items-center">
+    <input 
+      type="text" 
+      class="form-control"
+      placeholder="Search Purchase Indents..."
+      style="max-width: 300px;"
+      name="search"
+      hx-get="{% url 'indent_list' %}"
+      hx-trigger="keyup changed delay:500ms"
+      hx-target="#indent-table"
+    >
+     <select 
+                     class="form-select" 
+                     style="max-width: 200px;"
+                     name="type"
+                     hx-get="{% url 'indent_list' %}"
+                     hx-trigger="change"
+                     hx-target="#indent-table"
+                     hx-include="[name='search']"
+                     >
+                     <option value="" selected disabled>Filter by status</option>
+                     <option value="">All</option>
+                     <option value="Pending">Pending</option>
+                     <option value="Approved">Approved</option>
+                     <option value="Rejected">Rejected</option>
+                     <option value="Close">Close</option>
+                     
+                  </select>
+  </div>
+
+  <!-- ➕ Add Button -->
+  {% comment %} <a href="#" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm">
+    <i class="bi bi-plus-circle"></i> Add Purchase Indent
+  </a> {% endcomment %}
+  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleLargeModal2">Add Indent</button>
+  {% include "fabzen_app/Purchase/PurchaseIndent/add_indentcopy.html" %}
+  {% comment %} {% include "fabzen_app/Purchase/PurchaseIndent/add_indent.html" %} {% endcomment %}
+  
+
+</div>
+
+              
+               <hr>
+               {% include "fabzen_app/Base/messages.html" %}
+               <div class="card">
+                  <div class="card-body" >
+                     <table class="table mb-0 table-striped" >
+                        <thead class="table-light">
+                           <tr>
+                              <th scope="col">Code</th>
+                              <th scope="col">Date</th>
+                              <th scope="col">Department</th>
+                              <th>Requested By</th>
+                              <th>items</th>
+                              <th>Priority</th>
+                              <th>Required Date</th>
+                              <th>Status</th>
+                              <th>Action</th>
+                           </tr>
+                        </thead>
+                        <tbody 
+                           id="indent-table"
+                           hx-get="{% url 'indent_list' %}" 
+                           hx-trigger="load" 
+                           hx-target="this" 
+                           hx-swap="innerHTML"
+                           >
+                           <!-- party_table.html will load here -->
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>
+
+
+
+
+{% endblock main-content %}

@@ -1,0 +1,207 @@
+<div class="modal fade" id="exampleLargeModal2" tabindex="-1" aria-hidden="true">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+         <div class="modal-header bg-primary text-white d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+               <i class="bi bi-card-text fs-4 me-2"></i>
+               <h5 class="modal-title fw-bold mb-0 text-white">Create Purchase Indent</h5>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+         </div>
+         <div class="modal-body">
+            <form method="POST">
+               {% csrf_token %}
+               <!-- ✅ Category Field -->
+               <div class="row mb-2">
+                  <div class="col-md-4">
+                     <label for="inputConstruction" class="form-label">Indent Date <span class="text-danger">*</span></label>
+                     <input type="date" class="form-control" id="inputConstruction" name="indent_date" placeholder="13-10-2025" required value="{% if form %}{{ form.data.construction }}{% elif fabric %}{{ fabric.construction }}{% endif %}">
+                  </div>
+                  <div class="col-md-4">
+                     <label for="inputWidth" class="form-label">Department <span class="text-danger">*</span></label>
+                     <select name="department" id="" class="form-select" required>
+                        <option value="" selected disabled>Select</option>
+                        <option value="Production">Production</option>
+                        <option value="Cutting">Cutting</option>
+                        <option value="Finishing">Finishing</option>
+                     </select>
+                  </div>
+                  <div class="col-md-4">
+                     <label for="inputGSM" class="form-label">Priority <span class="text-danger">*</span></label>
+                     <select class="form-select" name="priority" id="" required>
+                        <option value="" selected disabled>Select</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                     </select>
+                  </div>
+               </div>
+               <div class="mb-3">
+                  <label for="inputCategory" class="form-label">
+                  Required by Date <span class="text-danger">*</span>
+                  </label>
+                  <input type="date" class="form-control" name="required_date" required>
+               </div>
+               <!-- Items Required Section -->
+               <div class="mb-3">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                     <h6 class="mb-0">Items Required</h6>
+                     <button type="button" id="addItemBtn" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i> Add Item
+                     </button>
+                  </div>
+                  
+                  <div class="table-responsive border rounded">
+                     <table class="table mb-0">
+                        <thead class="bg-light">
+                           <tr>
+                              <th scope="col" style="width: 5%">#</th>
+                              <th scope="col" style="width: 40%">Item Description</th>
+                              <th scope="col" style="width: 15%">Quantity</th>
+                              <th scope="col" style="width: 20%">Unit</th>
+                              <th scope="col" style="width: 15%">Remarks</th>
+                              <th scope="col" style="width: 5%">Action</th>
+                           </tr>
+                        </thead>
+                        <tbody id="itemsTableBody">
+                           <tr class="item-row">
+                              <td>1</td>
+                              <td>
+                                 {% comment %} <input type="text" class="form-control form-control-sm" name="item_description[]" placeholder="Enter item description"> {% endcomment %}
+                                 <select class="form-select" name="item_description[]" id="">
+                                    <option value="" selected>Select</option>
+                                    {% for i in garment %}
+                                    <option value="{{i.id}}">{{i.garment_name}}</option>
+                                    {% endfor %}
+                                 </select>
+                              </td>
+                              <td>
+                                 <input type="number" class="form-control form-control-sm" name="quantity[]" placeholder="Qty" min="1">
+                              </td>
+                              <td>
+                                 <select class="form-select form-select-sm" name="unit[]">
+                                    <option value="" selected disabled>Select</option>
+                                    <option value="Pcs">Pcs</option>
+                                    <option value="Kg">Kg</option>
+                                    <option value="Meter">Meter</option>
+                                    <option value="Liter">Liter</option>
+                                 </select>
+                              </td>
+                              <td>
+                                 <input type="text" class="form-control form-control-sm" name="remarks[]" placeholder="Remarks">
+                              </td>
+                              <td>
+                                 <button type="button" class="btn btn-sm btn-outline-danger remove-row" disabled>
+                                    <i class="bx bx-trash"></i>
+                                 </button>
+                              </td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+               
+               <!-- Purpose/Justification Section -->
+               <div class="mb-3">
+                  <label for="purpose" class="form-label">Purpose/Justification</label>
+                  <textarea class="form-control" id="purpose" name="purpose" rows="2" placeholder="Explain the purpose of this requisition..."></textarea>
+               </div>
+               <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+         </div>
+      </div>
+   </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get references to elements
+    const addItemBtn = document.getElementById('addItemBtn');
+    const itemsTableBody = document.getElementById('itemsTableBody');
+    
+    // Add event listener to the Add Item button
+    addItemBtn.addEventListener('click', function() {
+        // Get current number of rows
+        const rowCount = itemsTableBody.querySelectorAll('tr').length;
+        
+        // Create a new row
+        const newRow = document.createElement('tr');
+        newRow.className = 'item-row';
+        
+        // Set the HTML content for the new row
+        newRow.innerHTML = `
+            <td>${rowCount + 1}</td>
+            <td>
+                {% comment %} <input type="text" class="form-control form-control-sm" name="item_description[]" placeholder="Enter item description"> {% endcomment %}
+                <select class="form-select" name="item_description[]" id="">
+                  <option value="" selected>Select</option>
+                  {% for i in garment %}
+                  <option value="{{i.id}}">{{i.garment_name}}</option>
+                  {% endfor %}
+               </select>
+            </td>
+            <td>
+                <input type="number" class="form-control form-control-sm" name="quantity[]" placeholder="Qty" min="1">
+            </td>
+            <td>
+                <select class="form-select form-select-sm" name="unit[]">
+                    <option value="" selected disabled>Select</option>
+                    <option value="Pcs">Pcs</option>
+                    <option value="Kg">Kg</option>
+                    <option value="Meter">Meter</option>
+                    <option value="Liter">Liter</option>
+                </select>
+            </td>
+            <td>
+                <input type="text" class="form-control form-control-sm" name="remarks[]" placeholder="Remarks">
+            </td>
+            <td>
+                <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                    <i class="bx bx-trash"></i>
+                </button>
+            </td>
+        `;
+        
+        // Add the new row to the table
+        itemsTableBody.appendChild(newRow);
+        
+        // Enable all remove buttons except the first one
+        const removeButtons = itemsTableBody.querySelectorAll('.remove-row');
+        removeButtons.forEach(button => {
+            button.disabled = false;
+        });
+        
+        // Add event listener to the new remove button
+        const newRemoveButton = newRow.querySelector('.remove-row');
+        newRemoveButton.addEventListener('click', function() {
+            removeRow(newRow);
+        });
+    });
+    
+    // Function to remove a row
+    function removeRow(row) {
+        // Remove the row
+        row.remove();
+        
+        // Update row numbers
+        const rows = itemsTableBody.querySelectorAll('tr');
+        rows.forEach((row, index) => {
+            row.cells[0].textContent = index + 1;
+        });
+        
+        // If only one row remains, disable its remove button
+        if (rows.length === 1) {
+            rows[0].querySelector('.remove-row').disabled = true;
+        }
+    }
+    
+    // Add event listeners to existing remove buttons
+    const existingRemoveButtons = itemsTableBody.querySelectorAll('.remove-row');
+    existingRemoveButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const row = this.closest('tr');
+            removeRow(row);
+        });
+    });
+});
+</script>

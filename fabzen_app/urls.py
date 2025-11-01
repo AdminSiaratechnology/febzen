@@ -80,5 +80,53 @@ urlpatterns = [
     # --------------------      End Operators  --------------------------
 
 
+    # --------------------       Bom & BOO  --------------------------
+
+    path('BOM/', views.BomListView, name='bom'),
+    # --------------------      End Bom & BOO  --------------------------
+
+
+    # --------------------      Ledger  --------------------------
+
+    path('ledger/', views.LedgerListView, name='ledger'),
+    path('ledgerList/', views.ledger_list, name='ledger_list'),
+    path('add_ledger_group/', views.add_ledger_group, name='add_ledger_group'),
+    path('ledger/edit/<int:pk>/', views.edit_ledger, name='edit_ledger'),
+
+
+    # --------------------      End Ledger  --------------------------
+
+
+
+    # --------------------      Purchase  --------------------------
+
+    path('indent/', views.IndentListView, name='indent'),
+    path('indentList/', views.indent_list, name='indent_list'),
+    path('indent/edit/<int:pk>/', views.edit_indent, name='edit_indent'),
+
+    path('purchase-indent/convert-to-po/<int:pk>/', views.convert_to_po, name='convert_to_po'),
+
+
+    # --------------------      End Purchase  --------------------------
+
+
+    
+
+
+    # --------------------     Purchase Order  --------------------------
+
+    path('purchaseorder/', views.PurchaseOrderListView, name='purchaseorder'),
+    path('AddPurchaseOrder/', views.add_purchase_order, name='add_purchase_order'),
+    path('purchaseorderList/', views.purchaseorder_list, name='purchaseorder_list'),
+    path('get-garment-description/<int:garment_id>/', views.get_garment_description, name='get_garment_description')
+
+
+
+
+    # --------------------      End Purchase Order  --------------------------
+
+    
+
+
     
 ]

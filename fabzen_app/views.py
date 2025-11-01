@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine,Operator
+from .models import Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine,Operator,Ledger,LedgerGroup,PurchaseIndent,PurchaseIndentItem,PurchaseOrder,PurchaseOrderItem
 from .forms import PartyForm,FabricForm
 from django.http import HttpResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -8,6 +8,7 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView,CreateView
 from django.urls import reverse_lazy
 import json
+from datetime import date
 # Create your views here.
 
 
@@ -440,7 +441,18 @@ class FabricListView(ListView):
 #     return render(request,'fabzen_app/Masters/fabrics/partials/fabric_list.html',context)
 
 def fabric_list(request):
+    search_query = request.GET.get('search', '').strip()
+    category_type = request.GET.get('type', '').strip()
     fabrics_qs = Fabric.objects.all().order_by('-id')
+    if search_query:
+        fabrics_qs = fabrics_qs.filter(
+            Q(code__icontains=search_query) |
+            Q(quality_name__icontains=search_query) |
+            Q(construction__icontains=search_query) 
+           
+        )
+    if category_type:
+        fabrics_qs = fabrics_qs.filter(category__iexact=category_type)
 
     # --- Pagination logic ---
     page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
@@ -859,7 +871,7 @@ def MachineListView(request):
         brand = request.POST.get('brand', '').strip()
         capacity = request.POST.get('capacity', '').strip()
         purchase_date = request.POST.get('purchase_date', '').strip()
-        assign_operator = request.POST.get('assign_operator', '').strip()
+        assign_operator_id = request.POST.get('assign_operator', '').strip()
 
         notes  = request.POST.get('notes', '').strip()
 
@@ -869,7 +881,7 @@ def MachineListView(request):
         if Machine.objects.filter(machine_code__iexact=machine_code).exists():
             messages.error(request, f"Process code '{machine_code}' already exists!")
             return redirect('processes')
-
+        assign_operator = Operator.objects.get(id=assign_operator_id)
         # Create the new process
         Machine.objects.create(
             machine_code=machine_code,
@@ -883,8 +895,12 @@ def MachineListView(request):
         )
         messages.success(request, f"Machine '{machine_name}' added successfully!")
         return redirect('machine')
+    operator = Operator.objects.all().order_by('-id')
+    context={
+        'operators':operator
+    }
 
-    return render(request, 'fabzen_app/Masters/machine/machine.html')
+    return render(request, 'fabzen_app/Masters/machine/machine.html',context)
 
 
 
@@ -915,11 +931,14 @@ def machine_list(request):
         machines = paginator.page(page_number)
     except Exception:
         machines = paginator.page(1)
+    
+    operator = Operator.objects.all().order_by('-id')
 
     context = {
         'fabrics': machines,
         'paginator': paginator,
         'is_paginated': True,  # Used by your template
+        'operator':operator
     }
 
     return render(request, 'fabzen_app/Masters/machine/partials/machine_list.html', context)
@@ -932,16 +951,21 @@ def edit_machine(request, pk):
     machine = get_object_or_404(Machine, pk=pk)
 
     if request.method == "POST":
-        
+        operator_id = request.POST.get('assign_operator', '').strip()
+        assigned_operator = Operator.objects.get(id=operator_id)
         # process.process_code = request.POST.get('process_code', '').strip()
         machine.machine_name = request.POST.get('machine_name', '').strip()
         machine.machine_type  = request.POST.get('machine_type', '').strip()
         machine.brand = request.POST.get('brand', '').strip()
         machine.capacity_per_day = request.POST.get('capacity', '').strip()
         # machine.purchase_date = request.POST.get('purchase_date', '').strip()
-        machine.assigned_operator = request.POST.get('assign_operator', '').strip()
+       
         machine.notes = request.POST.get('notes', '').strip()
         purchase_date_str = request.POST.get('purchase_date', '').strip()
+
+
+        
+        machine.assigned_operator = assigned_operator
         # Validation
         # if not process.process_code or not process.process_name:
         #     messages.error(request, "Please fill all required fields.")
@@ -1153,3 +1177,720 @@ def edit_operator(request, pk):
     
 
 # ----------------------------------- END Operator ---------------------
+
+
+
+# ----------------------------------- Ledger Operator ---------------------
+
+
+# def LedgerListView(request):
+#     if request.method == "POST":
+#         ledger_code = request.POST.get('ledger_code', '').strip()
+#         ledger_name = request.POST.get('ledger_name', '').strip()
+#         group_id= request.POST.get('ledger_group', '').strip()
+#         opening_balance = request.POST.get('opening_balance', '').strip()
+#         balance_type = request.POST.get('opening_balance', '').strip()
+       
+
+#         # ✅ Check for duplicate operator code
+#         if Ledger.objects.filter(ledger_code__iexact=ledger_code).exists():
+#             messages.error(request, f"Ledger code '{ledger_code}' already exists!")
+#             return redirect('ledger')
+
+#         ledger_group = LedgerGroup.objects.get(id=group_id)
+#         # ✅ Create and save operator
+#         Ledger.objects.create(
+#             ledger_code=ledger_code,
+#             ledger_name=ledger_name,
+#             ledger_group=ledger_group,
+#             opening_balance=opening_balance,
+#             balance_type=balance_type,
+            
+#         )
+
+#         messages.success(request, f"Ledger '{ledger_name}' added successfully!")
+#         return redirect('ledger')
+
+#     # ✅ Fetch all operators for listing
+    
+#     ledger_group = LedgerGroup.objects.all().order_by('-id')
+#     return render(request, 'fabzen_app/Masters/ledgers/ledger.html',{'ledger_group':ledger_group})
+
+
+
+def LedgerListView(request):
+    if request.method == "POST":
+        ledger_code = request.POST.get('ledger_code', '').strip()
+        ledger_name = request.POST.get('ledger_name', '').strip()
+        group_id = request.POST.get('ledger_group', '').strip()
+        opening_balance = request.POST.get('opening_balance', '').strip()
+        balance_type = request.POST.get('balance_type', '').strip()  # ✅ fixed field name
+
+        # ✅ Validate and convert opening_balance
+        opening_balance = int(opening_balance) if opening_balance else 0
+
+        # ✅ Check for duplicate ledger code
+        if Ledger.objects.filter(ledger_code__iexact=ledger_code).exists():
+            messages.error(request, f"Ledger code '{ledger_code}' already exists!")
+            return redirect('ledger')
+
+        try:
+            ledger_group = LedgerGroup.objects.get(id=group_id)
+        except LedgerGroup.DoesNotExist:
+            messages.error(request, "Invalid ledger group selected.")
+            return redirect('ledger')
+
+        # ✅ Create and save Ledger
+        Ledger.objects.create(
+            ledger_code=ledger_code,
+            ledger_name=ledger_name,
+            ledger_group=ledger_group,
+            opening_balance=opening_balance,
+            balance_type=balance_type,
+        )
+
+        messages.success(request, f"Ledger '{ledger_name}' added successfully!")
+        return redirect('ledger')
+
+    # ✅ Fetch all ledger groups for listing
+    ledger_group = LedgerGroup.objects.all().order_by('-id')
+    return render(request, 'fabzen_app/Masters/ledgers/ledger.html', {'ledger_group': ledger_group})
+
+
+def ledger_list(request):
+    
+    search_query = request.GET.get('search', '').strip()
+    type = request.GET.get('type', '').strip()
+    ledger_qs = Ledger.objects.all().order_by('-id')
+    ledger_group = LedgerGroup.objects.all().order_by('-id')
+
+    if search_query:
+        ledger_qs = ledger_qs.filter(
+            Q(ledger_code__icontains=search_query) |
+            Q(ledger_name__icontains=search_query) |
+            Q(ledger_group__name__icontains=search_query) |
+            Q(ledger_group__type__icontains=search_query) |
+            Q(balance_type__icontains=search_query) 
+        )
+    
+    if type:
+        ledger_qs = ledger_qs.filter(ledger_group__type__iexact=type)
+
+    # --- Pagination logic ---
+    page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
+    paginator = Paginator(ledger_qs, 10)     # Show 10 ledgers per page
+  
+    try:
+        ledgers = paginator.page(page_number)
+    except PageNotAnInteger:
+        ledgers = paginator.page(1)
+    except EmptyPage:
+        ledgers = paginator.page(paginator.num_pages)
+
+    context = {
+        'ledgers': ledgers,
+        'paginator': paginator,
+        'is_paginated': True,  # Used by your template
+        'ledger_group':ledger_group
+    }
+
+    return render(request, 'fabzen_app/Masters/ledgers/partials/ledger_list.html', context)
+
+
+# ----------------------------------- Ledger Group ---------------------
+
+def add_ledger_group(request):
+    if request.method == "POST":
+        name = request.POST.get('name', '').strip()
+        group_type = request.POST.get('type', '').strip()
+        
+        # Validation
+        if not name or not group_type:
+            return HttpResponse("<div class='alert alert-danger'>Group name and type are required!</div>")
+        
+        # Check if group name already exists
+        if LedgerGroup.objects.filter(name__iexact=name).exists():
+            return HttpResponse("<div class='alert alert-warning'>Group name already exists! Please use a different name.</div>")
+            
+        # Create the ledger group
+        new_group = LedgerGroup.objects.create(
+            name=name,
+            type=group_type
+        )
+        
+        # Return success response with trigger to close modal and reopen ledger modal
+        response = HttpResponse()
+        response['HX-Trigger'] = json.dumps({
+            "closeGroupModal": True,
+            "reopenLedgerModal": True,
+            "newGroupId": new_group.id
+        })
+        return response
+        
+    return HttpResponse("<div class='alert alert-danger'>Invalid request method!</div>")
+
+
+def edit_ledger(request, pk):
+    ledger = get_object_or_404(Ledger, pk=pk)
+
+    if request.method == "POST":
+        # print("edit ledgersssssssss..........")
+        # ledger_code = request.POST.get('ledger_code', '').strip()
+        ledger_name = request.POST.get('ledger_name', '').strip()
+        group_id = request.POST.get('ledger_group', '').strip()
+        opening_balance = request.POST.get('opening_balance', '').strip()
+        balance_type = request.POST.get('balance_type', '').strip()
+
+        # 🧩 Validate group exists
+        ledger_group = get_object_or_404(LedgerGroup, id=group_id)
+
+        # 🛠 Update fields (not create)
+        # ledger.ledger_code = ledger_code
+        ledger.ledger_name = ledger_name
+        ledger.ledger_group = ledger_group
+        ledger.opening_balance = opening_balance
+        ledger.balance_type = balance_type
+
+        # 💾 Save updated record
+        ledger.save()
+
+        messages.success(request, f"Ledger '{ledger_name}' updated successfully!")
+        return redirect('ledger')  # ✅ Redirect to 'ledger' URL name
+
+    # If GET request, render the edit page/modal
+    ledger_group = LedgerGroup.objects.all().order_by('-id')
+    context = {
+        'ledger': ledger,
+        'ledger_group': ledger_group
+    }
+    return render(request, 'fabzen_app/Masters/ledgers/edit_ledger.html', context)
+
+# ----------------------------------- END Ledger ---------------------
+
+
+
+# -----------------------------------  BOM & Boo ---------------------
+
+def BomListView(request):
+    
+    return render(request, 'fabzen_app/Masters/bom/bom.html')
+
+# ----------------------------------- END BOM & Boo ---------------------
+
+
+
+
+
+# ----------------------------------- Indent ---------------------
+# def IndentListView(request):
+#     garment = Garment.objects.all()
+#     context = {
+#         'garment':garment
+#     }
+#     return render(request,'fabzen_app/Purchase/PurchaseIndent/indent.html',context)
+
+
+
+
+
+# def IndentListView(request):
+#     garment = Garment.objects.all()
+
+#     if request.method == "POST":
+#         # Get Indent main fields
+#         indent_date = request.POST.get('indent_date')  # from inputConstruction
+#         department = request.POST.get('department')
+#         priority = request.POST.get('priority')
+#         required_date = request.POST.get('required_date')
+#         remarks = request.POST.get('purpose')
+
+#         # ✅ Generate a unique indent number automatically
+#         last_indent = PurchaseIndent.objects.order_by('-id').first()
+#         if last_indent:
+#             new_number = int(last_indent.indent_no.split('-')[-1]) + 1
+#         else:
+#             new_number = 1
+#         indent_no = f"PI-{new_number:04d}"
+
+#         # ✅ Create PurchaseIndent
+#         indent = PurchaseIndent.objects.create(
+#             indent_no=indent_no,
+#             department=department,
+#             indent_date=indent_date,
+#             required_date=required_date,
+#             priority=priority,
+#             # remarks=remarks,
+#             status='Pending'
+#         )
+
+#         # ✅ Now handle multiple item rows
+#         item_descriptions = request.POST.getlist('item_description[]')
+#         quantities = request.POST.getlist('quantity[]')
+#         units = request.POST.getlist('unit[]')
+#         item_remarks = request.POST.getlist('remarks[]')
+
+#         for i in range(len(item_descriptions)):
+#             garment_name = item_descriptions[i]
+#             quantity = quantities[i]
+#             unit = units[i]
+#             remark = item_remarks[i]
+
+#             if garment_name and quantity:  # avoid empty rows
+#                 try:
+#                     garment_obj = Garment.objects.get(garment_name=garment_name)
+#                 except Garment.DoesNotExist:
+#                     continue
+
+#                 PurchaseIndentItem.objects.create(
+#                     indent=indent,
+#                     garment=garment_obj,
+#                     quantity=quantity,
+#                     uom=unit,
+#                     remarks=remark
+#                 )
+
+#         return redirect('indent')  # redirect after saving
+
+#     context = {
+#         'garment': garment
+#     }
+#     return render(request, 'fabzen_app/Purchase/PurchaseIndent/indent.html', context)
+
+
+def IndentListView(request):
+    garment = Garment.objects.all()
+    pending = PurchaseIndent.objects.filter(status='Pending').count()
+    approved = PurchaseIndent.objects.filter(status='Approved').count()
+    rejected = PurchaseIndent.objects.filter(status='Rejected').count()
+    converted = PurchaseIndent.objects.filter(status='Close').count()
+
+    if request.method == "POST":
+        # Get main fields
+        indent_date = request.POST.get('indent_date')
+        department = request.POST.get('department')
+        priority = request.POST.get('priority')
+        requested_by = request.POST.get('requested_by')
+        required_date = request.POST.get('required_date')
+        remarks = request.POST.get('purpose')
+
+        # ✅ Generate unique indent number
+        last_indent = PurchaseIndent.objects.order_by('-id').first()
+        if last_indent:
+            new_number = int(last_indent.indent_no.split('-')[-1]) + 1
+        else:
+            new_number = 1
+        indent_no = f"PI-{new_number:04d}"
+
+        # ✅ Create main PurchaseIndent record
+        indent = PurchaseIndent.objects.create(
+            indent_no=indent_no,
+            department=department,
+            indent_date=indent_date,
+            required_date=required_date,
+            priority=priority,
+            requested_by=requested_by,
+            remarks=remarks,
+            status='Pending'
+        )
+
+        # ✅ Get list fields
+        item_descriptions = request.POST.getlist('item_description[]')
+        quantities = request.POST.getlist('quantity[]')
+        units = request.POST.getlist('unit[]')
+        item_remarks = request.POST.getlist('remarks[]')
+
+        # ✅ Loop through all items
+        for i in range(len(item_descriptions)):
+            garment_id = item_descriptions[i]
+            quantity = quantities[i]
+            unit = units[i]
+            remark = item_remarks[i]
+
+            if garment_id and quantity:
+                try:
+                    garment_obj = Garment.objects.get(id=garment_id)
+                except Garment.DoesNotExist:
+                    continue
+
+                PurchaseIndentItem.objects.create(
+                    indent=indent,
+                    garment=garment_obj,
+                    quantity=quantity,
+                    uom=unit,
+                    remarks=remark
+                )
+
+        messages.success(request, f"Purchase Indent {indent.indent_no} created successfully!")
+        return redirect('indent')
+
+    context = {
+        'garment': garment,
+        'pending' : pending,
+        'approved' : approved,
+        'rejected' : rejected,
+        'converted' : converted,
+        
+    }
+    return render(request, 'fabzen_app/Purchase/PurchaseIndent/indent.html', context)
+
+def indent_list(request):
+    
+    search_query = request.GET.get('search', '').strip()
+    
+    type = request.GET.get('type', '').strip()
+    purchase_qs = PurchaseIndent.objects.all().order_by('-id')
+    garment = Garment.objects.all()
+    # ledger_group = LedgerGroup.objects.all().order_by('-id')
+
+    if search_query:
+        purchase_qs = purchase_qs.filter(
+            Q(indent_no__icontains=search_query) |
+            Q(department__icontains=search_query) 
+        )
+        
+    
+    if type:
+        purchase_qs = purchase_qs.filter(status__iexact=type)
+
+    # --- Pagination logic ---
+    page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
+    paginator = Paginator(purchase_qs, 10)     # Show 10 ledgers per page
+  
+    try:
+        indents = paginator.page(page_number)
+    except PageNotAnInteger:
+        indents = paginator.page(1)
+    except EmptyPage:
+        indents = paginator.page(paginator.num_pages)
+    context = {
+        'indents': indents,
+        'paginator': paginator,
+        'is_paginated': True,  # Used by your template
+        # 'ledger_group':ledger_group
+        'garment':garment
+    }
+
+    return render(request, 'fabzen_app/Purchase/PurchaseIndent/partials/purchase_list.html', context)
+
+    #     return redirect('indent')
+
+
+
+
+# def edit_indent(request):
+#     garment = Garment.objects.all()
+
+#     if request.method == "POST":
+#         # Get main fields
+#         indent_date = request.POST.get('indent_date')
+#         department = request.POST.get('department')
+#         priority = request.POST.get('priority')
+#         required_date = request.POST.get('required_date')
+#         remarks = request.POST.get('purpose')
+
+#         # ✅ Generate unique indent number
+#         last_indent = PurchaseIndent.objects.order_by('-id').first()
+#         if last_indent:
+#             new_number = int(last_indent.indent_no.split('-')[-1]) + 1
+#         else:
+#             new_number = 1
+#         indent_no = f"PI-{new_number:04d}"
+
+#         # ✅ Create main PurchaseIndent record
+#         indent = PurchaseIndent.objects.create(
+#             indent_no=indent_no,
+#             department=department,
+#             indent_date=indent_date,
+#             required_date=required_date,
+#             priority=priority,
+#             remarks=remarks,
+#             status='Pending'
+#         )
+
+#         # ✅ Get list fields
+#         item_descriptions = request.POST.getlist('item_description[]')
+#         quantities = request.POST.getlist('quantity[]')
+#         units = request.POST.getlist('unit[]')
+#         item_remarks = request.POST.getlist('remarks[]')
+
+#         # ✅ Loop through all items
+#         for i in range(len(item_descriptions)):
+#             garment_id = item_descriptions[i]
+#             quantity = quantities[i]
+#             unit = units[i]
+#             remark = item_remarks[i]
+
+#             if garment_id and quantity:
+#                 try:
+#                     garment_obj = Garment.objects.get(id=garment_id)
+#                 except Garment.DoesNotExist:
+#                     continue
+
+#                 PurchaseIndentItem.objects.create(
+#                     indent=indent,
+#                     garment=garment_obj,
+#                     quantity=quantity,
+#                     uom=unit,
+#                     remarks=remark
+#                 )
+
+#         messages.success(request, f"Purchase Indent {indent.indent_no} created successfully!")
+#         return redirect('indent')
+
+#     context = {
+#         'garment': garment
+#     }
+#     return render(request, 'fabzen_app/Purchase/PurchaseIndent/indent.html', context)
+
+
+def edit_indent(request, pk):
+    indent = get_object_or_404(PurchaseIndent, pk=pk)
+    garment = Garment.objects.all()
+
+    if request.method == "POST":
+        # 🔹 Update main fields
+        indent.indent_date = request.POST.get('indent_date')
+        indent.department = request.POST.get('department')
+        indent.priority = request.POST.get('priority')
+        indent.requested_by = request.POST.get('requested_by')
+        indent.required_date = request.POST.get('required_date')
+        indent.remarks = request.POST.get('purpose')
+
+        indent.save()
+
+        # 🔹 Remove old items first (to replace with new ones)
+        indent.items.all().delete()
+
+        # 🔹 Get new item list fields
+        item_descriptions = request.POST.getlist('item_description[]')
+        quantities = request.POST.getlist('quantity[]')
+        units = request.POST.getlist('unit[]')
+        item_remarks = request.POST.getlist('remarks[]')
+
+        # 🔹 Recreate all items
+        for i in range(len(item_descriptions)):
+            garment_id = item_descriptions[i]
+            quantity = quantities[i]
+            unit = units[i]
+            remark = item_remarks[i]
+
+            if garment_id and quantity:
+                try:
+                    garment_obj = Garment.objects.get(id=garment_id)
+                except Garment.DoesNotExist:
+                    continue
+
+                PurchaseIndentItem.objects.create(
+                    indent=indent,
+                    garment=garment_obj,
+                    quantity=quantity,
+                    uom=unit,
+                    remarks=remark
+                )
+
+        messages.success(request, f"Purchase Indent {indent.indent_no} updated successfully!")
+        return redirect('indent')
+
+    context = {
+        'indent': indent,
+        'garment': garment,
+    }
+    return render(request, 'fabzen_app/Purchase/PurchaseIndent/indent_edit.html', context)
+
+
+# ----------------------------------- END Indent ---------------------
+
+
+
+# from django.shortcuts import get_object_or_404
+# from django.http import JsonResponse
+# from django.contrib import messages
+# from datetime import date
+# from .models import PurchaseIndent, PurchaseIndentItem, PurchaseOrder, PurchaseOrderItem
+
+def convert_to_po(request, pk):
+    indent = get_object_or_404(PurchaseIndent, pk=pk)
+
+    # Agar pehle se converted hai
+    existing_po = PurchaseOrder.objects.filter(indent=indent).first()
+    if existing_po:
+        messages.warning(request, f'This indent is already converted to PO ({existing_po.po_no}).')
+        return redirect('indent')
+        # return JsonResponse({
+        #     'status': 'error',
+        #     'message': f'This indent is already converted to PO ({existing_po.po_no}).'
+        # })
+
+    # Generate next PO number
+    last_po = PurchaseOrder.objects.order_by('-id').first()
+    next_no = 1
+    if last_po and last_po.po_no.startswith('PO-'):
+        try:
+            next_no = int(last_po.po_no.split('-')[-1]) + 1
+        except ValueError:
+            pass
+    po_no = f"PO-{next_no:04d}"
+
+    # Create new PO
+    po = PurchaseOrder.objects.create(
+        po_no=po_no,
+        po_date=date.today(),
+        indent=indent,
+        status="Open"
+    )
+
+    # Copy all indent items to PO items
+    indent_items = PurchaseIndentItem.objects.filter(indent=indent)
+    for item in indent_items:
+        PurchaseOrderItem.objects.create(
+            po=po,
+            garment=item.garment,
+            quantity=item.quantity,
+            uom=item.uom,
+            # remarks=item.remarks
+        )
+
+    # Update indent status
+    indent.status = "Close"
+    indent.save()
+
+    messages.success(request, f"Indent {indent.indent_no} successfully converted to PO {po_no}")
+    return redirect('indent')
+    
+
+# --------------------------------------- Purchase Order ------------------     
+
+def add_purchase_order(request):
+    return render(request, 'fabzen_app/Purchase/PurchaseOrder/adding_purchase_order.html')
+
+
+def PurchaseOrderListView(request):
+    garment = Garment.objects.all()
+    pending = PurchaseIndent.objects.filter(status='Pending').count()
+    approved = PurchaseIndent.objects.filter(status='Approved').count()
+    rejected = PurchaseIndent.objects.filter(status='Rejected').count()
+    converted = PurchaseIndent.objects.filter(status='Close').count()
+
+    if request.method == "POST":
+        # Get main fields
+        indent_date = request.POST.get('indent_date')
+        department = request.POST.get('department')
+        priority = request.POST.get('priority')
+        requested_by = request.POST.get('requested_by')
+        required_date = request.POST.get('required_date')
+        remarks = request.POST.get('purpose')
+
+        # ✅ Generate unique indent number
+        last_indent = PurchaseIndent.objects.order_by('-id').first()
+        if last_indent:
+            new_number = int(last_indent.indent_no.split('-')[-1]) + 1
+        else:
+            new_number = 1
+        indent_no = f"PI-{new_number:04d}"
+
+        # ✅ Create main PurchaseIndent record
+        indent = PurchaseIndent.objects.create(
+            indent_no=indent_no,
+            department=department,
+            indent_date=indent_date,
+            required_date=required_date,
+            priority=priority,
+            requested_by=requested_by,
+            remarks=remarks,
+            status='Pending'
+        )
+
+        # ✅ Get list fields
+        item_descriptions = request.POST.getlist('item_description[]')
+        quantities = request.POST.getlist('quantity[]')
+        units = request.POST.getlist('unit[]')
+        item_remarks = request.POST.getlist('remarks[]')
+
+        # ✅ Loop through all items
+        for i in range(len(item_descriptions)):
+            garment_id = item_descriptions[i]
+            quantity = quantities[i]
+            unit = units[i]
+            remark = item_remarks[i]
+
+            if garment_id and quantity:
+                try:
+                    garment_obj = Garment.objects.get(id=garment_id)
+                except Garment.DoesNotExist:
+                    continue
+
+                PurchaseIndentItem.objects.create(
+                    indent=indent,
+                    garment=garment_obj,
+                    quantity=quantity,
+                    uom=unit,
+                    remarks=remark
+                )
+
+        messages.success(request, f"Purchase Indent {indent.indent_no} created successfully!")
+        return redirect('indent')
+
+    context = {
+        'garment': garment,
+        'pending' : pending,
+        'approved' : approved,
+        'rejected' : rejected,
+        'converted' : converted,
+        
+    }
+    return render(request, 'fabzen_app/Purchase/PurchaseOrder/purchaseorder.html', context)
+
+
+
+
+
+def purchaseorder_list(request):
+    
+    search_query = request.GET.get('search', '').strip()
+    
+    type = request.GET.get('type', '').strip()
+    purchase_qs = PurchaseOrder.objects.all().order_by('-id')
+    garment = Garment.objects.all()
+    # ledger_group = LedgerGroup.objects.all().order_by('-id')
+
+    if search_query:
+        purchase_qs = purchase_qs.filter(
+            Q(indent_no__icontains=search_query) |
+            Q(department__icontains=search_query) 
+        )
+        
+    
+    if type:
+        purchase_qs = purchase_qs.filter(status__iexact=type)
+
+    # --- Pagination logic ---
+    page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
+    paginator = Paginator(purchase_qs, 10)     # Show 10 ledgers per page
+  
+    try:
+        orders = paginator.page(page_number)
+    except PageNotAnInteger:
+        orders = paginator.page(1)
+    except EmptyPage:
+        orders = paginator.page(paginator.num_pages)
+    context = {
+        'orders': orders,
+        'paginator': paginator,
+        'is_paginated': True,  # Used by your template
+        # 'ledger_group':ledger_group
+        'garment':garment
+    }
+
+    return render(request, 'fabzen_app/Purchase/PurchaseOrder/partials/order_list.html', context)
+
+    #     return redirect('indent')
+
+
+def get_garment_description(request, garment_id):
+    print("oooooooooooooooooooooooooooooooo",garment_id)
+    garment = Garment.objects.filter(id=garment_id).first()
+    print("garmentssssssssssssss",garment)
+    if garment:
+        return HttpResponse(garment.description)
+    return HttpResponse("")
+# --------------------------------------- END Purchase Order ------------------     

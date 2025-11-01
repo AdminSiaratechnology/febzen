@@ -272,36 +272,6 @@ class Process(models.Model):
         return f"{self.process_code} - {self.process_name}"
 
 
-
-class Machine(models.Model):
-    MACHINE_TYPE_CHOICES = [
-        ('Stitching', 'Stitching'),
-        ('Cutting', 'Cutting'),
-        ('Finishing', 'Finishing'),
-        ('Ironing', 'Ironing'),
-    ]
-
-    status_choices = [
-        ('Running', 'Running'),
-        ('Idle', 'Idle'),
-    ]
-
-    machine_code = models.CharField(max_length=20, unique=True)
-    machine_name = models.CharField(max_length=100)
-    machine_type = models.CharField(max_length=50, choices=MACHINE_TYPE_CHOICES)
-    brand = models.CharField(max_length=100, blank=True, null=True)
-    capacity_per_day = models.CharField(max_length=50, blank=True, null=True)
-    purchase_date = models.DateField(blank=True, null=True)
-    assigned_operator = models.CharField(max_length=100, blank=True, null=True)
-    notes = models.TextField(blank=True, null=True)
-    status = models.CharField(max_length=100,choices=status_choices,default="Running")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.machine_name} ({self.machine_code})"
-
-
 class Operator(models.Model):
     DEPARTMENT_CHOICES = [
         ('Stitching', 'Stitching'),
@@ -333,21 +303,87 @@ class Operator(models.Model):
 
 
 
+class Machine(models.Model):
+    MACHINE_TYPE_CHOICES = [
+        ('Stitching', 'Stitching'),
+        ('Cutting', 'Cutting'),
+        ('Finishing', 'Finishing'),
+        ('Ironing', 'Ironing'),
+    ]
 
+    status_choices = [
+        ('Running', 'Running'),
+        ('Idle', 'Idle'),
+    ]
+
+    machine_code = models.CharField(max_length=20, unique=True)
+    machine_name = models.CharField(max_length=100)
+    machine_type = models.CharField(max_length=50, choices=MACHINE_TYPE_CHOICES)
+    brand = models.CharField(max_length=100, blank=True, null=True)
+    capacity_per_day = models.CharField(max_length=50, blank=True, null=True)
+    purchase_date = models.DateField(blank=True, null=True)
+    # assigned_operator = models.CharField(max_length=100, blank=True, null=True)
+    assigned_operator = models.ForeignKey(
+        'Operator',
+        on_delete=models.SET_NULL,   # When operator is deleted → keep machine record, but set null
+        null=True,
+        blank=True,
+        related_name='machines',     # Allows reverse access like operator.machines.all()
+    )
+    notes = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=100,choices=status_choices,default="Running")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.machine_name} ({self.machine_code})"
+
+
+
+class LedgerGroup(models.Model):
+    ledger_type = [
+        ('Income', 'Income'),
+        ('Expense', 'Expense'),
+        ('Liability', 'Liability'),
+        ('Asset', 'Asset')
+    ]
+    name = models.CharField(max_length=100)
+    type = models.CharField(max_length=50, choices=ledger_type)
+
+    def __str__(self):
+        return self.name
+    
+
+# class Ledger(models.Model):
+#     LEDGER_GROUP_CHOICES = [
+#         ('Direct Income', 'Direct Income'),
+#         ('Indirect Income', 'Indirect Income'),
+#         ('Direct Expenses', 'Direct Expenses'),
+#         ('Indirect Expenses', 'Indirect Expenses'),
+#         ('Miscellaneous Expenses', 'Miscellaneous Expenses'),
+#         ('Bank Accounts', 'Bank Accounts'),
+#         ('Cash', 'Cash'),
+#         ('Duties & Taxes', 'Duties & Taxes'),
+#     ]
+
+#     BALANCE_TYPE_CHOICES = [
+#         ('Debit', 'Debit'),
+#         ('Credit', 'Credit'),
+#     ]
+
+#     ledger_code = models.CharField(max_length=20, unique=True)
+#     ledger_name = models.CharField(max_length=100)
+#     ledger_group = models.CharField(max_length=50, choices=LEDGER_GROUP_CHOICES)
+#     opening_balance = models.BigIntegerField(default=0)
+#     balance_type = models.CharField(max_length=10, choices=BALANCE_TYPE_CHOICES)
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+
+#     def __str__(self):
+#         return f"{self.ledger_code} - {self.ledger_name}"
 
 
 class Ledger(models.Model):
-    LEDGER_GROUP_CHOICES = [
-        ('Direct Income', 'Direct Income'),
-        ('Indirect Income', 'Indirect Income'),
-        ('Direct Expenses', 'Direct Expenses'),
-        ('Indirect Expenses', 'Indirect Expenses'),
-        ('Miscellaneous Expenses', 'Miscellaneous Expenses'),
-        ('Bank Accounts', 'Bank Accounts'),
-        ('Cash', 'Cash'),
-        ('Duties & Taxes', 'Duties & Taxes'),
-    ]
-
     BALANCE_TYPE_CHOICES = [
         ('Debit', 'Debit'),
         ('Credit', 'Credit'),
@@ -355,7 +391,14 @@ class Ledger(models.Model):
 
     ledger_code = models.CharField(max_length=20, unique=True)
     ledger_name = models.CharField(max_length=100)
-    ledger_group = models.CharField(max_length=50, choices=LEDGER_GROUP_CHOICES)
+
+    # 🔹 Changed this line — now it's a ForeignKey
+    ledger_group = models.ForeignKey(
+        LedgerGroup,
+        on_delete=models.CASCADE,
+        related_name="ledgers"
+    )
+
     opening_balance = models.BigIntegerField(default=0)
     balance_type = models.CharField(max_length=10, choices=BALANCE_TYPE_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -363,3 +406,91 @@ class Ledger(models.Model):
 
     def __str__(self):
         return f"{self.ledger_code} - {self.ledger_name}"
+    
+
+
+class PurchaseIndent(models.Model):
+    indent_no = models.CharField(max_length=50, unique=True)
+    # requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    department = models.CharField(max_length=100, blank=True, null=True)
+    indent_date = models.DateField(auto_now_add=False)
+    required_date = models.DateField(auto_now_add=False,null=True,blank=True)
+    requested_by = models.CharField(max_length=100, blank=True, null=True)
+    priority = models.CharField(max_length=20,choices=[('High', 'High'),('Medium', 'Medium'), ('Low', 'Low')])
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('Pending', 'Pending'),
+            ('Approved', 'Approved'),
+            ('Rejected', 'Rejected'),
+            ('Close', 'Close'),
+        ],
+        default='Pending'
+    )
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.indent_no}"
+    
+
+class PurchaseIndentItem(models.Model):
+    indent = models.ForeignKey(PurchaseIndent, on_delete=models.CASCADE, related_name='items')
+    # item_name = models.CharField(max_length=150)
+    garment = models.ForeignKey(Garment, on_delete=models.CASCADE)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    uom = models.CharField(max_length=20, verbose_name="Unit of Measure", blank=True, null=True)
+    required_date = models.DateField(blank=True, null=True)
+    remarks = models.CharField(max_length=255, blank=True, null=True)
+
+
+from datetime import date
+
+
+
+class PurchaseOrder(models.Model):
+    STATUS_CHOICES = [
+        ('Open', 'Open'),
+        ('Partial', 'Partial'),
+        ('Completed', 'Completed'),
+        ('Cancelled', 'Cancelled'),
+    ]
+
+    po_no = models.CharField(max_length=20, unique=True)
+    po_date = models.DateField(default=date.today)
+    indent = models.ForeignKey('PurchaseIndent', on_delete=models.SET_NULL, null=True, blank=True)
+    # supplier = models.ForeignKey('Supplier', on_delete=models.SET_NULL, null=True, blank=True)
+    delivery_date = models.DateField(null=True, blank=True)
+    total_qty = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    received_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Open')
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.po_no}"
+
+    def calculate_totals(self):
+        """Recalculate total quantity and amount from items."""
+        total_qty = sum(item.quantity for item in self.items.all())
+        total_amt = sum(item.amount for item in self.items.all())
+        self.total_qty = total_qty
+        self.total_amount = total_amt
+        self.save()
+
+
+class PurchaseOrderItem(models.Model):
+    po = models.ForeignKey(PurchaseOrder, related_name='items', on_delete=models.CASCADE)
+    garment = models.ForeignKey('Garment', on_delete=models.SET_NULL, null=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    quantity = models.DecimalField(max_digits=12, decimal_places=2)
+    uom = models.CharField(max_length=50)
+    rate = models.DecimalField(max_digits=12, decimal_places=2,default=0)
+    amount = models.DecimalField(max_digits=15, decimal_places=2, editable=False)
+    delivery_date = models.DateField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.amount = self.quantity * self.rate
+        super().save(*args, **kwargs)
+
+ 
+

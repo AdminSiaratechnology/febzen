@@ -22,6 +22,8 @@
 	<!-- Bootstrap CSS -->
 	<link href="{% static "assets/css/bootstrap.min.css" %}" rel="stylesheet">
 	<link href="{% static "assets/css/bootstrap-extended.css" %}" rel="stylesheet">
+	<link rel="stylesheet" href="{% static "npm/select2/dist/css/select2.min.css" %}">
+	<link rel="stylesheet" href="{% static "npm/select2-bootstrap-5-theme%401.3.0/dist/select2-bootstrap-5-theme.min.css" %}">
 	<link href="{% static "css2?family=Roboto:wght@400;500&display=swap" %}" rel="stylesheet">
 	<link href="{% static "assets/css/app.css" %}" rel="stylesheet">
 	<link href="{% static "assets/css/icons.css" %}" rel="stylesheet">
@@ -176,6 +178,9 @@
 	<script src="{% static "assets/plugins/notifications/js/lobibox.min.js" %}"></script>
 	<script src="{% static "assets/plugins/notifications/js/notifications.min.js" %}"></script>
 	<script src="{% static "assets/plugins/notifications/js/notification-custom-script.js" %}"></script>
+
+	<script src="{% static "npm/select2/dist/js/select2.min.js" %}"></script>
+	<script src="{% static "assets/plugins/select2/js/select2-custom.js" %}"></script>
 	<!--app JS-->
 	<script src="{% static "assets/js/app.js" %}"></script>
 	
@@ -221,7 +226,21 @@
 </script>
 
 
+<script>
+$(document).ready(function() {
 
+  // ✅ Initialize Select2 inside modal dynamically
+  $(document).on('shown.bs.modal', function (e) {
+    var modal = $(e.target);
+    modal.find('select.select2').select2({
+      theme: 'bootstrap-5',
+      dropdownParent: modal,
+      width: '100%' // full width like form-select
+    });
+  });
+
+});
+</script>
 </body>
 
 <script>'undefined'=== typeof _trfq || (window._trfq = []);'undefined'=== typeof _trfd && (window._trfd=[]),_trfd.push({'tccl.baseHost':'secureserver.net'},{'ap':'cpsh-oh'},{'server':'p3plzcpnl509132'},{'dcenter':'p3'},{'cp_id':'10399385'},{'cp_cl':'8'}) // Monitoring performance to make your website faster. If you want to opt-out, please contact web hosting support.</script><script src='{% static "signals/js/clients/scc-c2/scc-c2.min.js" %}'></script></html>

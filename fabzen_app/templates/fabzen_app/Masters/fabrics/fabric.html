@@ -2,7 +2,7 @@
 {% block title %}Fabric{% endblock title %}
 {% block main-content %}
 <div class="page-content">
-   {% include "fabzen_app/Base/master_header.html" %}
+   {% comment %} {% include "fabzen_app/Base/master_header.html" %} {% endcomment %}
    <div class="row">
       <div class="col">
          <div class="card">
@@ -18,6 +18,38 @@
                   </div>
                   <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleLargeModal2">Add Quality</button>
                   {% include "fabzen_app/Masters/fabrics/partials/fabric_formcopy.html" %}
+               </div>
+               <div class="mb-4 d-flex gap-2 align-items-center">
+                  <!-- 🔍 Search Input -->
+                  <input 
+                     type="text" 
+                     class="form-control" 
+                     placeholder="Search fabric..."
+                     style="max-width: 300px;"
+                     name="search"
+                     hx-get="{% url 'fabric_list' %}"
+                     hx-trigger="keyup changed delay:500ms"
+                     hx-target="tbody"
+                     hx-include="[name='garment_category']"
+                     >
+                  <!-- 🧩 Filter Select -->
+                   <select 
+                     class="form-select" 
+                     style="max-width: 200px;"
+                     name="type"
+                     hx-get="{% url 'fabric_list' %}"
+                     hx-trigger="change"
+                     hx-target="tbody"
+                     hx-include="[name='search']"
+                     >
+                     <option value="">Filter by Category</option>
+                     <option value="Synthetic">Synthetic</option>
+                     <option value="Voile">Voile</option>
+                     <option value="Poplin">Poplin</option>
+                     <option value="Cambric">Cambric</option>
+                     <option value="Knit">Knit</option>
+                  </select>
+                 
                </div>
                <hr>
                {% include "fabzen_app/Base/messages.html" %}

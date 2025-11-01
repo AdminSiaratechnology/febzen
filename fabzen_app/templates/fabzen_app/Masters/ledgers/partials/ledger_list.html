@@ -1,0 +1,89 @@
+
+{% for ledger in ledgers %}
+<tr>
+   <td><span class="badge bg-primary">{{ ledger.ledger_code }}</span></td>
+   <td>{{ ledger.ledger_name }}</td>
+   <td>{{ ledger.ledger_group.name }}</td>
+   <td>{{ ledger.ledger_group.type }}</td>
+   
+   <td>{% if ledger.opening_balance %}₹{{ledger.opening_balance}}{% else %}{{ledger.opening_balance}}{% endif %}</td>
+   <td>₹2,500,000</td>
+   
+   <td>
+      
+      <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editledgerModal-{{ledger.id}}">Edit</button>
+      {% include "fabzen_app/Masters/ledgers/edit_ledger.html" %}
+      {% comment %} {% include "fabzen_app/Masters/ledgers/edit_ledger.html" %}  {% endcomment %}
+   </td>
+</tr>
+{% empty %}
+<tr>
+   <td colspan="8" class="text-center">No ledgers found.</td>
+</tr>
+{% endfor %}
+
+{% if is_paginated %}
+<tr>
+  <td colspan="8">
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-end">
+
+        {% if ledgers.has_previous %}
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'ledger_list' %}?page=1" 
+              hx-target="#ledger-table" 
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">First</a>
+        </li>
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'ledger_list' %}?page={{ ledgers.previous_page_number }}" 
+              hx-target="#ledger-table" 
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">Previous</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><a class="page-link">First</a></li>
+        <li class="page-item disabled"><a class="page-link">Previous</a></li>
+        {% endif %}
+
+        {% for i in paginator.page_range %}
+        {% if ledgers.number == i %}
+        <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+        {% elif i > ledgers.number|add:'-3' and i < ledgers.number|add:'3' %}
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'ledger_list' %}?page={{ i }}" 
+              hx-target="#ledger-table" 
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">{{ i }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+
+        {% if ledgers.has_next %}
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'ledger_list' %}?page={{ ledgers.next_page_number }}" 
+              hx-target="#ledger-table" 
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">Next</a>
+        </li>
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'ledger_list' %}?page={{ paginator.num_pages }}" 
+              hx-target="#ledger-table"
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">Last</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><a class="page-link">Next</a></li>
+        <li class="page-item disabled"><a class="page-link">Last</a></li>
+        {% endif %}
+
+      </ul>
+    </nav>
+  </td>
+</tr>
+{% endif %}

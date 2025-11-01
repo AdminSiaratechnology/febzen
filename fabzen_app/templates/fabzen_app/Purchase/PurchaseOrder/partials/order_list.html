@@ -1,0 +1,94 @@
+
+{% for order in orders %}
+<tr>
+   <td><span class="badge bg-primary">{{ order.po_no }}</span></td>
+   <td>{{ order.po_date|date:"d M"  }}</td>
+   <td>Armaan Alam</td>
+   <td>{{ order.items.count }} items</td>
+   <td>{{order.total_qty}}</td>
+   {% comment %} <td><span class="badge {% if order.priority == 'High' %}bg-danger {% elif order.priority == 'Medium' %}bg-primary {% elif order.priority == 'Low' %}bg-success{% endif %}">{{order.priority}}</span></td> {% endcomment %}
+   
+   <td>{{order.total_amount}}</td>
+   <td>{{order.delivery_date|date:"d M"}}</td>
+   <td>{{order.received_percent}}</td>
+   {% comment %} <td>{{order.status}}ddddddddd</td> {% endcomment %}
+   <td><span class="badge {% if order.status == 'Open' %}bg-warning {% elif order.status == 'Completed' %}bg-success {% elif order.status == 'Cancelled' %}bg-danger {% elif order.status == 'Partial' %}bg-primary{% endif %}">{{order.status}}</span></td>
+   
+   <td>
+      <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editorderModal-{{order.id}}">Edit</button>
+      <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#vieworderModal-{{order.id}}">View</button>
+      {% comment %} {% include "fabzen_app/Purchase/Purchaseorder/edit_order.html" %}
+      {% include "fabzen_app/Purchase/Purchaseorder/view_order.html" %} {% endcomment %}
+   </td>
+</tr>
+{% empty %}
+<tr>
+   <td colspan="8" class="text-center">No orders found.</td>
+</tr>
+{% endfor %}
+
+{% if is_paginated %}
+<tr>
+  <td colspan="10">
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-end">
+
+        {% if orders.has_previous %}
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'order_list' %}?page=1" 
+              hx-target="#order-table" 
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">First</a>
+        </li>
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'order_list' %}?page={{ orders.previous_page_number }}" 
+              hx-target="#order-table" 
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">Previous</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><a class="page-link">First</a></li>
+        <li class="page-item disabled"><a class="page-link">Previous</a></li>
+        {% endif %}
+
+        {% for i in paginator.page_range %}
+        {% if orders.number == i %}
+        <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+        {% elif i > orders.number|add:'-3' and i < orders.number|add:'3' %}
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'order_list' %}?page={{ i }}" 
+              hx-target="#order-table" 
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">{{ i }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+
+        {% if orders.has_next %}
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'order_list' %}?page={{ orders.next_page_number }}" 
+              hx-target="#order-table" 
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">Next</a>
+        </li>
+        <li class="page-item">
+           <a class="page-link" 
+              hx-get="{% url 'order_list' %}?page={{ paginator.num_pages }}" 
+              hx-target="#order-table"
+              hx-swap="innerHTML"
+              hx-include="[name='search'], [name='type']">Last</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><a class="page-link">Next</a></li>
+        <li class="page-item disabled"><a class="page-link">Last</a></li>
+        {% endif %}
+
+      </ul>
+    </nav>
+  </td>
+</tr>
+{% endif %}

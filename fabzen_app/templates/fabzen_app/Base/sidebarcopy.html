@@ -1,0 +1,195 @@
+{% load static %}
+
+<div class="sidebar-wrapper" data-simplebar="true">
+   <!-- Header -->
+   <div class="sidebar-header p-4 d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center">
+         <img src="{% static 'assets/images/logo-icon.png' %}" width="40" class="me-3" alt="Febzen">
+         <h5 class="logo-text mb-0 fw-bold text-white">Febzen</h5>
+      </div>
+      <button class="btn toggle-sidebar d-lg-none">
+         <i class="bx bx-menu fs-4 text-white"></i>
+      </button>
+   </div>
+
+   <!-- Navigation -->
+   <ul class="metismenu mt-3" id="menu" hx-boost="true">
+
+      <!-- Dashboard -->
+      <li>
+         <a href="{% url 'dashboard' %}" class="menu-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="bx bx-home"></i>
+            <span class="ms-3">Dashboard</span>
+         </a>
+      </li>
+
+      <div class="menu-divider"></div>
+
+      <!-- Company -->
+      <li class="menu-label">Company</li>
+      <li>
+         <a href="{% url 'company' %}" class="menu-link {% if request.resolver_match.url_name == 'company' %}active{% endif %}">
+            <i class="bx bx-building"></i>
+            <span class="ms-3">Company</span>
+         </a>
+      </li>
+
+      <!-- Masters -->
+      <li class="menu-label">Masters</li>
+      <li>
+         <a href="{% url 'party' %}" class="menu-link {% if request.resolver_match.url_name == 'party' %}active{% endif %}">
+            <i class="bx bx-group"></i>
+            <span class="ms-3">Party</span>
+         </a>
+      </li>
+      <li>
+         <a href="{% url 'bom' %}" class="menu-link {% if request.resolver_match.url_name == 'bom' %}active{% endif %}">
+            <i class="bx bx-package"></i>
+            <span class="ms-3">BOM & BOQ</span>
+         </a>
+      </li>
+      <li>
+         <a href="{% url 'bom' %}" class="menu-link {% if request.resolver_match.url_name == 'brochure' %}active{% endif %}">
+            <i class="bx bx-book-open"></i>
+            <span class="ms-3">Brochure</span>
+         </a>
+      </li>
+      <li>
+         <a href="{% url 'bom' %}" class="menu-link {% if request.resolver_match.url_name == 'locations' %}active{% endif %}">
+            <i class="bx bx-map-pin"></i>
+            <span class="ms-3">Locations</span>
+         </a>
+      </li>
+      <li>
+         <a href="{% url 'ledger' %}" class="menu-link {% if request.resolver_match.url_name == 'ledger' %}active{% endif %}">
+            <i class="bx bx-book-alt"></i>
+            <span class="ms-3">Ledgers</span>
+         </a>
+      </li>
+
+      <!-- Purchase -->
+      <li class="menu-label">Purchase</li>
+      <li>
+         <a href="{% url 'indent' %}" class="menu-link {% if request.resolver_match.url_name == 'indent' %}active{% endif %}">
+            <i class="bx bx-clipboard"></i>
+            <span class="ms-3">Indent / Requisition</span>
+         </a>
+      </li>
+      <li>
+         <a href="{% url 'purchaseorder' %}" class="menu-link {% if request.resolver_match.url_name == 'purchaseorder' %}active{% endif %}">
+            <i class="bx bx-file-text"></i>
+            <span class="ms-3">Purchase Order</span>
+         </a>
+      </li>
+
+   </ul>
+</div>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.sidebar-wrapper {
+   width: 260px;
+   height: 100vh;
+   background: #ffffff;
+   border-right: 1px solid #e5e7eb;
+   font-family: 'Inter', sans-serif;
+   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+   transition: all 0.3s ease;
+   position: fixed;
+   top: 0;
+   left: 0;
+   z-index: 1000;
+}
+
+.sidebar-header {
+   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+   color: white;
+   padding: 1.5rem;
+   border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.menu-divider {
+   height: 1px;
+   background: #e5e7eb;
+   margin: 0.75rem 1.5rem;
+   opacity: 0.5;
+}
+
+.menu-label {
+   font-size: 0.7rem;
+   font-weight: 600;
+   text-transform: uppercase;
+   letter-spacing: 1.2px;
+   color: #9ca3af;
+   padding: 0 1.5rem;
+   margin: 1rem 0 0.5rem;
+}
+
+/* Menu Links */
+.menu-link {
+   display: flex;
+   align-items: center;
+   padding: 0.75rem 1.5rem;
+   color: #4b5563;
+   font-weight: 500;
+   border-radius: 12px;
+   margin: 0.25rem 0.75rem;
+   transition: all 0.25s ease;
+   position: relative;
+   overflow: hidden;
+}
+
+.menu-link:hover {
+   background: #f8f9fa;
+   color: #4f46e5;
+   transform: translateX(4px);
+   box-shadow: 0 4px 12px rgba(79,70,229,0.1);
+}
+
+.menu-link i {
+   font-size: 1.3rem;
+   width: 36px;
+   text-align: center;
+   transition: transform 0.3s ease;
+}
+
+.menu-link:hover i {
+   transform: scale(1.1);
+}
+
+/* Active State */
+.menu-link.active {
+   background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+   color: #4f46e5;
+   font-weight: 600;
+   box-shadow: 0 6px 20px rgba(79,70,229,0.15);
+   transform: translateX(8px);
+}
+
+.menu-link.active::before {
+   content: '';
+   position: absolute;
+   left: 0;
+   top: 0;
+   width: 4px;
+   height: 100%;
+   background: #4f46e5;
+   border-radius: 0 4px 4px 0;
+}
+
+.menu-link.active i {
+   color: #4f46e5;
+   transform: scale(1.15);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+   .sidebar-wrapper {
+      transform: translateX(-100%);
+   }
+   .sidebar-wrapper.show {
+      transform: translateX(0);
+   }
+}
+</style>

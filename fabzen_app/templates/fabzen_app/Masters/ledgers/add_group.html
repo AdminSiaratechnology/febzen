@@ -1,0 +1,163 @@
+
+
+<div class="modal fade" id="addLedgerGroupModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold mb-0 text-white">Add New Ledger Group</h5>
+        <button type="button" class="btn-close" id="closeGroupModal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="ledgerGroupForm" hx-post="{% url 'add_ledger_group' %}" hx-target="#ledgerGroupResponse" hx-swap="innerHTML">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="groupName" class="form-label">Group Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="groupName" name="name" required>
+          </div>
+          <div class="mb-3">
+            <label for="groupType" class="form-label">Group Type <span class="text-danger">*</span></label>
+            <select class="form-select" id="groupType" name="type" required>
+              <option value="" selected disabled>Select Type</option>
+              {% comment %} {% for i in ledger_group %} {% endcomment %}
+              
+              <option value="Income">Income</option>
+              <option value="Expense">Expense</option>
+              <option value="Liability">Liability</option>
+              <option value="Asset">Asset</option>
+              {% comment %} {% endfor %} {% endcomment %}
+            </select>
+          </div>
+          <div id="ledgerGroupResponse"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancelGroupBtn">Close</button>
+            <button type="submit" class="btn btn-primary">Save Group</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const mainModal = document.getElementById('exampleLargeModal2');
+  const addLedgerGroupModal = document.getElementById('addLedgerGroupModal');
+  const ledgerGroupForm = document.getElementById('ledgerGroupForm');
+  const closeGroupModalBtn = document.getElementById('closeGroupModal');
+  const cancelGroupBtn = document.getElementById('cancelGroupBtn');
+  
+  // Initialize Bootstrap modals
+  const mainBsModal = new bootstrap.Modal(mainModal);
+  const groupBsModal = new bootstrap.Modal(addLedgerGroupModal);
+  
+  // Close group modal buttons
+  closeGroupModalBtn.addEventListener('click', function() {
+    groupBsModal.hide();
+    // Make sure main modal stays visible
+    setTimeout(() => {
+      mainBsModal.show();
+    }, 100);
+  });
+  
+  cancelGroupBtn.addEventListener('click', function() {
+    groupBsModal.hide();
+    // Make sure main modal stays visible
+    setTimeout(() => {
+      mainBsModal.show();
+    }, 100);
+  });
+  
+  // Handle successful group addition
+  document.body.addEventListener('htmx:beforeSwap', function(event) {
+    if (event.detail.target.id === 'ledgerGroupResponse') {
+      // Check if the response contains HX-Trigger header
+      const triggerHeader = event.detail.xhr.getResponseHeader('HX-Trigger');
+      if (triggerHeader) {
+        const triggers = JSON.parse(triggerHeader);
+        
+        // If we have a closeGroupModal trigger
+        if (triggers.closeGroupModal) {
+          // Reset the form
+          ledgerGroupForm.reset();
+          
+          // Close the group modal
+          setTimeout(() => {
+            groupBsModal.hide();
+          }, 500);
+          
+          // Reopen the ledger modal
+          if (triggers.reopenLedgerModal) {
+            setTimeout(() => {
+              mainBsModal.show();
+              
+              // Refresh the ledger group dropdown
+              const ledgerGroupSelect = document.getElementById('ledgerGroupSelect');
+              if (ledgerGroupSelect) {
+                // Store the newly added group ID from the response
+                const newGroupId = triggers.newGroupId;
+                
+                fetch('/ledger/')
+                  .then(response => response.text())
+                  .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newOptions = doc.querySelectorAll('#ledgerGroupSelect option');
+                    
+                    // Clear existing options except the first one
+                    while (ledgerGroupSelect.options.length > 1) {
+                      ledgerGroupSelect.remove(1);
+                    }
+                    
+                    // Add new options and select the newly added one
+                    let newOptionAdded = false;
+                    newOptions.forEach(option => {
+                      if (option.value) {
+                        const newOption = document.createElement('option');
+                        newOption.value = option.value;
+                        newOption.text = option.text;
+                        
+                        // If this is the newly added group, select it
+                        if (newGroupId && newOption.value == newGroupId) {
+                          newOption.selected = true;
+                          newOptionAdded = true;
+                        }
+                        
+                        ledgerGroupSelect.appendChild(newOption);
+                      }
+                    });
+                    
+                    // If we couldn't find the new option in the fetched data,
+                    // add it directly using the data from the form
+                    if (newGroupId && !newOptionAdded) {
+                      const groupName = document.getElementById('groupName').value;
+                      const newOption = document.createElement('option');
+                      newOption.value = newGroupId;
+                      newOption.text = groupName;
+                      newOption.selected = true;
+                      ledgerGroupSelect.appendChild(newOption);
+                    }
+                  });
+              }
+            }, 600);
+          }
+        }
+      }
+    }
+  });
+  
+  // Fix z-index issues for nested modals
+  $(addLedgerGroupModal).on('show.bs.modal', function() {
+    setTimeout(function() {
+      $('.modal-backdrop').not(':first').css('z-index', 1055);
+      $(addLedgerGroupModal).css('z-index', 1056);
+    }, 0);
+  });
+});
+</script>
+
+<style>
+/* Fix for multiple backdrops */
+.modal-backdrop + .modal-backdrop {
+  opacity: 0.1;
+}
+</style>

@@ -1,0 +1,292 @@
+{% extends "fabzen_app/Base/base.html" %}
+{% load static %}
+
+{% block title %}Create Purchase Order{% endblock title %}
+
+{% block main-content %}
+<div class="page-content bg-light p-4">
+
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+    <div>
+      <h3 class="fw-semibold text-primary mb-0">
+        <i class="bi bi-file-earmark-plus-fill me-2"></i> Create Purchase Order
+      </h3>
+      <p class="text-muted small mb-0">Manage and create new purchase orders easily</p>
+    </div>
+    <a href="{% url 'purchaseorder' %}" class="btn btn-outline-primary btn-sm shadow-sm">
+      <i class="bi bi-arrow-left-circle me-1"></i> Back to List
+    </a>
+  </div>
+
+  <!-- Main Form -->
+  <form method="POST" class="needs-validation" novalidate>
+    {% csrf_token %}
+
+    <!-- Basic Details Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-header bg-gradient text-white py-3 rounded-top-4" 
+           style="background: linear-gradient(90deg, #0d6efd, #007bff);">
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2"></i>Purchase Order Details</h6>
+      </div>
+      <div class="card-body bg-white p-4">
+        <div class="row g-4">
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">PO Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control form-control-sm shadow-sm" name="po_date" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">PO Number <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-sm shadow-sm" name="po_no" placeholder="PO-XXX" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Delivery Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control form-control-sm shadow-sm" name="delivery_date" required>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Payment Terms <span class="text-danger">*</span></label>
+            <select name="payment_terms" class="form-select form-select-sm shadow-sm" required>
+              <option value="" disabled selected>Select Term</option>
+              <option value="Immediate">Immediate</option>
+              <option value="30 Days">30 Days</option>
+              <option value="60 Days">60 Days</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Supplier <span class="text-danger">*</span></label>
+            <select name="supplier" class="form-select form-select-sm shadow-sm" required>
+              <option value="" disabled selected>Select Supplier</option>
+              <option>Surat Mills Ltd</option>
+              <option>Gujarat Textiles</option>
+              <option>Ahmedabad Fab</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Terms & Condition</label>
+            <textarea class="form-control form-control-sm shadow-sm" name="terms" rows="2" placeholder="Payment terms, delivery conditions, etc."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items Table Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center py-3 bg-light border-bottom">
+        <h6 class="fw-semibold mb-0"><i class="bi bi-bag-check me-2"></i>Purchase Order Items</h6>
+        <button type="button" id="addItemBtn" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-plus-circle me-1"></i> Add Item
+        </button>
+      </div>
+      <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+        <table class="table table-bordered align-middle mb-0 text-center">
+          <thead class="table-light sticky-top">
+            <tr>
+              <th>#</th>
+              <th style="min-width: 250px;">Item / Description</th>
+              <th>Color</th>
+              <th>Qty</th>
+              <th>Unit</th>
+              <th>Rate</th>
+              <th>Amount</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="itemsTableBody">
+            <tr>
+              <td>1</td>
+              <td class="text-start">
+                <select name="item_description[]" 
+                        class="form-select form-select-sm shadow-sm mb-1"
+                        required
+                        hx-get=""
+                        hx-trigger="customFetch"
+                        hx-target="next textarea"
+                        hx-swap="outerHTML"
+                        onchange="
+                          this.setAttribute('hx-get', `/get-garment-description/${this.value}/`);
+                          htmx.trigger(this, 'customFetch');
+                        ">
+                  <option value="" selected disabled>Select Quality</option>
+                  {% for i in garment %}
+                    <option value="{{ i.id }}">{{ i.garment_name }}</option>
+                  {% endfor %}
+                </select>
+                <textarea class="form-control form-control-sm shadow-sm" name="description[]" rows="1" placeholder="Auto description..."></textarea>
+              </td>
+              <td>
+                <select class="form-select form-select-sm shadow-sm" name="color[]" required>
+                  <option value="" selected disabled>Color</option>
+                  <option>Navy Blue</option>
+                  <option>White</option>
+                  <option>Black</option>
+                  <option>Red</option>
+                </select>
+              </td>
+              <td><input type="number" class="form-control form-control-sm text-center shadow-sm" name="quantity[]" placeholder="Qty" min="1"></td>
+              <td>
+                <select class="form-select form-select-sm shadow-sm text-center" name="unit[]" required>
+                  <option value="" selected disabled>Unit</option>
+                  <option>Pcs</option>
+                  <option>Kg</option>
+                  <option>Meter</option>
+                  <option>Liter</option>
+                </select>
+              </td>
+              <td><input type="number" class="form-control form-control-sm text-center shadow-sm" name="rate[]" placeholder="0" min="1"></td>
+              <td><input type="number" class="form-control form-control-sm text-center shadow-sm" name="amount[]" placeholder="0" readonly></td>
+              <td><button type="button" class="btn btn-sm btn-outline-danger remove-row" disabled><i class="bx bx-trash"></i></button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bill Summary -->
+    <div class="d-flex justify-content-end mt-4">
+      <div class="card shadow-sm border-0 rounded-4" style="width: 400px;">
+        <div class="card-header text-white py-3 rounded-top-4" 
+             style="background: linear-gradient(90deg, #0d6efd, #007bff);">
+          <h6 class="mb-0 fw-semibold"><i class="bi bi-receipt me-2"></i>Bill Summary</h6>
+        </div>
+        <div class="card-body bg-white p-4">
+          <div class="d-flex justify-content-between mb-2">
+            <label>Subtotal</label>
+            <input type="text" class="form-control form-control-sm text-end w-50 shadow-sm" placeholder="0.00" disabled>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <label>CGST (%)</label>
+            <input type="number" class="form-control form-control-sm text-end w-50 shadow-sm" placeholder="0">
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <label>SGST (%)</label>
+            <input type="number" class="form-control form-control-sm text-end w-50 shadow-sm" placeholder="0">
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <label>IGST (%)</label>
+            <input type="number" class="form-control form-control-sm text-end w-50 shadow-sm" placeholder="0">
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between align-items-center">
+            <label class="fw-bold text-primary">Total</label>
+            <input type="text" class="form-control form-control-sm fw-bold text-end w-50 bg-light border-0" placeholder="0.00" disabled>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="text-end mt-4">
+      <button type="submit" class="btn btn-primary px-5 fw-semibold shadow-sm">
+        <i class="bi bi-save me-1"></i> Save Order
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+       // Get references to elements
+       const addItemBtn = document.getElementById('addItemBtn');
+       const itemsTableBody = document.getElementById('itemsTableBody');
+       
+       // Add event listener to the Add Item button
+       addItemBtn.addEventListener('click', function() {
+           // Get current number of rows
+           const rowCount = itemsTableBody.querySelectorAll('tr').length;
+           
+           // Create a new row
+           const newRow = document.createElement('tr');
+           newRow.className = 'item-row text-center';
+           
+           // Set the HTML content for the new row
+           newRow.innerHTML = `
+               <td>${rowCount + 1}</td>
+              <td>
+                         <select class="form-select form-select-sm shadow-sm" name="item_description[]">
+                           <option value="" selected disabled>Select</option>
+                           {% for i in garment %}
+                           <option value="{{ i.id }}">{{ i.garment_name }}</option>
+                           {% endfor %}
+                         </select>
+                         <textarea class="form-control form-control-sm shadow-sm" name="description[]" rows="1" placeholder="Enter item details..."></textarea>
+                       </td>
+                       <td>
+                         <select class="form-select form-select-sm shadow-sm " name="color[]">
+                           <option value="" selected disabled>Color</option>
+                           <option value="Navy Blue">Navy Blue</option>
+                           <option value="White">White</option>
+                         </select>
+                       </td>
+                       <td><input type="number" class="form-control form-control-sm shadow-sm text-center" name="quantity[]" placeholder="Qty" min="1"></td>
+                       <td>
+                         <select class="form-select form-select-sm shadow-sm text-center" name="unit[]">
+                           <option value="" selected disabled>Unit</option>
+                           <option>Pcs</option>
+                           <option>Kg</option>
+                           <option>Meter</option>
+                           <option>Liter</option>
+                         </select>
+                       </td>
+                       <td>
+                         <input type="number" class="form-control form-control-sm shadow-sm text-center" name="rate[]" placeholder="0" min="1">
+                       </td>
+                       <td><input type="number" class="form-control form-control-sm shadow-sm text-center" name="amount[]" placeholder="0"></td>
+                       <td>
+                         <button type="button" class="btn btn-sm btn-outline-danger remove-row" disabled>
+                           <i class="bx bx-trash"></i>
+                         </button>
+                       </td>
+           `;
+           
+           // Add the new row to the table
+           itemsTableBody.appendChild(newRow);
+           
+           // Enable all remove buttons except the first one
+           const removeButtons = itemsTableBody.querySelectorAll('.remove-row');
+           removeButtons.forEach(button => {
+               button.disabled = false;
+           });
+           
+           // Add event listener to the new remove button
+           const newRemoveButton = newRow.querySelector('.remove-row');
+           newRemoveButton.addEventListener('click', function() {
+               removeRow(newRow);
+           });
+       });
+       
+       // Function to remove a row
+       function removeRow(row) {
+           // Remove the row
+           row.remove();
+           
+           // Update row numbers
+           const rows = itemsTableBody.querySelectorAll('tr');
+           rows.forEach((row, index) => {
+               row.cells[0].textContent = index + 1;
+           });
+           
+           // If only one row remains, disable its remove button
+           if (rows.length === 1) {
+               rows[0].querySelector('.remove-row').disabled = true;
+           }
+       }
+       
+       // Add event listeners to existing remove buttons
+       const existingRemoveButtons = itemsTableBody.querySelectorAll('.remove-row');
+       existingRemoveButtons.forEach(button => {
+           button.addEventListener('click', function() {
+               const row = this.closest('tr');
+               removeRow(row);
+           });
+       });
+   });
+</script>
+<style>
+  body { background-color: #f5f7fa !important; }
+  .table th, .table td { vertical-align: middle !important; }
+  .table-hover tbody tr:hover { background: #f1f6ff !important; transition: 0.3s; }
+  .form-control-sm, .form-select-sm { border-radius: 8px; }
+</style>
+
+{% endblock main-content %}

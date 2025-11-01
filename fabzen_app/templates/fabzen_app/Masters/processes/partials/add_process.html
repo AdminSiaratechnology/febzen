@@ -17,11 +17,11 @@
                <!-- Row 1 -->
                <div class="row mb-2">
                   <div class="col-md-6">
-                     <label for="inputQualityCode" class="form-label">Process Code</label>
-                     <input type="text" class="form-control text-muted" id="inputQualityCode" placeholder="Auto: P-XXXX"  name="process_code">
+                     <label for="inputQualityCode" class="form-label">Process Code <span class="text-danger">*</span></label>
+                     <input type="text" class="form-control text-muted" id="inputQualityCode" placeholder="Auto: P-XXXX"  name="process_code" required>
                   </div>
                   <div class="col-md-6">
-                     <label for="inputQualityName" class="form-label">Process Name</label>
+                     <label for="inputQualityName" class="form-label">Process Name <span class="text-danger">*</span></label>
                      <input type="text" class="form-control" id="inputQualityName" name="process_name" placeholder="e.g., Formal Shirt" required >
                      
                   </div>
@@ -29,7 +29,7 @@
 
                <div class="row mb-2">
                   <div class="col-md-4">
-                    <label for="inputCategory" class="form-label">Process Type</label>
+                    <label for="inputCategory" class="form-label">Process Type <span class="text-danger">*</span></label>
                     <select class="form-select" id="inputCategory" name="type" required>
                         <option value="" selected disabled>Select Type</option>
                         
@@ -43,7 +43,7 @@
                      
                   </div>
                   <div class="col-md-4">
-                    <label for="inputCategory" class="form-label">Unit</label>
+                    <label for="inputCategory" class="form-label">Unit <span class="text-danger">*</span></label>
                     <select class="form-select" id="inputCategory" name="unit" required>
                         <option value="" selected disabled>Select unit</option>
                         
@@ -56,7 +56,7 @@
                      
                   </div>
                   <div class="col-md-4">
-                     <label for="inputCategory" class="form-label">Rate</label>
+                     <label for="inputCategory" class="form-label">Rate <span class="text-danger">*</span></label>
                      <input type="number" step="0.01" class="form-control" id="inputRate" name="rate" placeholder="58" required >
                   </div>
                   
@@ -64,7 +64,7 @@
                <!-- Row 2 -->
                <div class="row mb-2">
                   <div class="col-md-12">
-                     <label for="inputConstruction" class="form-label">Avg Time</label>
+                     <label for="inputConstruction" class="form-label">Avg Time <span class="text-danger">*</span></label>
                      <input type="text" class="form-control" id="inputConstruction" name="avg_time" placeholder="eg. 2 days" required >
                      
                   </div>

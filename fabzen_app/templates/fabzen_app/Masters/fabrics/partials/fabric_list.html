@@ -31,13 +31,15 @@
          <a class="page-link" 
             hx-get="{% url 'fabric_list' %}?page=1" 
             hx-target="#fabric-table" 
-            hx-swap="innerHTML">First</a>
+            hx-swap="innerHTML"
+            hx-include="[name='search'], [name='type']">First</a>
       </li>
       <li class="page-item">
          <a class="page-link" 
             hx-get="{% url 'fabric_list' %}?page={{ fabrics.previous_page_number }}" 
             hx-target="#fabric-table" 
-            hx-swap="innerHTML">Previous</a>
+            hx-swap="innerHTML"
+            hx-include="[name='search'], [name='type']">Previous</a>
       </li>
       {% else %}
       <li class="page-item disabled"><a class="page-link">First</a></li>
@@ -51,7 +53,8 @@
          <a class="page-link" 
             hx-get="{% url 'fabric_list' %}?page={{ i }}" 
             hx-target="#fabric-table" 
-            hx-swap="innerHTML">{{ i }}</a>
+            hx-swap="innerHTML"
+            hx-include="[name='search'], [name='type']">{{ i }}</a>
       </li>
       {% endif %}
       {% endfor %}
@@ -60,13 +63,15 @@
          <a class="page-link" 
             hx-get="{% url 'fabric_list' %}?page={{ fabrics.next_page_number }}" 
             hx-target="#fabric-table" 
-            hx-swap="innerHTML">Next</a>
+            hx-swap="innerHTML"
+            hx-include="[name='search'], [name='type']">Next</a>
       </li>
       <li class="page-item">
          <a class="page-link" 
             hx-get="{% url 'fabric_list' %}?page={{ paginator.num_pages }}" 
             hx-target="#fabric-table"
-            hx-swap="innerHTML">Last</a>
+            hx-swap="innerHTML"
+            hx-include="[name='search'], [name='type']">Last</a>
       </li>
       {% else %}
       <li class="page-item disabled"><a class="page-link">Next</a></li>
@@ -77,5 +82,6 @@
 
   </td>
 </tr>
+
 
 {% endif %}

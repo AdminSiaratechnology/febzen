@@ -23,9 +23,9 @@
                <!-- Row 1 -->
                <div class="row mb-2 mt-1">
                   <div class="col-md-6">
-                     <label for="inputQualityCode" class="form-label">Size Category</label>
+                     <label for="inputQualityCode" class="form-label">Size Category <span class="text-danger">*</span></label>
                      {% comment %} <input type="text" class="form-control text-muted" id="inputQualityCode" placeholder="Auto: Q-XXXX" value="{% if form %}{{ form.data.code }}{% elif fabric %}{{ fabric.code }}{% endif %}" disabled> {% endcomment %}
-                     <select class="form-select select2-hidden-accessible" name="size_category" id="">
+                     <select class="form-select" name="size_category" id="" required>
                       <option value="" selected disabled>Select Category</option>
                       <option value="shirts">Shirts/T-Shirts</option>
                       <option value="pants">Pants/Trousers</option>
@@ -34,7 +34,7 @@
                      </select>
                   </div>
                   <div class="col-md-6">
-                     <label for="inputQualityName" class="form-label">Size Label</label>
+                     <label for="inputQualityName" class="form-label">Size Label <span class="text-danger">*</span></label>
                      <input type="text" class="form-control" id="inputQualityName" name="size_label" placeholder="e.g., M(40)" required value="{% if form %}{{ form.data.quality_name }}{% elif fabric %}{{ fabric.quality_name }}{% endif %}">
                      
                   </div>
@@ -42,7 +42,7 @@
                <!-- Row 2 -->
                <div class="row ">
                   <div class="col-md-12">
-                     <label for="inputConstruction" class="form-label">Display Order</label>
+                     <label for="inputConstruction" class="form-label">Display Order <span class="text-danger">*</span></label>
                      <input type="number" class="form-control" id="inputConstruction" name="display_order" placeholder="1" required >
                      
                   </div>
