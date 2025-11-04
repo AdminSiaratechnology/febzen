@@ -1,7 +1,7 @@
 {% extends "fabzen_app/Base/base.html" %}
 {% load static %}
 
-{% block title %}Create Purchase Order{% endblock title %}
+{% block title %} Grey Purchase{% endblock title %}
 
 {% block main-content %}
 <div class="page-content bg-light p-4">
@@ -10,11 +10,11 @@
   <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
     <div>
       <h3 class="fw-semibold text-primary mb-0">
-        <i class="bi bi-file-earmark-plus-fill me-2"></i> Create Purchase Order
+        <i class="bi bi-file-earmark-plus-fill me-2"></i> Create Purchase Return
       </h3>
-      <p class="text-muted small mb-0">Manage and create new purchase orders easily</p>
+      
     </div>
-    <a href="{% url 'purchaseorder' %}" class="btn btn-outline-primary btn-sm shadow-sm">
+    <a href="{% url 'receiptnote' %}" class="btn btn-outline-primary btn-sm shadow-sm">
       <i class="bi bi-arrow-left-circle me-1"></i> Back to List
     </a>
   </div>
@@ -27,16 +27,16 @@
     <div class="card border-0 shadow-sm rounded-4 mb-4">
       <div class="card-header bg-gradient text-white py-3 rounded-top-4" 
            style="background: linear-gradient(90deg, #0d6efd, #007bff);">
-        <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2"></i>Purchase Order Details</h6>
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2"></i>Purchase Return Details</h6>
       </div>
       <div class="card-body bg-white p-4">
         <div class="row g-4">
           <div class="col-md-3">
-            <label class="form-label fw-semibold">PO Date <span class="text-danger">*</span></label>
+            <label class="form-label fw-semibold">Purchase Return Date <span class="text-danger">*</span></label>
             <input type="date" class="form-control form-control-sm shadow-sm" name="po_date" required>
           </div>
           <div class="col-md-3">
-            <label class="form-label fw-semibold">PO Number <span class="text-danger">*</span></label>
+            <label class="form-label fw-semibold">Purchase Return Number <span class="text-danger">*</span></label>
             <input type="text" class="form-control form-control-sm shadow-sm" name="po_no" placeholder="PO-XXX" required>
           </div>
           <div class="col-md-3">
@@ -56,9 +56,9 @@
             <label class="form-label fw-semibold">Supplier <span class="text-danger">*</span></label>
             <select name="supplier" class="form-select form-select-sm shadow-sm" required>
               <option value="" disabled selected>Select Supplier</option>
-              <option>Surat Mills Ltd</option>
-              <option>Gujarat Textiles</option>
-              <option>Ahmedabad Fab</option>
+              <option value="Surat Mills Ltd">Surat Mills Ltd</option>
+              <option value="Gujarat Textiles">Gujarat Textiles</option>
+              <option value="Ahmedabad Fab">Ahmedabad Fab</option>
             </select>
           </div>
           <div class="col-md-6">
@@ -98,7 +98,7 @@
               <td class="text-start">
                 <select name="item_description[]" class="form-select form-select-sm shadow-sm mb-1" required onchange="fetchGarmentDetails(this)">
                   <option value="" selected disabled>Select Quality</option>
-                  {% for i in garment %}
+                  {% for i in garments %}
                     <option value="{{ i.id }}">{{ i.garment_name }}</option>
                   {% endfor %}
                 </select>
@@ -350,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <td>
                 <select class="form-select form-select-sm shadow-sm" name="item_description[]" onchange="fetchGarmentDetails(this)">
                     <option value="" selected disabled>Select</option>
-                    {% for i in garment %}
+                    {% for i in garments %}
                         <option value="{{ i.id }}">{{ i.garment_name }}</option>
                     {% endfor %}
                 </select>

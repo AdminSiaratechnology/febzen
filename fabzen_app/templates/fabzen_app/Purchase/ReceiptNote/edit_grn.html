@@ -1,7 +1,7 @@
 {% extends "fabzen_app/Base/base.html" %}
 {% load static %}
 
-{% block title %}Create Purchase Order{% endblock title %}
+{% block title %}Edit Purchase Order{% endblock title %}
 
 {% block main-content %}
 <div class="page-content bg-light p-4">
@@ -10,17 +10,17 @@
   <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
     <div>
       <h3 class="fw-semibold text-primary mb-0">
-        <i class="bi bi-file-earmark-plus-fill me-2"></i> Create Purchase Order
+        <i class="bi bi-pencil-square me-2"></i> Edit Receipt Note - {{ receipt_note.grn_no }}
       </h3>
-      <p class="text-muted small mb-0">Manage and create new purchase orders easily</p>
+      <p class="text-muted small mb-0">Update receipt note details and items</p>
     </div>
-    <a href="{% url 'purchaseorder' %}" class="btn btn-outline-primary btn-sm shadow-sm">
-      <i class="bi bi-arrow-left-circle me-1"></i> Back to List
+    <a href="{% url 'receiptnote' %}" class="btn btn-outline-primary btn-sm shadow-sm">
+      <i class="bX bX-arrow-left-circle me-1"></i> Back to List
     </a>
   </div>
 
   <!-- Main Form -->
-  <form method="POST"  >
+  <form method="POST">
     {% csrf_token %}
 
     <!-- Basic Details Card -->
@@ -31,39 +31,45 @@
       </div>
       <div class="card-body bg-white p-4">
         <div class="row g-4">
-          <div class="col-md-3">
-            <label class="form-label fw-semibold">PO Date <span class="text-danger">*</span></label>
-            <input type="date" class="form-control form-control-sm shadow-sm" name="po_date" required>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">GRN Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control form-control-sm shadow-sm" 
+                   name="GRN_date" value="{{ receipt_note.grn_date|date:'Y-m-d' }}" required>
           </div>
-          <div class="col-md-3">
-            <label class="form-label fw-semibold">PO Number <span class="text-danger">*</span></label>
-            <input type="text" class="form-control form-control-sm shadow-sm" name="po_no" placeholder="PO-XXX" required>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">GRN Number <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-sm shadow-sm" 
+                   name="GRN_no" value="{{ receipt_note.grn_no }}" required>
           </div>
-          <div class="col-md-3">
+          {% comment %} <div class="col-md-3">
             <label class="form-label fw-semibold">Delivery Date <span class="text-danger">*</span></label>
-            <input type="date" class="form-control form-control-sm shadow-sm" name="delivery_date" required>
-          </div>
-          <div class="col-md-3">
+            <input type="date" class="form-control form-control-sm shadow-sm" 
+                   name="delivery_date" value="{{ receipt_note.delivery_date|date:'Y-m-d' }}" required>
+          </div> {% endcomment %}
+          <div class="col-md-4">
             <label class="form-label fw-semibold">Payment Terms <span class="text-danger">*</span></label>
             <select name="payment_terms" class="form-select form-select-sm shadow-sm" required>
-              <option value="" disabled selected>Select Term</option>
-              <option value="Immediate">Immediate</option>
-              <option value="30 Days">30 Days</option>
-              <option value="60 Days">60 Days</option>
+              <option value="" disabled>Select Term</option>
+              {% for key, val in receipt_note.PAYMENT_TERMS %}
+                <option value="{{ key }}" {% if receipt_note.payment_terms == key %}selected{% endif %}>{{ val }}</option>
+              {% endfor %}
             </select>
           </div>
+
           <div class="col-md-6">
             <label class="form-label fw-semibold">Supplier <span class="text-danger">*</span></label>
             <select name="supplier" class="form-select form-select-sm shadow-sm" required>
-              <option value="" disabled selected>Select Supplier</option>
-              <option>Surat Mills Ltd</option>
-              <option>Gujarat Textiles</option>
-              <option>Ahmedabad Fab</option>
+              <option value="" disabled>Select Supplier</option>
+              <option value="Surat Mills Ltd" {% if receipt_note.supplier == 'Surat Mills Ltd' %}selected{% endif %}>Surat Mills Ltd</option>
+              <option value="Gujarat Textiles" {% if receipt_note.supplier == 'Gujarat Textiles' %}selected{% endif %}>Gujarat Textiles</option>
+              <option value="Ahmedabad Fab" {% if receipt_note.supplier == 'Ahmedabad Fab' %}selected{% endif %}>Ahmedabad Fab</option>
             </select>
           </div>
+
           <div class="col-md-6">
             <label class="form-label fw-semibold">Terms & Condition</label>
-            <textarea class="form-control form-control-sm shadow-sm" name="terms" rows="2" placeholder="Payment terms, delivery conditions, etc."></textarea>
+            <textarea class="form-control form-control-sm shadow-sm" 
+                      name="terms" rows="2">{{ receipt_note.termscondition }}</textarea>
           </div>
         </div>
       </div>
@@ -77,12 +83,12 @@
           <i class="bi bi-plus-circle me-1"></i> Add Item
         </button>
       </div>
-      <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+      <div class="table-resGRNnsive" style="max-height: 400px; overflow-y: auto;">
         <table class="table table-bordered align-middle mb-0 text-center">
           <thead class="table-light sticky-top">
             <tr>
               <th>#</th>
-              <th style="min-width: 250px;">Item / Description</th>
+              <th>Item / Description</th>
               <th>Color</th>
               <th>Qty</th>
               <th>Unit</th>
@@ -93,41 +99,47 @@
             </tr>
           </thead>
           <tbody id="itemsTableBody">
-            <tr>
-              <td>1</td>
-              <td class="text-start">
-                <select name="item_description[]" class="form-select form-select-sm shadow-sm mb-1" required onchange="fetchGarmentDetails(this)">
-                  <option value="" selected disabled>Select Quality</option>
-                  {% for i in garment %}
-                    <option value="{{ i.id }}">{{ i.garment_name }}</option>
-                  {% endfor %}
-                </select>
-                <textarea class="form-control form-control-sm shadow-sm" name="description[]" rows="1" placeholder="Auto description..."></textarea>
-              </td>
-              <td>
-                <select class="form-select form-select-sm shadow-sm" name="color[]" required>
-                  <option value="" selected disabled>Color</option>
-                  <option>Navy Blue</option>
-                  <option>White</option>
-                  <option>Black</option>
-                  <option>Red</option>
-                </select>
-              </td>
-              <td><input type="number" class="form-control form-control-sm text-center shadow-sm" name="quantity[]" placeholder="Qty" min="1"></td>
-              <td>
-                <select class="form-select form-select-sm shadow-sm text-center" name="unit[]" required>
-                  <option value="" selected disabled>Unit</option>
-                  <option>Pcs</option>
-                  <option>Kg</option>
-                  <option>Meter</option>
-                  <option>Liter</option>
-                </select>
-              </td>
-              <td><input type="number" class="form-control form-control-sm shadow-sm text-center" name="price[]" placeholder="0" step="0.01"></td>
-              <td><input type="number" class="form-control form-control-sm shadow-sm text-center" name="discount[]" placeholder="0" step="0.01"></td>
-              <td><input type="number" class="form-control form-control-sm text-center shadow-sm" name="amount[]" placeholder="0" readonly></td>
-              <td><button type="button" class="btn btn-sm btn-outline-danger remove-row" disabled><i class="bx bx-trash"></i></button></td>
-            </tr>
+            {% for item in receipt_note.items.all %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td class="text-start">
+                  <select name="item_description[]" class="form-select form-select-sm shadow-sm mb-1" required onchange="fetchGarmentDetails(this)">
+                    <option value="" disabled>Select Quality</option>
+                    {% for i in garment %}
+                      <option value="{{ i.id }}" {% if item.garment.id == i.id %}selected{% endif %}>{{ i.garment_name }}</option>
+                    {% endfor %}
+                  </select>
+                  <textarea class="form-control form-control-sm shadow-sm" name="description[]" rows="1">{{ item.description }}</textarea>
+                </td>
+                <td>
+                  <select class="form-select form-select-sm shadow-sm" name="color[]" required>
+                    <option value="" disabled>Color</option>
+                    <option {% if item.color == 'Navy Blue' %}selected{% endif %}>Navy Blue</option>
+                    <option {% if item.color == 'White' %}selected{% endif %}>White</option>
+                    <option {% if item.color == 'Black' %}selected{% endif %}>Black</option>
+                    <option {% if item.color == 'Red' %}selected{% endif %}>Red</option>
+                  </select>
+                </td>
+                <td><input type="number" class="form-control form-control-sm text-center shadow-sm" name="quantity[]" value="{{ item.quantity }}"></td>
+                <td>
+                  <select class="form-select form-select-sm shadow-sm text-center" name="unit[]" required>
+                    <option value="" disabled>Unit</option>
+                    <option {% if item.uom == 'Pcs' %}selected{% endif %}>Pcs</option>
+                    <option {% if item.uom == 'Kg' %}selected{% endif %}>Kg</option>
+                    <option {% if item.uom == 'Meter' %}selected{% endif %}>Meter</option>
+                    <option {% if item.uom == 'Liter' %}selected{% endif %}>Liter</option>
+                  </select>
+                </td>
+                <td><input type="number" class="form-control form-control-sm shadow-sm text-center" name="price[]" value="{{ item.rate }}" step="0.01"></td>
+                <td><input type="number" class="form-control form-control-sm shadow-sm text-center" name="discount[]" value="{{ item.discount }}" step="0.01"></td>
+                <td><input type="number" class="form-control form-control-sm shadow-sm text-center" name="amount[]" value="{{ item.amount }}" readonly></td>
+                <td><button type="button" class="btn btn-sm btn-outline-danger remove-row"><i class="bx bx-trash"></i></button></td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="9" class="text-muted">No items found.</td>
+              </tr>
+            {% endfor %}
           </tbody>
         </table>
       </div>
@@ -143,7 +155,8 @@
         <div class="card-body bg-white p-4">
           <div class="d-flex justify-content-between mb-2">
             <label>Subtotal</label>
-            <input type="text" id="subtotal" class="form-control form-control-sm text-end w-50 shadow-sm" placeholder="0.00" readonly>
+            <input type="text" id="subtotal" class="form-control form-control-sm text-end w-50 shadow-sm" 
+                   value="{{ receipt_note.total_amount }}" readonly>
           </div>
           <div class="d-flex justify-content-between mb-2">
             <select class="form-select w-50" id="ledger_name">
@@ -171,7 +184,7 @@
           <hr>
           <div class="d-flex justify-content-between align-items-center">
             <label class="fw-bold text-primary">Total</label>
-            <input type="text" id="total" class="form-control form-control-sm fw-bold text-end w-50 bg-light border-0" placeholder="0.00" readonly>
+            <input type="text" id="total" class="form-control form-control-sm fw-bold text-end w-50 bg-light border-0" value="{{ receipt_note.total_amount }}" readonly>
           </div>
         </div>
       </div>
@@ -180,89 +193,12 @@
     <!-- Submit -->
     <div class="text-end mt-4">
       <button type="submit" class="btn btn-primary px-5 fw-semibold shadow-sm">
-        <i class="bi bi-save me-1"></i> Save Order
+        <i class="bi bi-save me-1"></i> Update Receipt Note
       </button>
     </div>
 
   </form>
 </div>
-{% comment %} 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const itemsTableBody = document.getElementById('itemsTableBody');
-    const subtotalInput = document.getElementById('subtotal');
-    const ledgerInput = document.getElementById('ledger_amount');
-    const cgstInput = document.getElementById('cgst');
-    const sgstInput = document.getElementById('sgst');
-    const igstInput = document.getElementById('igst');
-    const totalInput = document.getElementById('total');
-
-    // ✅ Function to calculate subtotal
-    function updateSubtotal() {
-        let subtotal = 0;
-        const amountInputs = itemsTableBody.querySelectorAll('input[name="amount[]"]');
-        amountInputs.forEach(input => {
-            subtotal += parseFloat(input.value) || 0;
-        });
-        subtotalInput.value = subtotal.toFixed(2);
-        updateTotal();
-    }
-
-    // ✅ Function to calculate final total
-    function updateTotal() {
-        const subtotal = parseFloat(subtotalInput.value) || 0;
-        const ledger = parseFloat(ledgerInput.value) || 0;
-        const cgst = parseFloat(cgstInput.value) || 0;
-        const sgst = parseFloat(sgstInput.value) || 0;
-        const igst = parseFloat(igstInput.value) || 0;
-
-        // Calculate tax amounts on subtotal
-        const cgstAmt = subtotal * (cgst / 100);
-        const sgstAmt = subtotal * (sgst / 100);
-        const igstAmt = subtotal * (igst / 100);
-
-        const total = subtotal + ledger + cgstAmt + sgstAmt + igstAmt;
-        totalInput.value = total.toFixed(2);
-    }
-
-    // Add change listeners for ledger & taxes
-    [ledgerInput, cgstInput, sgstInput, igstInput].forEach(el => {
-        el.addEventListener('input', updateTotal);
-    });
-
-    // ✅ Listen for quantity/price updates
-    itemsTableBody.addEventListener('input', function(e) {
-        if (e.target.name === 'quantity[]' || e.target.name === 'price[]') {
-            const row = e.target.closest('tr');
-            const qty = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
-            const price = parseFloat(row.querySelector('input[name="price[]"]').value) || 0;
-            const amount = row.querySelector('input[name="amount[]"]');
-            amount.value = (qty * price).toFixed(2);
-            updateSubtotal();
-        }
-    });
-
-    // ✅ Fetch garment details (and recalc subtotal)
-    window.fetchGarmentDetails = function(selectElement) {
-        const garmentId = selectElement.value;
-        if (!garmentId) return;
-
-        fetch(`/get-garment-details/${garmentId}/`)
-            .then(res => res.json())
-            .then(data => {
-                const row = selectElement.closest('tr');
-                row.querySelector('textarea[name="description[]"]').value = data.description || '';
-                const priceInput = row.querySelector('input[name="price[]"]');
-                priceInput.value = data.price || 0;
-
-                const qty = parseFloat(row.querySelector('input[name="quantity[]"]').value) || 0;
-                row.querySelector('input[name="amount[]"]').value = (qty * (data.price || 0)).toFixed(2);
-                updateSubtotal();
-            })
-            .catch(err => console.error('Error fetching details:', err));
-    };
-});
-</script> {% endcomment %}
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -437,9 +373,8 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-  body { background-color: #f5f7fa !important; }
-  .table th, .table td { vertical-align: middle !important; }
-  .table-hover tbody tr:hover { background: #f1f6ff !important; transition: 0.3s; }
+  body { background-color: #f5f7fa !imGRNrtant; }
+  .table th, .table td { vertical-align: middle !imGRNrtant; }
   .form-control-sm, .form-select-sm { border-radius: 8px; }
 </style>
 {% endblock main-content %}

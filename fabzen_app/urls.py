@@ -118,12 +118,53 @@ urlpatterns = [
     path('purchaseorder/', views.PurchaseOrderListView, name='purchaseorder'),
     path('AddPurchaseOrder/', views.add_purchase_order, name='add_purchase_order'),
     path('purchaseorderList/', views.purchaseorder_list, name='purchaseorder_list'),
-    path('get-garment-description/<int:garment_id>/', views.get_garment_description, name='get_garment_description')
-
-
+    path('purchaseorder/edit/<int:pk>/', views.edit_purchase_order, name='edit_purchase_order'),
+    path('get-garment-description/<int:garment_id>/', views.get_garment_description, name='get_garment_description'),
+    path('get-garment-details/<int:garment_id>/', views.get_garment_details, name='get_garment_details'),
 
 
     # --------------------      End Purchase Order  --------------------------
+
+
+
+
+
+    # --------------------       Receipt Note  --------------------------
+    path('purchaseorder/convert-to-grn/<int:pk>/', views.convert_po_to_grn, name='convert_po_to_grn'),
+
+    path('receiptnote/', views.ReceiptNoteListView, name='receiptnote'),
+    path('receiptNoteList/', views.receiptnote_list, name='receiptNoteList'),
+    path('AddReceiptNote/', views.add_receipt_note, name='add_receipt_note'),
+    path('receiptnote/edit/<int:pk>/', views.edit_receipt_note, name='edit_receipt_note'),
+
+    # --------------------      End Receipt Note  --------------------------
+
+
+    # --------------------       Grey Purchase  --------------------------
+    path('greypurchase/convert-to-greypurchase/<int:pk>/', views.convert_receipt_to_greypurchase, name='convert_receipt_to_greypurchase'),
+
+
+    path('greypurchase/', views.GreyPurchaseListView, name='greypurchase'),
+    path('greyPurchaseList/', views.grey_purchase_list, name='greyPurchaseList'),
+    path('AddGreyPurchase/', views.add_grey_purchase, name='add_grey_purchase'),
+    path('greypurchase/edit/<int:pk>/', views.edit_grey_purchase, name='edit_grey_purchase'),
+
+    # --------------------      End Grey Purchase  --------------------------
+
+    # --------------------      Purchase Return  --------------------------
+
+    path('purchasereturn/convert-to-purchasereturn/<int:pk>/', views.convert_greypurchase_to_purchasereturn, name='convert_greypurchase_to_purchasereturn'),
+    path('purchasereturn/', views.PurchaseReturnListView, name='purchasereturn'),
+    path('purchasereturnList/', views.purchasereturn_list, name='purchasereturnList'),
+    path('AddPurchaseReturn/', views.add_purchase_return, name='add_purchase_return'),
+    path('purchasereturn/edit/<int:pk>/', views.edit_purchase_return, name='edit_purchase_return'),
+
+
+    # --------------------      End Purchase Return  --------------------------
+
+
+
+    
 
     
 

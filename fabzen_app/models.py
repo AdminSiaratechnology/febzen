@@ -19,7 +19,7 @@ class Company(models.Model):
     state = models.CharField(max_length=100)
     city = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=100)
-    default_currency = models.CharField(max_length=100)
+    default_currency = models.CharField(max_length=100,null=True,blank=True )
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
@@ -447,24 +447,102 @@ from datetime import date
 
 
 
+# class PurchaseOrder(models.Model):
+#     STATUS_CHOICES = [
+#         ('Open', 'Open'),
+#         ('Partial', 'Partial'),
+#         ('Completed', 'Completed'),
+#         ('Cancelled', 'Cancelled'),
+#     ]
+#     payment_terms = [
+#         ('Immediate', 'Immediate'),
+#         ('30 Days', '30 Days'),
+#         ('60 Days', '60 Days'),
+       
+#     ]
+
+#     po_no = models.CharField(max_length=20, unique=True)
+#     po_date = models.DateField(default=date.today)
+#     indent = models.ForeignKey('PurchaseIndent', on_delete=models.SET_NULL, null=True, blank=True)
+#     # supplier = models.ForeignKey('Supplier', on_delete=models.SET_NULL, null=True, blank=True)
+#     delivery_date = models.DateField(null=True, blank=True)
+#     payment_terms = models.CharField(max_length=20, choices=payment_terms, default='Immediate')
+#     supplier = models.CharField(max_length=100,null=True,blank=True)
+#     total_qty = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+#     total_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+#     received_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+#     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Open')
+#     termscondition = models.TextField(blank=True, null=True)
+
+#     def __str__(self):
+#         return f"{self.po_no}"
+
+#     def calculate_totals(self):
+#         """Recalculate total quantity and amount from items."""
+#         total_qty = sum(item.quantity for item in self.items.all())
+#         total_amt = sum(item.amount for item in self.items.all())
+#         self.total_qty = total_qty
+#         self.total_amount = total_amt
+#         self.save()
+
+
+# class PurchaseOrderItem(models.Model):
+#     po = models.ForeignKey(PurchaseOrder, related_name='items', on_delete=models.CASCADE)
+#     garment = models.ForeignKey('Garment', on_delete=models.SET_NULL, null=True)
+#     description = models.CharField(max_length=255, blank=True, null=True)
+#     color = models.CharField(max_length=100, blank=True, null=True)
+#     quantity = models.DecimalField(max_digits=12, decimal_places=2)
+#     uom = models.CharField(max_length=50)
+#     rate = models.DecimalField(max_digits=12, decimal_places=2,default=0)
+#     discount = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+#     amount = models.DecimalField(max_digits=15, decimal_places=2, editable=False)
+
+    
+
+#     def save(self, *args, **kwargs):
+#         self.amount = self.quantity * self.rate
+#         super().save(*args, **kwargs)
+
+ 
+
+
 class PurchaseOrder(models.Model):
     STATUS_CHOICES = [
         ('Open', 'Open'),
         ('Partial', 'Partial'),
         ('Completed', 'Completed'),
         ('Cancelled', 'Cancelled'),
+        ('Close', 'Close'),
+    ]
+
+    PAYMENT_TERMS = [
+        ('Immediate', 'Immediate'),
+        ('30 Days', '30 Days'),
+        ('60 Days', '60 Days'),
     ]
 
     po_no = models.CharField(max_length=20, unique=True)
     po_date = models.DateField(default=date.today)
     indent = models.ForeignKey('PurchaseIndent', on_delete=models.SET_NULL, null=True, blank=True)
-    # supplier = models.ForeignKey('Supplier', on_delete=models.SET_NULL, null=True, blank=True)
+
+    # ✅ Suggestion: Keep supplier as ForeignKey for better data integrity
+    # If you don’t have a Supplier model yet, your CharField version is fine temporarily
+    supplier = models.CharField(max_length=100, null=True, blank=True)
+
     delivery_date = models.DateField(null=True, blank=True)
+    payment_terms = models.CharField(max_length=20, choices=PAYMENT_TERMS, default='Immediate')
+
     total_qty = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     received_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Open')
-    remarks = models.TextField(blank=True, null=True)
+    termscondition = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-po_date']  # ✅ Latest PO appears first in list view
+        verbose_name = "Purchase Order"
+        verbose_name_plural = "Purchase Orders"
 
     def __str__(self):
         return f"{self.po_no}"
@@ -477,20 +555,219 @@ class PurchaseOrder(models.Model):
         self.total_amount = total_amt
         self.save()
 
-
 class PurchaseOrderItem(models.Model):
     po = models.ForeignKey(PurchaseOrder, related_name='items', on_delete=models.CASCADE)
-    garment = models.ForeignKey('Garment', on_delete=models.SET_NULL, null=True)
+    garment = models.ForeignKey('Garment', on_delete=models.SET_NULL, null=True, blank=True)
     description = models.CharField(max_length=255, blank=True, null=True)
+    color = models.CharField(max_length=100, blank=True, null=True)
+
     quantity = models.DecimalField(max_digits=12, decimal_places=2)
     uom = models.CharField(max_length=50)
-    rate = models.DecimalField(max_digits=12, decimal_places=2,default=0)
+    rate = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    discount = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     amount = models.DecimalField(max_digits=15, decimal_places=2, editable=False)
-    delivery_date = models.DateField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        # ✅ Discount support added
+        if self.discount > 0:
+            discounted_rate = self.rate - (self.rate * self.discount / 100)
+            self.amount = self.quantity * discounted_rate
+        else:
+            self.amount = self.quantity * self.rate
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.garment or 'Item'} ({self.quantity} {self.uom})"
+
+
+
+# 📦 2️⃣ GOODS RECEIVE NOTE
+class GoodsReceiveNote(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Received', 'Received'),
+        ('Rejected', 'Rejected'),
+    ]
+
+    PAYMENT_TERMS = [  # ✅ Add this line
+        ('Immediate', 'Immediate'),
+        ('30 Days', '30 Days'),
+        ('60 Days', '60 Days'),
+    ]
+
+    grn_no = models.CharField(max_length=20, unique=True)
+    grn_date = models.DateField(default=date.today)
+    payment_terms = models.CharField(max_length=20, choices=PAYMENT_TERMS, default='Immediate')
+    purchase_order = models.ForeignKey('PurchaseOrder', on_delete=models.SET_NULL, null=True, blank=True)
+    supplier = models.CharField(max_length=100, null=True, blank=True)
+    total_qty = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    termscondition = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-grn_date']
+        verbose_name = "Goods Receive Note"
+        verbose_name_plural = "Goods Receive Notes"
+
+    def __str__(self):
+        return f"{self.grn_no}"
+
+    def calculate_totals(self):
+        total_qty = sum(item.quantity for item in self.items.all())
+        total_amt = sum(item.amount for item in self.items.all())
+        self.total_qty = total_qty
+        self.total_amount = total_amt
+        self.save()
+
+
+class GoodsReceiveNoteItem(models.Model):
+    grn = models.ForeignKey(GoodsReceiveNote, related_name='items', on_delete=models.CASCADE)
+    garment = models.ForeignKey('Garment', on_delete=models.SET_NULL, null=True, blank=True)
+    quantity = models.DecimalField(max_digits=12, decimal_places=2)
+    uom = models.CharField(max_length=50)
+    rate = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    discount = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    amount = models.DecimalField(max_digits=15, decimal_places=2, editable=False)
+    remarks = models.CharField(max_length=255, blank=True, null=True)
+    color = models.CharField(max_length=100, blank=True, null=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         self.amount = self.quantity * self.rate
         super().save(*args, **kwargs)
 
- 
+    def __str__(self):
+        return f"{self.garment or 'Item'} ({self.quantity} {self.uom})"
 
+
+
+# 🧵 1️⃣ GREY PURCHASE
+class GreyPurchase(models.Model):
+    STATUS_CHOICES = [
+        ('Open', 'Open'),
+        ('Partial', 'Partial'),
+        ('Completed', 'Completed'),
+        ('Cancelled', 'Cancelled'),
+        ('Close', 'Close'),
+    ]
+
+    PAYMENT_TERMS = [
+        ('Immediate', 'Immediate'),
+        ('30 Days', '30 Days'),
+        ('60 Days', '60 Days'),
+    ]
+
+    gp_no = models.CharField(max_length=20, unique=True)
+    gp_date = models.DateField(default=date.today)
+    grn = models.ForeignKey('GoodsReceiveNote', on_delete=models.SET_NULL, null=True, blank=True)
+    supplier = models.CharField(max_length=100, null=True, blank=True)
+    delivery_date = models.DateField(null=True, blank=True)
+    payment_terms = models.CharField(max_length=20, choices=PAYMENT_TERMS, default='Immediate')
+
+    total_qty = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    received_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Open')
+    termscondition = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-gp_date']
+        verbose_name = "Grey Purchase"
+        verbose_name_plural = "Grey Purchases"
+
+    def __str__(self):
+        return f"{self.gp_no}"
+
+    def calculate_totals(self):
+        total_qty = sum(item.quantity for item in self.items.all())
+        total_amt = sum(item.amount for item in self.items.all())
+        self.total_qty = total_qty
+        self.total_amount = total_amt
+        self.save()
+
+
+class GreyPurchaseItem(models.Model):
+    gp = models.ForeignKey(GreyPurchase, related_name='items', on_delete=models.CASCADE)
+    garment = models.ForeignKey('Garment', on_delete=models.SET_NULL, null=True, blank=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    color = models.CharField(max_length=100, blank=True, null=True)
+    quantity = models.DecimalField(max_digits=12, decimal_places=2)
+    uom = models.CharField(max_length=50)
+    rate = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    discount = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    amount = models.DecimalField(max_digits=15, decimal_places=2, editable=False)
+    remarks = models.CharField(max_length=255, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if self.discount > 0:
+            discounted_rate = self.rate - (self.rate * self.discount / 100)
+            self.amount = self.quantity * discounted_rate
+        else:
+            self.amount = self.quantity * self.rate
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.garment or 'Item'} ({self.quantity} {self.uom})"
+
+
+
+# 🔁 3️⃣ PURCHASE RETURN
+class PurchaseReturn(models.Model):
+    STATUS_CHOICES = [
+        ('Draft', 'Draft'),
+        ('Returned', 'Returned'),
+        ('Cancelled', 'Cancelled'),
+    ]
+
+    PAYMENT_TERMS = [
+        ('Immediate', 'Immediate'),
+        ('30 Days', '30 Days'),
+        ('60 Days', '60 Days'),
+    ]
+
+    pr_no = models.CharField(max_length=20, unique=True)
+    pr_date = models.DateField(default=date.today)
+    greypurchase = models.ForeignKey(GreyPurchase, on_delete=models.SET_NULL, null=True, blank=True)
+    payment_terms = models.CharField(max_length=20, choices=PAYMENT_TERMS, default='Immediate')
+    supplier = models.CharField(max_length=100, null=True, blank=True)
+    total_qty = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Draft')
+    reason = models.TextField(blank=True, null=True)
+    termscondition = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-pr_date']
+        verbose_name = "Purchase Return"
+        verbose_name_plural = "Purchase Returns"
+
+    def __str__(self):
+        return f"{self.pr_no}"
+
+    def calculate_totals(self):
+        total_qty = sum(item.quantity for item in self.items.all())
+        total_amt = sum(item.amount for item in self.items.all())
+        self.total_qty = total_qty
+        self.total_amount = total_amt
+        self.save()
+
+
+class PurchaseReturnItem(models.Model):
+    pr = models.ForeignKey(PurchaseReturn, related_name='items', on_delete=models.CASCADE)
+    garment = models.ForeignKey('Garment', on_delete=models.SET_NULL, null=True, blank=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    quantity = models.DecimalField(max_digits=12, decimal_places=2)
+    uom = models.CharField(max_length=50)
+    rate = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    amount = models.DecimalField(max_digits=15, decimal_places=2, editable=False)
+    reason = models.CharField(max_length=255, blank=True, null=True)
+    discount = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+
+    def save(self, *args, **kwargs):
+        self.amount = self.quantity * self.rate
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.garment or 'Item'} ({self.quantity} {self.uom})"

@@ -1,25 +1,25 @@
 
 {% for order in orders %}
 <tr>
-   <td><span class="badge bg-primary">{{ order.po_no }}</span></td>
-   <td>{{ order.po_date|date:"d M"  }}</td>
-   <td>Armaan Alam</td>
+   <td><span class="badge bg-primary">{{ order.grn_no }}</span></td>
+   <td>{{ order.grn_date|date:"d M"  }}</td>
+   <td>{{order.supplier}}</td>
    <td>{{ order.items.count }} items</td>
    <td>{{order.total_qty}}</td>
    {% comment %} <td><span class="badge {% if order.priority == 'High' %}bg-danger {% elif order.priority == 'Medium' %}bg-primary {% elif order.priority == 'Low' %}bg-success{% endif %}">{{order.priority}}</span></td> {% endcomment %}
    
    <td>{{order.total_amount}}</td>
-   <td>{{order.delivery_date|date:"d M"}}</td>
+   {% comment %} <td>{{order.delivery_date|date:"d M"}}</td> {% endcomment %}
    {% comment %} <td>{{order.received_percent}}</td> {% endcomment %}
    {% comment %} <td>{{order.status}}ddddddddd</td> {% endcomment %}
-   <td><span class="badge {% if order.status == 'Open' %}bg-warning {% elif order.status == 'Completed' %}bg-success {% elif order.status == 'Cancelled' %}bg-danger {% elif order.status == 'Close' %}bg-primary{% endif %}">{{order.status}}</span></td>
+   <td><span class="badge {% if order.status == 'Pending' %}bg-warning {% elif order.status == 'Completed' %}bg-success {% elif order.status == 'Cancelled' %}bg-danger {% elif order.status == 'Partial' %}bg-primary{% endif %}">{{order.status}}</span></td>
    
    <td>
-      <a class="btn btn-primary btn-sm" href="{% url "edit_purchase_order" order.id %}">Edit</a>
+      <a class="btn btn-primary btn-sm" href="{% url "edit_receipt_note" order.id %}">Edit</a>
       {% comment %} <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editorderModal-{{order.id}}">Edit</button> {% endcomment %}
-      <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#vieworderModal-{{order.id}}">View</button>
+      <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#viewgrnModal-{{order.id}}">View</button>
      
-      {% include "fabzen_app/Purchase/PurchaseOrder/view_order.html" %}
+      {% include "fabzen_app/Purchase/ReceiptNote/view_grn.html" %}
       {% comment %} {% include "fabzen_app/Purchase/PurchaseOrder/edit_order.html" %} {% endcomment %}
    </td>
 </tr>
@@ -38,15 +38,15 @@
         {% if orders.has_previous %}
         <li class="page-item">
            <a class="page-link" 
-              hx-get="{% url 'order_list' %}?page=1" 
-              hx-target="#order-table" 
+              hx-get="{% url 'receiptNoteList' %}?page=1" 
+              hx-target="#grn-table" 
               hx-swap="innerHTML"
               hx-include="[name='search']">First</a>
         </li>
         <li class="page-item">
            <a class="page-link" 
-              hx-get="{% url 'order_list' %}?page={{ orders.previous_page_number }}" 
-              hx-target="#order-table" 
+              hx-get="{% url 'receiptNoteList' %}?page={{ orders.previous_page_number }}" 
+              hx-target="#grn-table" 
               hx-swap="innerHTML"
               hx-include="[name='search']">Previous</a>
         </li>
@@ -61,8 +61,8 @@
         {% elif i > orders.number|add:'-3' and i < orders.number|add:'3' %}
         <li class="page-item">
            <a class="page-link" 
-              hx-get="{% url 'order_list' %}?page={{ i }}" 
-              hx-target="#order-table" 
+              hx-get="{% url 'receiptNoteList' %}?page={{ i }}" 
+              hx-target="#grn-table" 
               hx-swap="innerHTML"
               hx-include="[name='search']">{{ i }}</a>
         </li>
@@ -72,15 +72,15 @@
         {% if orders.has_next %}
         <li class="page-item">
            <a class="page-link" 
-              hx-get="{% url 'order_list' %}?page={{ orders.next_page_number }}" 
-              hx-target="#order-table" 
+              hx-get="{% url 'receiptNoteList' %}?page={{ orders.next_page_number }}" 
+              hx-target="#grn-table" 
               hx-swap="innerHTML"
               hx-include="[name='search']">Next</a>
         </li>
         <li class="page-item">
            <a class="page-link" 
-              hx-get="{% url 'order_list' %}?page={{ paginator.num_pages }}" 
-              hx-target="#order-table"
+              hx-get="{% url 'receiptNoteList' %}?page={{ paginator.num_pages }}" 
+              hx-target="#grn-table"
               hx-swap="innerHTML"
               hx-include="[name='search']">Last</a>
         </li>

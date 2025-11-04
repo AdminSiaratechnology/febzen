@@ -344,7 +344,7 @@
                             <div class="input-group input-group-sm">
                               <span class="input-group-text bg-white"><i class="bx bx-user"></i></span>
                               <input type="text" class="form-control form-control-sm" name="holder_name" required>
-                              <div class="invalid-feedback">Account holder name is required</div>
+                              {% comment %} <div class="invalid-feedback">Account holder name is required</div> {% endcomment %}
                             </div>
                           </div>
                           <div class="col-md-6">
@@ -352,7 +352,7 @@
                             <div class="input-group input-group-sm">
                               <span class="input-group-text bg-white"><i class="bx bx-hash"></i></span>
                               <input type="text" class="form-control form-control-sm" name="ac_no" required>
-                              <div class="invalid-feedback">Account number is required</div>
+                              {% comment %} <div class="invalid-feedback">Account number is required</div> {% endcomment %}
                             </div>
                           </div>
                           <div class="col-md-6">
@@ -360,7 +360,7 @@
                             <div class="input-group input-group-sm">
                               <span class="input-group-text bg-white"><i class="bx bx-code"></i></span>
                               <input type="text" class="form-control form-control-sm" name="ifsc_code" required>
-                              <div class="invalid-feedback">IFSC code is required</div>
+                              {% comment %} <div class="invalid-feedback">IFSC code is required</div> {% endcomment %}
                             </div>
                           </div>
                           <div class="col-md-6">
@@ -368,7 +368,7 @@
                             <div class="input-group input-group-sm">
                               <span class="input-group-text bg-white"><i class="bx bx-building-house"></i></span>
                               <input type="text" class="form-control form-control-sm" name="bank_name" required>
-                              <div class="invalid-feedback">Bank name is required</div>
+                              {% comment %} <div class="invalid-feedback">Bank name is required</div> {% endcomment %}
                             </div>
                           </div>
                         </div>
@@ -385,7 +385,7 @@
                         <div class="col-12">
                            <div class="d-flex align-items-center gap-3">
                               <button class="btn btn-primary px-4" type="button" onclick="stepper2.previous()"><i class='bx bx-left-arrow-alt me-2'></i>Previous</button>
-                              <button class="btn btn-success px-4" onclick="stepper2.next()">Submit</button>
+                              <button class="btn btn-success px-4" type="submit" >Submit</button>
                            </div>
                         </div>
                      </div>

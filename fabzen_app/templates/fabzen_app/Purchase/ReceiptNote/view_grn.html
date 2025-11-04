@@ -1,0 +1,152 @@
+<div class="modal fade" id="viewgrnModal-{{ order.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content shadow-lg border-0 rounded-3">
+
+      <!-- Modal Header -->
+      <div class="modal-header bg-gradient bg-primary text-white py-3">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-eye-fill fs-4 me-2"></i>
+          <h5 class="modal-title fw-bold mb-0 text-white">View Receipt Note</h5>
+        </div>
+        <button type="button" class="btn-close btn-close-white " data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body bg-light">
+        <div class="card shadow-sm border-0">
+          <div class="card-body">
+
+            <!-- Section: Indent Details -->
+            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">
+              <i class="bi bi-card-list me-1"></i> Receipt Note Details
+            </h6>
+
+            <div class="row g-3 mb-4">
+              <div class="col-md-4">
+                <label class="text-muted small mb-1">GRN Date </label>
+                <div class="fw-semibold bg-white rounded px-3 py-2 border">
+                  {{ order.grn_date|date:"d M, Y" }}
+                </div>
+              </div>
+
+              <div class="col-md-4">
+                <label class="text-muted small mb-1">GRN Number</label>
+                <div class="fw-semibold bg-white rounded px-3 py-2 border">
+                  {{ order.grn_no }}
+                </div>
+              </div>
+
+              {% comment %} <div class="col-md-3">
+                <label class="text-muted small mb-1">Delivery Date </label>
+                <div class="fw-semibold bg-white rounded px-3 py-2 border">
+                  {{ order.delivery_date|date:"d M, Y" }}
+                </div>
+              </div> {% endcomment %}
+
+              <div class="col-md-4">
+                <label class="text-muted small mb-1">Payment Terms</label>
+                <div class="fw-semibold px-3 py-2 rounded border 
+                    {% if order.payment_terms == 'Immediate' %}bg-danger text-white
+                    {% elif order.payment_terms == '30 Days' %}bg-warning text-dark
+                    {% else %}bg-success text-white{% endif %}">
+                  {{ order.payment_terms }}
+                </div>
+              </div>
+
+              
+            </div>
+
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="text-muted small mb-1">Supplier</label>
+                <div class="fw-semibold px-3 py-2 rounded border ">
+                  {{ order.supplier }}
+                </div>
+              </div>
+
+             
+
+              <div class="col-md-6">
+                <label class="text-muted small mb-1">Terms & Conditions</label>
+                <div class="bg-white border rounded px-3 py-2" style="min-height: 60px;">
+                  {{ order.termscondition|default:"—" }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Section: Items -->
+            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">
+              <i class="bi bi-basket2 me-1"></i> Items Required
+            </h6>
+
+            <div class="table-responsive border rounded-3">
+              <table class="table align-middle table-hover table-striped mb-0">
+                <thead class="bg-primary text-white small text-uppercase">
+                  <tr>
+                    <th>#</th>
+                    <th>Item</th>
+                    <th>Color</th>
+                    <th>Quantity</th>
+                    <th>Unit</th>
+                    <th>Rate</th>
+                    <th>Discount</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in order.items.all %}
+                  <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ item.garment.garment_name }}</td>
+                    <td>{{ item.color }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.uom }}</td>
+                    <td>{{ item.rate|default:"—" }}</td>
+                    <td>{{ item.discount|default:"—" }}</td>
+                    <td>{{ item.amount|default:"—" }}</td>
+                    <td>{{ item.description|default:"—" }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="5" class="text-center text-muted py-3">
+                      <i class="bi bi-info-circle me-1"></i> No items found.
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <!-- Footer -->
+      <div class="modal-footer bg-light border-top">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-circle me-1"></i> Close
+        </button>
+
+        
+        {% comment %} <a href="{% url 'convert_to_po' indent.id %}" class="btn btn-primary">
+          <i class="bi bi-arrow-right-square me-1"></i> Convert to PO
+        </a> {% endcomment %}
+         {% if order.status == "Close" %}
+            <button type="button" class="btn btn-primary" disabled>
+              <i class="bi bi-check-circle me-1"></i> Already Converted
+            </button>
+          {% else %}
+            <a href="{% url "convert_greypurchase_to_purchasereturn" order.id %}" class="btn btn-primary">
+              <i class="bi bi-arrow-right-square me-1"></i> Convert to Grey Purchase
+            </a>
+          {% endif %} 
+
+
+      </div>
+
+
+    </div>
+  </div>
+</div>

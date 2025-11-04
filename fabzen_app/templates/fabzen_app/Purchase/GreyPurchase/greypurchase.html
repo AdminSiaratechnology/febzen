@@ -74,12 +74,12 @@
     <input 
       type="text" 
       class="form-control"
-      placeholder="Search Purchase Indents..."
+      placeholder="Search Code..."
       style="max-width: 300px;"
       name="search"
-      hx-get="{% url 'purchaseorder_list' %}"
+      hx-get="{% url 'greyPurchaseList' %}"
       hx-trigger="keyup changed delay:500ms"
-      hx-target="#order-table"
+      hx-target="#greypurchase-table"
     >
      {% comment %} <select 
                      class="form-select" 
@@ -101,8 +101,8 @@
   </div>
 
   <!-- ➕ Add Button -->
-   <a href="{% url "add_purchase_order" %}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm">
-    <i class="bx bx-plus-circle"></i> Add Purchase Order
+   <a href="{% url "add_grey_purchase" %}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm">
+    <i class="bx bx-plus-circle"></i> New Grey Purchase
   </a> 
   {% comment %} <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#purchaseorderadd">New PO</button>
   {% include "fabzen_app/Purchase/PurchaseOrder/add_purchase.html" %} {% endcomment %}
@@ -126,15 +126,15 @@
                               <th>items</th>
                               <th>Total Quantity</th>
                               <th>PO Amount</th>
-                              <th>Delivery Date</th>
+                              {% comment %} <th>Delivery Date</th> {% endcomment %}
                               {% comment %} <th>Received</th> {% endcomment %}
                               <th>Status</th>
                               <th>Action</th>
                            </tr>
                         </thead>
                         <tbody 
-                           id="order-table"
-                           hx-get="{% url 'purchaseorder_list' %}" 
+                           id="greypurchase-table"
+                           hx-get="{% url 'greyPurchaseList' %}" 
                            hx-trigger="load" 
                            hx-target="this" 
                            hx-swap="innerHTML"

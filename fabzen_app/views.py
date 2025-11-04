@@ -1,7 +1,7 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine,Operator,Ledger,LedgerGroup,PurchaseIndent,PurchaseIndentItem,PurchaseOrder,PurchaseOrderItem
+from .models import Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine,Operator,Ledger,LedgerGroup,PurchaseIndent,PurchaseIndentItem,PurchaseOrder,PurchaseOrderItem,GreyPurchase,GreyPurchaseItem,PurchaseReturn,PurchaseReturnItem
 from .forms import PartyForm,FabricForm
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 from django.urls import reverse_lazy
@@ -10,6 +10,18 @@ from django.urls import reverse_lazy
 import json
 from datetime import date
 # Create your views here.
+
+
+def get_garment_details(request, garment_id):
+    """HTMX endpoint to fetch garment description and price"""
+    try:
+        garment = Garment.objects.get(id=garment_id)
+        return JsonResponse({
+            'description': garment.description or '',
+            'price': str(garment.rate_per_piece),
+        })
+    except Garment.DoesNotExist:
+        return JsonResponse({'description': '', 'price': ''})
 
 
 def home(request):
@@ -1760,8 +1772,103 @@ def convert_to_po(request, pk):
 
 # --------------------------------------- Purchase Order ------------------     
 
+# def add_purchase_order(request):
+#     garment = Garment.objects.all()
+#     context = {
+#         'garment': garment
+#     }
+#     return render(request, 'fabzen_app/Purchase/PurchaseOrder/adding_purchase_order.html', context)
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import PurchaseOrder, PurchaseOrderItem, Garment
+from datetime import date
+from decimal import Decimal
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from datetime import date
+from .models import PurchaseOrder, PurchaseOrderItem, Garment
+
+from decimal import Decimal
+
 def add_purchase_order(request):
-    return render(request, 'fabzen_app/Purchase/PurchaseOrder/adding_purchase_order.html')
+    garment = Garment.objects.all()
+
+    if request.method == "POST":
+        try:
+            po_no = request.POST.get('po_no')
+            po_date = request.POST.get('po_date') or date.today()
+            delivery_date = request.POST.get('delivery_date')
+            payment_terms = request.POST.get('payment_terms')
+            supplier_id = request.POST.get('supplier')
+            terms = request.POST.get('terms')
+
+            # ✅ convert supplier id to object (important)
+            # supplier_obj = Supplier.objects.filter(id=supplier_id).first() if supplier_id else None
+
+            po = PurchaseOrder.objects.create(
+                po_no=po_no,
+                po_date=po_date,
+                delivery_date=delivery_date,
+                payment_terms=payment_terms,
+                supplier=supplier_id,
+                termscondition=terms,
+            )
+
+            # get lists safely
+            item_descriptions = request.POST.getlist('item_description[]')
+            descriptions = request.POST.getlist('description[]')
+            colors = request.POST.getlist('color[]')
+            quantities = request.POST.getlist('quantity[]')
+            units = request.POST.getlist('unit[]')
+            rates = request.POST.getlist('price[]')
+            discounts = request.POST.getlist('discount[]')
+            amounts = request.POST.getlist('amount[]')
+
+            num_rows = len(item_descriptions)
+
+            for i in range(num_rows):
+                try:
+                    garment_id = item_descriptions[i]
+                    if not garment_id:
+                        continue
+
+                    garment_obj = Garment.objects.filter(id=garment_id).first()
+
+                    # ✅ use safe indexing with fallback values
+                    desc = descriptions[i] if i < len(descriptions) else ""
+                    color = colors[i] if i < len(colors) else ""
+                    qty = Decimal(quantities[i]) if i < len(quantities) and quantities[i] else Decimal(0)
+                    uom = units[i] if i < len(units) else ""
+                    rate = Decimal(rates[i]) if i < len(rates) and rates[i] else Decimal(0)
+                    discount = Decimal(discounts[i]) if i < len(discounts) and discounts[i] else Decimal(0)
+                    amt = Decimal(amounts[i]) if i < len(amounts) and amounts[i] else Decimal(0)
+
+                    PurchaseOrderItem.objects.create(
+                        po=po,
+                        garment=garment_obj,
+                        description=desc,
+                        color=color,
+                        quantity=qty,
+                        uom=uom,
+                        rate=rate,
+                        discount=discount,
+                        amount=amt,
+                    )
+
+                except Exception as inner_e:
+                    print(f"❌ Skipping row {i} due to error:", inner_e)
+
+            po.calculate_totals()
+
+            messages.success(request, f"Purchase Order {po_no} created successfully!")
+            return redirect('purchaseorder')
+
+        except Exception as e:
+            print("Error creating PO:", e)
+            messages.error(request, f"Error creating PO: {e}")
+
+    return render(request, 'fabzen_app/Purchase/PurchaseOrder/adding_purchase_order.html', {'garment': garment})
 
 
 def PurchaseOrderListView(request):
@@ -1854,14 +1961,11 @@ def purchaseorder_list(request):
     # ledger_group = LedgerGroup.objects.all().order_by('-id')
 
     if search_query:
-        purchase_qs = purchase_qs.filter(
-            Q(indent_no__icontains=search_query) |
-            Q(department__icontains=search_query) 
-        )
+        purchase_qs = purchase_qs.filter(po_no__icontains=search_query)
         
     
-    if type:
-        purchase_qs = purchase_qs.filter(status__iexact=type)
+    # if type:
+    #     purchase_qs = purchase_qs.filter(status__iexact=type)
 
     # --- Pagination logic ---
     page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
@@ -1893,4 +1997,1382 @@ def get_garment_description(request, garment_id):
     if garment:
         return HttpResponse(garment.description)
     return HttpResponse("")
-# --------------------------------------- END Purchase Order ------------------     
+
+
+# def edit_purchase_order(request, pk):
+
+#     purchase_order = get_object_or_404(PurchaseOrder, pk=pk)
+#     garment = Garment.objects.all()
+#     context = {
+#         'purchase_order': purchase_order,
+#         'garment': garment,
+#     }
+
+#     return render(request, 'fabzen_app/Purchase/PurchaseOrder/edit_purchase_order.html', context)
+
+from decimal import Decimal
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from datetime import date
+
+def edit_purchase_order(request, pk):
+    purchase_order = get_object_or_404(PurchaseOrder, pk=pk)
+    garment = Garment.objects.all()
+
+    if request.method == "POST":
+        try:
+            # 🧾 Basic fields
+            po_no = request.POST.get('po_no')
+            po_date = request.POST.get('po_date') or date.today()
+            delivery_date = request.POST.get('delivery_date')
+            payment_terms = request.POST.get('payment_terms')
+            supplier = request.POST.get('supplier')
+            terms = request.POST.get('terms')
+
+            # ✅ Update main PO record
+            purchase_order.po_no = po_no
+            purchase_order.po_date = po_date
+            purchase_order.delivery_date = delivery_date
+            purchase_order.payment_terms = payment_terms
+            purchase_order.supplier = supplier
+            purchase_order.termscondition = terms
+            purchase_order.save()
+
+            # ✅ Delete old items to replace them cleanly
+            purchase_order.items.all().delete()
+
+            # 🧾 Get updated item fields
+            item_descriptions = request.POST.getlist('item_description[]')
+            descriptions = request.POST.getlist('description[]')
+            colors = request.POST.getlist('color[]')
+            quantities = request.POST.getlist('quantity[]')
+            units = request.POST.getlist('unit[]')
+            rates = request.POST.getlist('price[]')
+            discounts = request.POST.getlist('discount[]')
+            amounts = request.POST.getlist('amount[]')
+
+            num_rows = len(item_descriptions)
+
+            for i in range(num_rows):
+                try:
+                    garment_id = item_descriptions[i]
+                    if not garment_id:
+                        continue
+
+                    garment_obj = Garment.objects.filter(id=garment_id).first()
+
+                    # ✅ Safe conversion & indexing
+                    desc = descriptions[i] if i < len(descriptions) else ""
+                    color = colors[i] if i < len(colors) else ""
+                    qty = Decimal(quantities[i]) if i < len(quantities) and quantities[i] else Decimal(0)
+                    uom = units[i] if i < len(units) else ""
+                    rate = Decimal(rates[i]) if i < len(rates) and rates[i] else Decimal(0)
+                    discount = Decimal(discounts[i]) if i < len(discounts) and discounts[i] else Decimal(0)
+                    amt = Decimal(amounts[i]) if i < len(amounts) and amounts[i] else Decimal(0)
+
+                    PurchaseOrderItem.objects.create(
+                        po=purchase_order,
+                        garment=garment_obj,
+                        description=desc,
+                        color=color,
+                        quantity=qty,
+                        uom=uom,
+                        rate=rate,
+                        discount=discount,
+                        amount=amt,
+                    )
+                except Exception as inner_e:
+                    print(f"❌ Error updating item {i}: {inner_e}")
+
+            # 🔄 Recalculate totals
+            purchase_order.calculate_totals()
+
+            messages.success(request, f"Purchase Order {po_no} updated successfully!")
+            return redirect('purchaseorder')
+
+        except Exception as e:
+            print("❌ Error updating PO:", e)
+            messages.error(request, f"Error updating PO: {e}")
+
+    context = {
+        'purchase_order': purchase_order,
+        'garment': garment,
+    }
+    return render(request, 'fabzen_app/Purchase/PurchaseOrder/edit_purchase_order.html', context)
+
+# --------------------------------------- END Purchase Order ------------------
+
+
+
+# --------------------------------------- Receipt Note ------------------
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from datetime import date
+from decimal import Decimal
+from .models import PurchaseOrder, GoodsReceiveNote, GoodsReceiveNoteItem
+
+
+def convert_po_to_grn(request, pk):
+    """
+    Convert Purchase Order to Goods Receive Note (GRN)
+    """
+    po = get_object_or_404(PurchaseOrder, pk=pk)
+
+    try:
+        # 🧾 Auto-generate GRN number (you can change logic as needed)
+        latest_grn = GoodsReceiveNote.objects.order_by('-id').first()
+        next_no = 1 if not latest_grn else int(latest_grn.grn_no.split('-')[-1]) + 1
+        grn_no = f"GRN-{next_no:04d}"
+
+        # 🧾 Create GRN header
+        grn = GoodsReceiveNote.objects.create(
+            grn_no=grn_no,
+            grn_date=date.today(),
+            purchase_order=po,
+            supplier=po.supplier,
+            status='Pending',
+        )
+
+        # 🧾 Copy PO items to GRN items
+        for item in po.items.all():
+            GoodsReceiveNoteItem.objects.create(
+                grn=grn,
+                garment=item.garment,
+                quantity=item.quantity,
+                uom=item.uom,
+                rate=item.rate,
+                amount=item.amount,
+                remarks=item.description or '',
+            )
+
+        # 🔄 Recalculate totals
+        grn.calculate_totals()
+
+        # Optionally update PO status
+        po.status = 'Close'  # or 'Completed' if everything received
+        po.save()
+
+        messages.success(request, f"Purchase Order {po.po_no} converted to GRN {grn.grn_no} successfully!")
+        return redirect('receiptnote')  # change name to your GRN list view
+
+    except Exception as e:
+        print("Error converting PO to GRN:", e)
+        messages.error(request, f"Error converting PO to GRN: {e}")
+        return redirect('purchaseorder')
+
+
+
+def ReceiptNoteListView(request):
+    garment = Garment.objects.all()
+    pending = PurchaseIndent.objects.filter(status='Pending').count()
+    approved = PurchaseIndent.objects.filter(status='Approved').count()
+    rejected = PurchaseIndent.objects.filter(status='Rejected').count()
+    converted = PurchaseIndent.objects.filter(status='Close').count()
+
+    context = {
+        'garment': garment,
+        'pending' : pending,
+        'approved' : approved,
+        'rejected' : rejected,
+        'converted' : converted,
+        
+    }
+    return render(request, 'fabzen_app/Purchase/ReceiptNote/receiptnote.html', context)
+
+
+
+
+
+def receiptnote_list(request):
+    
+    search_query = request.GET.get('search', '').strip()
+    
+    type = request.GET.get('type', '').strip()
+    purchase_qs = GoodsReceiveNote.objects.all().order_by('-id')
+    garment = Garment.objects.all()
+    # ledger_group = LedgerGroup.objects.all().order_by('-id')
+
+    if search_query:
+        purchase_qs = purchase_qs.filter(grn_no__icontains=search_query)
+        
+    
+    # if type:
+    #     purchase_qs = purchase_qs.filter(status__iexact=type)
+
+    # --- Pagination logic ---
+    page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
+    paginator = Paginator(purchase_qs, 10)     # Show 10 ledgers per page
+  
+    try:
+        orders = paginator.page(page_number)
+    except PageNotAnInteger:
+        orders = paginator.page(1)
+    except EmptyPage:
+        orders = paginator.page(paginator.num_pages)
+    context = {
+        'orders': orders,
+        'paginator': paginator,
+        'is_paginated': True,  # Used by your template
+        # 'ledger_group':ledger_group
+        'garment':garment
+    }
+
+    return render(request, 'fabzen_app/Purchase/ReceiptNote/partials/grn_list.html', context)
+
+    #     return redirect('indent')
+
+
+
+def add_receipt_note(request):
+    garment = Garment.objects.all()
+
+    if request.method == "POST":
+        try:
+            po_no = request.POST.get('po_no')
+            po_date = request.POST.get('po_date') or date.today()
+            delivery_date = request.POST.get('delivery_date')
+            payment_terms = request.POST.get('payment_terms')
+            supplier_id = request.POST.get('supplier')
+            terms = request.POST.get('terms')
+
+            # ✅ convert supplier id to object (important)
+            # supplier_obj = Supplier.objects.filter(id=supplier_id).first() if supplier_id else None
+
+            po = GoodsReceiveNote.objects.create(
+                grn_no=po_no,
+                grn_date=po_date,
+                # delivery_date=delivery_date,
+                payment_terms=payment_terms,
+                supplier=supplier_id,
+                termscondition=terms,
+            )
+
+            # get lists safely
+            item_descriptions = request.POST.getlist('item_description[]')
+            descriptions = request.POST.getlist('description[]')
+            colors = request.POST.getlist('color[]')
+            quantities = request.POST.getlist('quantity[]')
+            units = request.POST.getlist('unit[]')
+            rates = request.POST.getlist('price[]')
+            discounts = request.POST.getlist('discount[]')
+            amounts = request.POST.getlist('amount[]')
+
+            num_rows = len(item_descriptions)
+            
+            print(f"Processing {num_rows} rows of items")
+
+            for i in range(num_rows):
+                try:
+                    garment_id = item_descriptions[i]
+                    if not garment_id:
+                        print(f"Skipping row {i}: Empty garment_id")
+                        continue
+
+                    garment_obj = Garment.objects.filter(id=garment_id).first()
+                    if not garment_obj:
+                        print(f"Skipping row {i}: Garment with ID {garment_id} not found")
+                        continue
+
+                    # ✅ use safe indexing with fallback values
+                    desc = descriptions[i] if i < len(descriptions) else ""
+                    color = colors[i] if i < len(colors) else ""
+                    qty = Decimal(quantities[i]) if i < len(quantities) and quantities[i] else Decimal(0)
+                    uom = units[i] if i < len(units) else ""
+                    rate = Decimal(rates[i]) if i < len(rates) and rates[i] else Decimal(0)
+                    discount = Decimal(discounts[i]) if i < len(discounts) and discounts[i] else Decimal(0)
+                    amt = Decimal(amounts[i]) if i < len(amounts) and amounts[i] else Decimal(0)
+                    
+                    # Calculate amount if it's not provided
+                    if amt == Decimal(0) and qty > Decimal(0) and rate > Decimal(0):
+                        amt = qty * rate
+                        if discount > Decimal(0):
+                            amt = amt - (amt * discount / Decimal(100))
+                    
+                    print(f"Creating item: garment={garment_obj.id}, qty={qty}, rate={rate}, amt={amt}")
+                    
+                    item = GoodsReceiveNoteItem(
+                        grn=po,
+                        garment=garment_obj,
+                        description=desc,
+                        color=color,
+                        quantity=qty,
+                        uom=uom,
+                        rate=rate,
+                        discount=discount,
+                        amount=amt,
+                    )
+                    item.save()
+
+                    print(f"Item created successfully with ID: {item.id}")
+
+                except Exception as inner_e:
+                    print(f"❌ Skipping row {i} due to error:", inner_e)
+                    import traceback
+                    traceback.print_exc()
+
+            po.calculate_totals()
+
+            messages.success(request, f"Receipt Note {po_no} created successfully!")
+            return redirect('receiptnote')
+
+        except Exception as e:
+            print("Error creating Receipt Note:", e)
+            import traceback
+            traceback.print_exc()
+            messages.error(request, f"Error creating Receipt Note: {e}")
+
+    return render(request, 'fabzen_app/Purchase/ReceiptNote/add_grn_note.html', {'garment': garment})
+
+
+
+def edit_receipt_note(request, pk):
+    receipt_note = get_object_or_404(GoodsReceiveNote, pk=pk)
+    garment = Garment.objects.all()
+
+    if request.method == "POST":
+        try:
+            # 🧾 Basic fields
+            po_no = request.POST.get('GRN_no')
+            po_date = request.POST.get('GRN_date') or date.today()
+            delivery_date = request.POST.get('delivery_date')
+            payment_terms = request.POST.get('payment_terms')
+            supplier = request.POST.get('supplier')
+            terms = request.POST.get('terms')
+
+            # ✅ Update main PO record
+            receipt_note.po_no = po_no
+            receipt_note.po_date = po_date
+            receipt_note.delivery_date = delivery_date
+            receipt_note.payment_terms = payment_terms
+            receipt_note.supplier = supplier
+            receipt_note.termscondition = terms
+            receipt_note.save()
+
+            # ✅ Delete old items to replace them cleanly
+            receipt_note.items.all().delete()
+
+            # 🧾 Get updated item fields
+            item_descriptions = request.POST.getlist('item_description[]')
+            descriptions = request.POST.getlist('description[]')
+            colors = request.POST.getlist('color[]')
+            quantities = request.POST.getlist('quantity[]')
+            units = request.POST.getlist('unit[]')
+            rates = request.POST.getlist('price[]')
+            discounts = request.POST.getlist('discount[]')
+            amounts = request.POST.getlist('amount[]')
+
+            num_rows = len(item_descriptions)
+
+            for i in range(num_rows):
+                try:
+                    garment_id = item_descriptions[i]
+                    if not garment_id:
+                        continue
+
+                    garment_obj = Garment.objects.filter(id=garment_id).first()
+
+                    # ✅ Safe conversion & indexing
+                    desc = descriptions[i] if i < len(descriptions) else ""
+                    color = colors[i] if i < len(colors) else ""
+                    qty = Decimal(quantities[i]) if i < len(quantities) and quantities[i] else Decimal(0)
+                    uom = units[i] if i < len(units) else ""
+                    rate = Decimal(rates[i]) if i < len(rates) and rates[i] else Decimal(0)
+                    discount = Decimal(discounts[i]) if i < len(discounts) and discounts[i] else Decimal(0)
+                    amt = Decimal(amounts[i]) if i < len(amounts) and amounts[i] else Decimal(0)
+
+                    GoodsReceiveNoteItem.objects.create(
+                        grn=receipt_note,
+                        garment=garment_obj,
+                        description=desc,
+                        color=color,
+                        quantity=qty,
+                        uom=uom,
+                        rate=rate,
+                        discount=discount,
+                        amount=amt,
+                    )
+                except Exception as inner_e:
+                    print(f"❌ Error updating item {i}: {inner_e}")
+
+            # 🔄 Recalculate totals
+            receipt_note.calculate_totals()
+
+            messages.success(request, f"Receipt Note {po_no} updated successfully!")
+            return redirect('receiptnote')
+
+        except Exception as e:
+            print("❌ Error updating PO:", e)
+            messages.error(request, f"Error updating PO: {e}")
+
+    context = {
+        'receipt_note': receipt_note,
+        'garment': garment,
+    }
+    return render(request, 'fabzen_app/Purchase/ReceiptNote/edit_grn.html', context)
+
+# --------------------------------------- END Receipt Note ------------------
+
+
+
+
+# --------------------------------------- Grey Purchase ------------------
+
+
+
+def convert_receipt_to_greypurchase(request, pk):
+    """
+    Convert GRN Order to Grey Purchase
+    """
+    po = get_object_or_404(GoodsReceiveNote, pk=pk)
+
+    try:
+        # 🧾 Auto-generate GRN number (you can change logic as needed)
+        latest_grn = GreyPurchase.objects.order_by('-id').first()
+        next_no = 1 if not latest_grn else int(latest_grn.gp_no.split('-')[-1]) + 1
+        grn_no = f"BATCH-2025-{next_no:04d}"
+
+        # 🧾 Create GRN header
+        grn = GreyPurchase.objects.create(
+            gp_no=grn_no,
+            gp_date=date.today(),
+            grn=po,
+            supplier=po.supplier,
+            status='Pending',
+        )
+
+        # 🧾 Copy PO items to GRN items
+        for item in po.items.all():
+            GreyPurchaseItem.objects.create(
+                gp=grn,
+                garment=item.garment,
+                quantity=item.quantity,
+                uom=item.uom,
+                rate=item.rate,
+                amount=item.amount,
+                remarks=item.description or '',
+            )
+
+        # 🔄 Recalculate totals
+        grn.calculate_totals()
+
+        # Optionally update PO status
+        po.status = 'Close'  # or 'Completed' if everything received
+        po.save()
+
+        messages.success(request, f"GRN {po.grn_no} converted to Grey Purchase {grn.gp_no} successfully!")
+
+        return redirect('receiptnote')  # change name to your GRN list view
+
+    except Exception as e:
+        print("Error converting GRN to Grey Purchase:", e)
+        messages.error(request, f"Error converting GRN to Grey Purchase: {e}")
+        return redirect('receiptnote')
+
+
+def GreyPurchaseListView(request):
+    garment = Garment.objects.all()
+    pending = PurchaseIndent.objects.filter(status='Pending').count()
+    approved = PurchaseIndent.objects.filter(status='Approved').count()
+    rejected = PurchaseIndent.objects.filter(status='Rejected').count()
+    converted = PurchaseIndent.objects.filter(status='Close').count()
+
+    context = {
+        'garment': garment,
+        'pending' : pending,
+        'approved' : approved,
+        'rejected' : rejected,
+        'converted' : converted,
+        
+    }
+    return render(request, 'fabzen_app/Purchase/GreyPurchase/greypurchase.html', context)
+
+
+
+def grey_purchase_list(request):
+    
+    search_query = request.GET.get('search', '').strip()
+    
+    type = request.GET.get('type', '').strip()
+    purchase_qs = GreyPurchase.objects.all().order_by('-id')
+    garment = Garment.objects.all()
+    # ledger_group = LedgerGroup.objects.all().order_by('-id')
+
+    if search_query:
+        purchase_qs = purchase_qs.filter(gp_no__icontains=search_query)
+        
+    
+    # if type:
+    #     purchase_qs = purchase_qs.filter(status__iexact=type)
+
+    # --- Pagination logic ---
+    page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
+    paginator = Paginator(purchase_qs, 10)     # Show 10 ledgers per page
+  
+    try:
+        orders = paginator.page(page_number)
+    except PageNotAnInteger:
+        orders = paginator.page(1)
+    except EmptyPage:
+        orders = paginator.page(paginator.num_pages)
+    context = {
+        'orders': orders,
+        'paginator': paginator,
+        'is_paginated': True,  # Used by your template
+        # 'ledger_group':ledger_group
+        'garment':garment
+    }
+
+    return render(request, 'fabzen_app/Purchase/GreyPurchase/partials/greypurchase_list.html', context)
+
+    #     return redirect('indent')
+
+
+from decimal import Decimal
+from datetime import date
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Garment, GreyPurchase, GreyPurchaseItem
+
+
+def add_grey_purchase(request):
+    garments = Garment.objects.all()
+
+    if request.method == "POST":
+        try:
+            # ---------- HEADER DATA ----------
+            gp_no = request.POST.get('gp_no')
+            gp_date = request.POST.get('gp_date') or date.today()
+            delivery_date = request.POST.get('delivery_date')
+            payment_terms = request.POST.get('payment_terms')
+            supplier = request.POST.get('supplier')
+            terms = request.POST.get('terms')
+
+            # ✅ Auto-generate number if not entered
+            if not gp_no:
+                latest_gp = GreyPurchase.objects.order_by('-id').first()
+                next_no = 1 if not latest_gp else int(latest_gp.gp_no.split('-')[-1]) + 1
+                gp_no = f"BATCH-2025-{next_no:04d}"
+
+            # ---------- CREATE HEADER ----------
+            gp = GreyPurchase.objects.create(
+                gp_no=gp_no,
+                gp_date=gp_date,
+                delivery_date=delivery_date if delivery_date else None,
+                payment_terms=payment_terms,
+                supplier=supplier,
+                termscondition=terms,
+                status="Open"
+            )
+
+            # ---------- ITEM LISTS ----------
+            item_descriptions = request.POST.getlist('item_description[]')
+            descriptions = request.POST.getlist('description[]')
+            colors = request.POST.getlist('color[]')
+            quantities = request.POST.getlist('quantity[]')
+            units = request.POST.getlist('unit[]')
+            rates = request.POST.getlist('price[]')
+            discounts = request.POST.getlist('discount[]')
+            amounts = request.POST.getlist('amount[]')
+
+            num_rows = len(item_descriptions)
+            print(f"Processing {num_rows} Grey Purchase Items")
+
+            # ---------- LOOP THROUGH ITEMS ----------
+            for i in range(num_rows):
+                try:
+                    garment_id = item_descriptions[i]
+                    if not garment_id:
+                        print(f"Skipping row {i}: Empty garment_id")
+                        continue
+
+                    garment_obj = Garment.objects.filter(id=garment_id).first()
+                    if not garment_obj:
+                        print(f"Skipping row {i}: Garment with ID {garment_id} not found")
+                        continue
+
+                    desc = descriptions[i] if i < len(descriptions) else ""
+                    color = colors[i] if i < len(colors) else ""
+                    qty = Decimal(quantities[i]) if i < len(quantities) and quantities[i] else Decimal(0)
+                    uom = units[i] if i < len(units) else ""
+                    rate = Decimal(rates[i]) if i < len(rates) and rates[i] else Decimal(0)
+                    discount = Decimal(discounts[i]) if i < len(discounts) and discounts[i] else Decimal(0)
+                    amt = Decimal(amounts[i]) if i < len(amounts) and amounts[i] else Decimal(0)
+
+                    # Auto calculate amount if not given
+                    if amt == Decimal(0) and qty > Decimal(0) and rate > Decimal(0):
+                        amt = qty * rate
+                        if discount > Decimal(0):
+                            amt -= (amt * discount / Decimal(100))
+
+                    print(f"Creating GreyPurchaseItem: garment={garment_obj.id}, qty={qty}, rate={rate}, amt={amt}")
+
+                    item = GreyPurchaseItem(
+                        gp=gp,
+                        garment=garment_obj,
+                        description=desc,
+                        color=color,
+                        quantity=qty,
+                        uom=uom,
+                        rate=rate,
+                        discount=discount,
+                        amount=amt,
+                    )
+                    item.save()
+
+                    print(f"Item created successfully with ID: {item.id}")
+
+                except Exception as inner_e:
+                    print(f"❌ Skipping row {i} due to error:", inner_e)
+                    import traceback
+                    traceback.print_exc()
+
+            # ---------- UPDATE TOTALS ----------
+            gp.calculate_totals()
+
+            messages.success(request, f"Grey Purchase {gp.gp_no} created successfully!")
+            return redirect('greypurchase')  # 🔁 change this to your correct URL name
+
+        except Exception as e:
+            print("Error creating Grey Purchase:", e)
+            import traceback
+            traceback.print_exc()
+            messages.error(request, f"Error creating Grey Purchase: {e}")
+
+    return render(request, 'fabzen_app/Purchase/GreyPurchase/add_grey_purchase.html', {'garments': garments})
+
+
+
+
+# def edit_grey_purchase(request, pk):
+#     grey_purchase = get_object_or_404(GreyPurchase, pk=pk)
+#     garments = Garment.objects.all()
+
+#     if request.method == "POST":
+#         try:
+#             # 🧾 Basic fields
+#             po_no = request.POST.get('GRN_no')
+#             po_date = request.POST.get('GRN_date') or date.today()
+#             delivery_date = request.POST.get('delivery_date')
+#             payment_terms = request.POST.get('payment_terms')
+#             supplier = request.POST.get('supplier')
+#             terms = request.POST.get('terms')
+
+#             # ✅ Update main PO record
+#             receipt_note.po_no = po_no
+#             receipt_note.po_date = po_date
+#             receipt_note.delivery_date = delivery_date
+#             receipt_note.payment_terms = payment_terms
+#             receipt_note.supplier = supplier
+#             receipt_note.termscondition = terms
+#             receipt_note.save()
+
+#             # ✅ Delete old items to replace them cleanly
+#             receipt_note.items.all().delete()
+
+#             # 🧾 Get updated item fields
+#             item_descriptions = request.POST.getlist('item_description[]')
+#             descriptions = request.POST.getlist('description[]')
+#             colors = request.POST.getlist('color[]')
+#             quantities = request.POST.getlist('quantity[]')
+#             units = request.POST.getlist('unit[]')
+#             rates = request.POST.getlist('price[]')
+#             discounts = request.POST.getlist('discount[]')
+#             amounts = request.POST.getlist('amount[]')
+
+#             num_rows = len(item_descriptions)
+
+#             for i in range(num_rows):
+#                 try:
+#                     garment_id = item_descriptions[i]
+#                     if not garment_id:
+#                         continue
+
+#                     garment_obj = Garment.objects.filter(id=garment_id).first()
+
+#                     # ✅ Safe conversion & indexing
+#                     desc = descriptions[i] if i < len(descriptions) else ""
+#                     color = colors[i] if i < len(colors) else ""
+#                     qty = Decimal(quantities[i]) if i < len(quantities) and quantities[i] else Decimal(0)
+#                     uom = units[i] if i < len(units) else ""
+#                     rate = Decimal(rates[i]) if i < len(rates) and rates[i] else Decimal(0)
+#                     discount = Decimal(discounts[i]) if i < len(discounts) and discounts[i] else Decimal(0)
+#                     amt = Decimal(amounts[i]) if i < len(amounts) and amounts[i] else Decimal(0)
+
+#                     GoodsReceiveNoteItem.objects.create(
+#                         grn=receipt_note,
+#                         garment=garment_obj,
+#                         description=desc,
+#                         color=color,
+#                         quantity=qty,
+#                         uom=uom,
+#                         rate=rate,
+#                         discount=discount,
+#                         amount=amt,
+#                     )
+#                 except Exception as inner_e:
+#                     print(f"❌ Error updating item {i}: {inner_e}")
+
+#             # 🔄 Recalculate totals
+#             receipt_note.calculate_totals()
+
+#             messages.success(request, f"Receipt Note {po_no} updated successfully!")
+#             return redirect('receiptnote')
+
+#         except Exception as e:
+#             print("❌ Error updating PO:", e)
+#             messages.error(request, f"Error updating PO: {e}")
+
+#     context = {
+#         'receipt_note': receipt_note,
+#         'garment': garment,
+#     }
+#     return render(request, 'fabzen_app/Purchase/ReceiptNote/edit_grn.html', context)
+
+
+
+from decimal import Decimal
+from datetime import date
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import Garment, GreyPurchase, GreyPurchaseItem
+
+
+def edit_grey_purchase(request, pk):
+    grey_purchase = get_object_or_404(GreyPurchase, pk=pk)
+    garments = Garment.objects.all()
+
+    if request.method == "POST":
+        try:
+            # ---------- UPDATE HEADER ----------
+            gp_no = request.POST.get('gp_no')
+            gp_date = request.POST.get('gp_date') or date.today()
+            # delivery_date = request.POST.get('delivery_date')
+            payment_terms = request.POST.get('payment_terms')
+            supplier = request.POST.get('supplier')
+            terms = request.POST.get('terms')
+
+            # ✅ Update main record
+            grey_purchase.gp_no = gp_no
+            grey_purchase.gp_date = gp_date
+            # grey_purchase.delivery_date = delivery_date if delivery_date else None
+            grey_purchase.payment_terms = payment_terms
+            grey_purchase.supplier = supplier
+            grey_purchase.termscondition = terms
+            grey_purchase.save()
+
+            # ---------- DELETE OLD ITEMS ----------
+            grey_purchase.items.all().delete()
+
+            # ---------- READ UPDATED ITEM LISTS ----------
+            item_descriptions = request.POST.getlist('item_description[]')
+            descriptions = request.POST.getlist('description[]')
+            colors = request.POST.getlist('color[]')
+            quantities = request.POST.getlist('quantity[]')
+            units = request.POST.getlist('unit[]')
+            rates = request.POST.getlist('price[]')
+            discounts = request.POST.getlist('discount[]')
+            amounts = request.POST.getlist('amount[]')
+
+            num_rows = len(item_descriptions)
+            print(f"Updating {num_rows} Grey Purchase Items for {grey_purchase.gp_no}")
+
+            # ---------- LOOP AND ADD NEW ITEMS ----------
+            for i in range(num_rows):
+                try:
+                    garment_id = item_descriptions[i]
+                    if not garment_id:
+                        continue
+
+                    garment_obj = Garment.objects.filter(id=garment_id).first()
+                    if not garment_obj:
+                        continue
+
+                    desc = descriptions[i] if i < len(descriptions) else ""
+                    color = colors[i] if i < len(colors) else ""
+                    qty = Decimal(quantities[i]) if i < len(quantities) and quantities[i] else Decimal(0)
+                    uom = units[i] if i < len(units) else ""
+                    rate = Decimal(rates[i]) if i < len(rates) and rates[i] else Decimal(0)
+                    discount = Decimal(discounts[i]) if i < len(discounts) and discounts[i] else Decimal(0)
+                    amt = Decimal(amounts[i]) if i < len(amounts) and amounts[i] else Decimal(0)
+
+                    # Auto calculate if amount missing
+                    if amt == Decimal(0) and qty > 0 and rate > 0:
+                        amt = qty * rate
+                        if discount > 0:
+                            amt -= (amt * discount / Decimal(100))
+
+                    GreyPurchaseItem.objects.create(
+                        gp=grey_purchase,
+                        garment=garment_obj,
+                        description=desc,
+                        color=color,
+                        quantity=qty,
+                        uom=uom,
+                        rate=rate,
+                        discount=discount,
+                        amount=amt,
+                    )
+                except Exception as inner_e:
+                    print(f"❌ Error adding item {i}: {inner_e}")
+
+            # ---------- RECALCULATE TOTALS ----------
+            grey_purchase.calculate_totals()
+
+            messages.success(request, f"Grey Purchase {grey_purchase.gp_no} updated successfully!")
+            return redirect('greypurchase')  # 🔁 update with your correct URL name
+
+        except Exception as e:
+            print("❌ Error updating Grey Purchase:", e)
+            import traceback
+            traceback.print_exc()
+            messages.error(request, f"Error updating Grey Purchase: {e}")
+    
+    print("grey_purchase items:", grey_purchase)
+
+    context = {
+        'grey_purchase': grey_purchase,
+        'garments': garments,
+    }
+    return render(request, 'fabzen_app/Purchase/GreyPurchase/edit_grey_purchase.html', context)
+
+# --------------------------------------- END Grey Purchase ------------------
+
+
+
+# ---------------------------------------  Purchase Return ------------------
+
+
+def convert_greypurchase_to_purchasereturn(request, pk):
+    """
+    Convert Grey Purchase to Purchase Return
+    """
+    grey_purchase = get_object_or_404(GreyPurchase, pk=pk)
+    print("grey_purchase:", grey_purchase)
+
+    try:
+        # 🧾 Auto-generate Purchase Return number
+        latest_pr = PurchaseReturn.objects.order_by('-id').first()
+        next_no = 1 if not latest_pr else int(latest_pr.pr_no.split('-')[-1]) + 1
+        pr_no = f"PR-2025-{next_no:04d}"
+
+        # 🧾 Create Purchase Return header
+        purchase_return = PurchaseReturn.objects.create(
+            pr_no=pr_no,
+            pr_date=date.today(),
+            supplier=grey_purchase.supplier,
+            grn=grey_purchase,  # if linked greypurchase exists
+            status='Draft',
+            reason=f"Auto-generated from Grey Purchase {grey_purchase.gp_no}"
+        )
+
+        # 🧾 Copy all GreyPurchase items → PurchaseReturn items
+        for item in grey_purchase.items.all():
+            PurchaseReturnItem.objects.create(
+                pr=purchase_return,
+                garment=item.garment,
+                description=item.description or '',
+                quantity=item.quantity,
+                uom=item.uom,
+                rate=item.rate,
+                amount=item.amount,
+                reason=f"Return from Grey Purchase {grey_purchase.gp_no}",
+            )
+
+        # 🔄 Recalculate totals
+        purchase_return.calculate_totals()
+
+        # ✅ Optionally update Grey Purchase status
+        grey_purchase.status = 'Close'
+        grey_purchase.save()
+
+        messages.success(
+            request,
+            f"Grey Purchase {grey_purchase.gp_no} successfully converted to Purchase Return {purchase_return.pr_no}!"
+        )
+        return redirect('greypurchase')  # 🔁 replace with your actual Purchase Return list URL name
+
+    except Exception as e:
+        print("❌ Error converting Grey Purchase to Purchase Return:", e)
+        import traceback
+        traceback.print_exc()
+        messages.error(request, f"Error converting Grey Purchase to Purchase Return: {e}")
+        return redirect('greypurchase')  # fallback redirect
+
+
+
+def PurchaseReturnListView(request):
+    garment = Garment.objects.all()
+    pending = PurchaseIndent.objects.filter(status='Pending').count()
+    approved = PurchaseIndent.objects.filter(status='Approved').count()
+    rejected = PurchaseIndent.objects.filter(status='Rejected').count()
+    converted = PurchaseIndent.objects.filter(status='Close').count()
+
+    context = {
+        'garment': garment,
+        'pending' : pending,
+        'approved' : approved,
+        'rejected' : rejected,
+        'converted' : converted,
+        
+    }
+    return render(request, 'fabzen_app/Purchase/PurchaseReturn/purchasereturn.html', context)
+
+
+
+
+def purchasereturn_list(request):
+    
+    search_query = request.GET.get('search', '').strip()
+    
+    type = request.GET.get('type', '').strip()
+    purchase_qs = PurchaseReturn.objects.all().order_by('-id')
+    garment = Garment.objects.all()
+    # ledger_group = LedgerGroup.objects.all().order_by('-id')
+
+    if search_query:
+        purchase_qs = purchase_qs.filter(pr_no__icontains=search_query)
+
+    
+    # if type:
+    #     purchase_qs = purchase_qs.filter(status__iexact=type)
+
+    # --- Pagination logic ---
+    page_number = request.GET.get('page', 1)  # Get ?page= from URL (default: 1)
+    paginator = Paginator(purchase_qs, 10)     # Show 10 ledgers per page
+  
+    try:
+        orders = paginator.page(page_number)
+    except PageNotAnInteger:
+        orders = paginator.page(1)
+    except EmptyPage:
+        orders = paginator.page(paginator.num_pages)
+    context = {
+        'orders': orders,
+        'paginator': paginator,
+        'is_paginated': True,  # Used by your template
+        # 'ledger_group':ledger_group
+        'garment':garment
+    }
+
+    return render(request, 'fabzen_app/Purchase/PurchaseReturn/partials/purchasereturn_list.html', context)
+
+    #     return redirect('indent')
+
+
+
+from decimal import Decimal
+from datetime import date
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Garment, PurchaseReturn, PurchaseReturnItem
+from decimal import Decimal
+from datetime import date
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Garment, PurchaseReturn, PurchaseReturnItem
+
+
+def add_purchase_return(request):
+    garments = Garment.objects.all()
+
+    if request.method == "POST":
+        try:
+            # ---------- HEADER DATA ----------
+            pr_no = request.POST.get('pr_no')
+            pr_date = request.POST.get('pr_date') or date.today()
+            supplier = request.POST.get('supplier')
+            reason = request.POST.get('reason')
+
+            # ✅ Auto-generate number if not entered
+            if not pr_no:
+                latest_pr = PurchaseReturn.objects.order_by('-id').first()
+                next_no = 1 if not latest_pr else int(latest_pr.pr_no.split('-')[-1]) + 1
+                pr_no = f"PR-2025-{next_no:04d}"
+
+            # ---------- CREATE HEADER ----------
+            pr = PurchaseReturn.objects.create(
+                pr_no=pr_no,
+                pr_date=pr_date,
+                supplier=supplier,
+                reason=reason or '',
+                status="Draft"
+            )
+
+            # ---------- ITEM LISTS ----------
+            item_descriptions = request.POST.getlist('item_description[]')
+            descriptions = request.POST.getlist('description[]')
+            quantities = request.POST.getlist('quantity[]')
+            units = request.POST.getlist('unit[]')
+            rates = request.POST.getlist('price[]')
+            amounts = request.POST.getlist('amount[]')
+            reasons = request.POST.getlist('item_reason[]')
+
+            num_rows = len(item_descriptions)
+            print(f"Processing {num_rows} Purchase Return Items")
+
+            # ---------- LOOP THROUGH ITEMS ----------
+            for i in range(num_rows):
+                try:
+                    garment_id = item_descriptions[i]
+                    if not garment_id:
+                        print(f"Skipping row {i}: Empty garment_id")
+                        continue
+
+                    garment_obj = Garment.objects.filter(id=garment_id).first()
+                    if not garment_obj:
+                        print(f"Skipping row {i}: Garment with ID {garment_id} not found")
+                        continue
+
+                    desc = descriptions[i] if i < len(descriptions) else ""
+                    qty = Decimal(quantities[i]) if i < len(quantities) and quantities[i] else Decimal(0)
+                    uom = units[i] if i < len(units) else ""
+                    rate = Decimal(rates[i]) if i < len(rates) and rates[i] else Decimal(0)
+                    amt = Decimal(amounts[i]) if i < len(amounts) and amounts[i] else Decimal(0)
+                    item_reason = reasons[i] if i < len(reasons) else ""
+
+                    # Auto-calculate amount if not given
+                    if amt == Decimal(0) and qty > Decimal(0) and rate > Decimal(0):
+                        amt = qty * rate
+
+                    print(f"Creating PurchaseReturnItem: garment={garment_obj.id}, qty={qty}, rate={rate}, amt={amt}")
+
+                    item = PurchaseReturnItem.objects.create(
+                        pr=pr,
+                        garment=garment_obj,
+                        description=desc,
+                        quantity=qty,
+                        uom=uom,
+                        rate=rate,
+                        amount=amt,
+                        reason=item_reason or reason,
+                    )
+
+                    print(f"Item created successfully with ID: {item.id}")
+
+                except Exception as inner_e:
+                    print(f"❌ Skipping row {i} due to error:", inner_e)
+                    import traceback
+                    traceback.print_exc()
+
+            # ---------- UPDATE TOTALS ----------
+            pr.calculate_totals()
+
+            messages.success(request, f"Purchase Return {pr.pr_no} created successfully!")
+            return redirect('purchasereturn')  # 🔁 change to your actual Purchase Return list URL name
+
+        except Exception as e:
+            print("❌ Error creating Purchase Return:", e)
+            import traceback
+            traceback.print_exc()
+            messages.error(request, f"Error creating Purchase Return: {e}")
+
+    return render(request, 'fabzen_app/Purchase/PurchaseReturn/add_purchasereturn.html', {'garments': garments})
+
+
+
+
+
+
+# def edit_purchase_return(request, pk):
+#     purchase_return = get_object_or_404(PurchaseReturn, pk=pk)
+#     garments = Garment.objects.all()
+
+#     if request.method == "POST":
+#         try:
+#             # ---------- UPDATE HEADER ----------
+#             gp_no = request.POST.get('gp_no')
+#             gp_date = request.POST.get('gp_date') or date.today()
+#             # delivery_date = request.POST.get('delivery_date')
+#             payment_terms = request.POST.get('payment_terms')
+#             supplier = request.POST.get('supplier')
+#             terms = request.POST.get('terms')
+
+#             # ✅ Update main record
+#             grey_purchase.gp_no = gp_no
+#             grey_purchase.gp_date = gp_date
+#             # grey_purchase.delivery_date = delivery_date if delivery_date else None
+#             grey_purchase.payment_terms = payment_terms
+#             grey_purchase.supplier = supplier
+#             grey_purchase.termscondition = terms
+#             grey_purchase.save()
+
+#             # ---------- DELETE OLD ITEMS ----------
+#             grey_purchase.items.all().delete()
+
+#             # ---------- READ UPDATED ITEM LISTS ----------
+#             item_descriptions = request.POST.getlist('item_description[]')
+#             descriptions = request.POST.getlist('description[]')
+#             colors = request.POST.getlist('color[]')
+#             quantities = request.POST.getlist('quantity[]')
+#             units = request.POST.getlist('unit[]')
+#             rates = request.POST.getlist('price[]')
+#             discounts = request.POST.getlist('discount[]')
+#             amounts = request.POST.getlist('amount[]')
+
+#             num_rows = len(item_descriptions)
+#             print(f"Updating {num_rows} Grey Purchase Items for {grey_purchase.gp_no}")
+
+#             # ---------- LOOP AND ADD NEW ITEMS ----------
+#             for i in range(num_rows):
+#                 try:
+#                     garment_id = item_descriptions[i]
+#                     if not garment_id:
+#                         continue
+
+#                     garment_obj = Garment.objects.filter(id=garment_id).first()
+#                     if not garment_obj:
+#                         continue
+
+#                     desc = descriptions[i] if i < len(descriptions) else ""
+#                     color = colors[i] if i < len(colors) else ""
+#                     qty = Decimal(quantities[i]) if i < len(quantities) and quantities[i] else Decimal(0)
+#                     uom = units[i] if i < len(units) else ""
+#                     rate = Decimal(rates[i]) if i < len(rates) and rates[i] else Decimal(0)
+#                     discount = Decimal(discounts[i]) if i < len(discounts) and discounts[i] else Decimal(0)
+#                     amt = Decimal(amounts[i]) if i < len(amounts) and amounts[i] else Decimal(0)
+
+#                     # Auto calculate if amount missing
+#                     if amt == Decimal(0) and qty > 0 and rate > 0:
+#                         amt = qty * rate
+#                         if discount > 0:
+#                             amt -= (amt * discount / Decimal(100))
+
+#                     GreyPurchaseItem.objects.create(
+#                         gp=grey_purchase,
+#                         garment=garment_obj,
+#                         description=desc,
+#                         color=color,
+#                         quantity=qty,
+#                         uom=uom,
+#                         rate=rate,
+#                         discount=discount,
+#                         amount=amt,
+#                     )
+#                 except Exception as inner_e:
+#                     print(f"❌ Error adding item {i}: {inner_e}")
+
+#             # ---------- RECALCULATE TOTALS ----------
+#             grey_purchase.calculate_totals()
+
+#             messages.success(request, f"Grey Purchase {grey_purchase.gp_no} updated successfully!")
+#             return redirect('greypurchase')  # 🔁 update with your correct URL name
+
+#         except Exception as e:
+#             print("❌ Error updating Grey Purchase:", e)
+#             import traceback
+#             traceback.print_exc()
+#             messages.error(request, f"Error updating Grey Purchase: {e}")
+    
+#     print("grey_purchase items:", grey_purchase)
+
+#     context = {
+#         'grey_purchase': grey_purchase,
+#         'garments': garments,
+#     }
+#     return render(request, 'fabzen_app/Purchase/PurchaseReturn/edit_purchasereturn.html', context)
+
+
+from decimal import Decimal
+from datetime import date
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import PurchaseReturn, PurchaseReturnItem, Garment
+
+
+# def edit_purchase_return(request, pk):
+#     purchase_return = get_object_or_404(PurchaseReturn, pk=pk)
+#     garments = Garment.objects.all()
+
+#     if request.method == "POST":
+#         print("POST data:", request.POST)
+#         try:
+#             # ---------- UPDATE HEADER ----------
+#             pr_no = request.POST.get('pr_no')
+#             pr_date = request.POST.get('pr_date') or date.today()
+#             supplier = request.POST.get('supplier')
+#             reason = request.POST.get('reason')
+
+#             # ✅ Update main PurchaseReturn record
+#             purchase_return.pr_no = pr_no
+#             purchase_return.pr_date = pr_date
+#             purchase_return.supplier = supplier
+#             purchase_return.reason = reason
+#             purchase_return.save()
+
+#             # ---------- DELETE OLD ITEMS ----------
+#             purchase_return.items.all().delete()
+
+#             # ---------- READ UPDATED ITEM LISTS ----------
+#             item_descriptions = request.POST.getlist('item_description[]')
+#             descriptions = request.POST.getlist('description[]')
+#             quantities = request.POST.getlist('quantity[]')
+#             units = request.POST.getlist('unit[]')
+#             rates = request.POST.getlist('price[]')
+#             amounts = request.POST.getlist('amount[]')
+#             reasons = request.POST.getlist('item_reason[]')
+
+#             num_rows = len(item_descriptions)
+#             print(f"Updating {num_rows} Purchase Return Items for {purchase_return.pr_no}")
+
+#             # ---------- LOOP AND ADD NEW ITEMS ----------
+#             for i in range(num_rows):
+#                 try:
+#                     garment_id = item_descriptions[i]
+#                     if not garment_id:
+#                         continue
+
+#                     garment_obj = Garment.objects.filter(id=garment_id).first()
+#                     if not garment_obj:
+#                         continue
+
+#                     desc = descriptions[i] if i < len(descriptions) else ""
+#                     qty = Decimal(quantities[i]) if i < len(quantities) and quantities[i] else Decimal(0)
+#                     uom = units[i] if i < len(units) else ""
+#                     rate = Decimal(rates[i]) if i < len(rates) and rates[i] else Decimal(0)
+#                     amt = Decimal(amounts[i]) if i < len(amounts) and amounts[i] else Decimal(0)
+#                     item_reason = reasons[i] if i < len(reasons) else ""
+
+#                     # Auto calculate if amount missing
+#                     if amt == Decimal(0) and qty > 0 and rate > 0:
+#                         amt = qty * rate
+
+#                     PurchaseReturnItem.objects.create(
+#                         pr=purchase_return,
+#                         garment=garment_obj,
+#                         description=desc,
+#                         quantity=qty,
+#                         uom=uom,
+#                         rate=rate,
+#                         amount=amt,
+#                         reason=item_reason or reason,
+#                     )
+#                 except Exception as inner_e:
+#                     print(f"❌ Error adding item {i}: {inner_e}")
+#                     import traceback
+#                     traceback.print_exc()
+
+#             # ---------- RECALCULATE TOTALS ----------
+#             purchase_return.calculate_totals()
+
+#             messages.success(request, f"Purchase Return {purchase_return.pr_no} updated successfully!")
+#             return redirect('purchasereturn')  # ✅ Update with your actual list view name
+
+#         except Exception as e:
+#             print("❌ Error updating Purchase Return:", e)
+#             import traceback
+#             traceback.print_exc()
+#             messages.error(request, f"Error updating Purchase Return: {e}")
+
+#     context = {
+#         'purchase_return': purchase_return,
+#         'garments': garments,
+#     }
+#     return render(request, 'fabzen_app/Purchase/PurchaseReturn/edit_purchasereturn.html', context)
+
+
+
+from decimal import Decimal
+from datetime import date
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import PurchaseReturn, PurchaseReturnItem, Garment
+
+
+def edit_purchase_return(request, pk):
+    purchase_return = get_object_or_404(PurchaseReturn, pk=pk)
+    garments = Garment.objects.all()
+
+    if request.method == "POST":
+        print("POST data:", request.POST)
+        try:
+            # ---------- UPDATE HEADER ----------
+            pr_no = request.POST.get('pr_no')
+            pr_date = request.POST.get('pr_date') or date.today()
+            supplier = request.POST.get('supplier')
+            reason = request.POST.get('reason')
+
+            purchase_return.pr_no = pr_no
+            purchase_return.pr_date = pr_date
+            purchase_return.supplier = supplier
+            purchase_return.reason = reason
+            purchase_return.save()
+
+            # ---------- DELETE OLD ITEMS ----------
+            purchase_return.items.all().delete()
+
+            # ---------- READ UPDATED ITEM LISTS ----------
+            item_descriptions = request.POST.getlist('item_description[]')
+            descriptions = request.POST.getlist('description[]')
+            quantities = request.POST.getlist('quantity[]')
+            units = request.POST.getlist('unit[]')
+            rates = request.POST.getlist('price[]')
+            discounts = request.POST.getlist('discount[]')
+            amounts = request.POST.getlist('amount[]')
+            reasons = request.POST.getlist('item_reason[]')
+
+            num_rows = len(item_descriptions)
+            print(f"Updating {num_rows} Purchase Return Items for {purchase_return.pr_no}")
+
+            # ---------- LOOP AND ADD NEW ITEMS ----------
+            for i in range(num_rows):
+                try:
+                    garment_id = item_descriptions[i]
+                    if not garment_id:
+                        continue
+
+                    garment_obj = Garment.objects.filter(id=garment_id).first()
+                    if not garment_obj:
+                        continue
+
+                    desc = descriptions[i] if i < len(descriptions) else ""
+                    qty = Decimal(quantities[i]) if i < len(quantities) and quantities[i] else Decimal(0)
+                    uom = units[i] if i < len(units) else ""
+                    rate = Decimal(rates[i]) if i < len(rates) and rates[i] else Decimal(0)
+                    discount = Decimal(discounts[i]) if i < len(discounts) and discounts[i] else Decimal(0)
+                    amt = Decimal(amounts[i]) if i < len(amounts) and amounts[i] else Decimal(0)
+                    item_reason = reasons[i] if i < len(reasons) else ""
+
+                    # Auto calculate amount if missing
+                    if amt == Decimal(0) and qty > 0 and rate > 0:
+                        amt = qty * rate
+                        if discount > 0:
+                            amt -= (amt * discount / Decimal(100))
+
+                    PurchaseReturnItem.objects.create(
+                        pr=purchase_return,
+                        garment=garment_obj,
+                        description=desc,
+                        quantity=qty,
+                        uom=uom,
+                        rate=rate,
+                        discount=discount,
+                        amount=amt,
+                        reason=item_reason or reason,
+                    )
+                except Exception as inner_e:
+                    print(f"❌ Error adding item {i}: {inner_e}")
+                    import traceback
+                    traceback.print_exc()
+
+            # ---------- RECALCULATE TOTALS ----------
+            purchase_return.calculate_totals()
+
+            messages.success(request, f"Purchase Return {purchase_return.pr_no} updated successfully!")
+            return redirect('purchasereturn')  # Update with your actual list view name
+
+        except Exception as e:
+            print("❌ Error updating Purchase Return:", e)
+            import traceback
+            traceback.print_exc()
+            messages.error(request, f"Error updating Purchase Return: {e}")
+
+    context = {
+        'purchase_return': purchase_return,
+        'garments': garments,
+    }
+    return render(request, 'fabzen_app/Purchase/PurchaseReturn/edit_purchasereturn.html', context)
+
+# --------------------------------------- END Purchase Return ------------------
+
+
