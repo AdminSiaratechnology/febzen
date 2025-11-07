@@ -39,49 +39,7 @@
    <hr>
    <div id="stepper2" class="bs-stepper">
       <div class="card">
-         {% comment %} <div class="card-header ">
-            <div class="d-lg-flex flex-lg-row align-items-lg-center justify-content-lg-between" role="tablist">
-               <div class="step" data-target="#test-nl-1">
-                  <div class="step-trigger" role="tab" id="stepper2trigger1" aria-controls="test-nl-1">
-                     <div class="bs-stepper-circle"><i class='bx bx-buildings fs-4'></i></div>
-                     <div class="">
-                        <h5 class="mb-0 steper-title">Basic Info</h5>
-                        <p class="mb-0 steper-sub-title">Company details</p>
-                     </div>
-                  </div>
-               </div>
-               <div class="bs-stepper-line"></div>
-               <div class="step" data-target="#test-nl-2">
-                  <div class="step-trigger" role="tab" id="stepper2trigger2" aria-controls="test-nl-2">
-                     <div class="bs-stepper-circle"><i class='bx bx-phone fs-4'></i></div>
-                     <div class="">
-                        <h5 class="mb-0 steper-title">Contact</h5>
-                        <p class="mb-0 steper-sub-title">Communication</p>
-                     </div>
-                  </div>
-               </div>
-               <div class="bs-stepper-line"></div>
-               <div class="step" data-target="#test-nl-3">
-                  <div class="step-trigger" role="tab" id="stepper2trigger3" aria-controls="test-nl-3">
-                     <div class="bs-stepper-circle"><i class='bx bx-id-card fs-4'></i></div>
-                     <div class="">
-                        <h5 class="mb-0 steper-title">Registration</h5>
-                        <p class="mb-0 steper-sub-title">Legal Details</p>
-                     </div>
-                  </div>
-               </div>
-               <div class="bs-stepper-line"></div>
-               <div class="step" data-target="#test-nl-4">
-                  <div class="step-trigger" role="tab" id="stepper2trigger4" aria-controls="test-nl-4">
-                     <div class="bs-stepper-circle"><i class='bx bx-money fs-4'></i></div>
-                     <div class="">
-                        <h5 class="mb-0 steper-title">Bank</h5>
-                        <p class="mb-0 steper-sub-title">Account Details</p>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </div> {% endcomment %}
+         
 		 <div class="card-header bg-primary text-white">
   <div class="d-flex flex-wrap flex-lg-row align-items-center justify-content-between" role="tablist">
 
@@ -140,8 +98,8 @@
 
          <div class="card-body">
             <div class="bs-stepper-content">
-               <form method="POST" class="needs-validation" novalidate id="companyForm">
-				{% csrf_token %}
+               <form method="POST" class="needs-validation" id="companyForm">
+				        {% csrf_token %}
 
                   <div id="test-nl-1" role="tabpanel" class="bs-stepper-pane" aria-labelledby="stepper2trigger1">
                      <h5 class="mb-1">Your Personal Information</h5>
@@ -364,11 +322,35 @@
                             </div>
                           </div>
                           <div class="col-md-6">
+                            <label class="form-label small fw-bold">Swift Code <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                              <span class="input-group-text bg-white"><i class="bx bx-code"></i></span>
+                              <input type="text" class="form-control form-control-sm" name="swift_code" required>
+                              
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <label class="form-label small fw-bold">MICR Number <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                              <span class="input-group-text bg-white"><i class="bx bx-code"></i></span>
+                              <input type="text" class="form-control form-control-sm" name="micr_no" required>
+
+                            </div>
+                          </div>
+                          <div class="col-md-4">
                             <label class="form-label small fw-bold">Bank Name <span class="text-danger">*</span></label>
                             <div class="input-group input-group-sm">
                               <span class="input-group-text bg-white"><i class="bx bx-building-house"></i></span>
                               <input type="text" class="form-control form-control-sm" name="bank_name" required>
                               {% comment %} <div class="invalid-feedback">Bank name is required</div> {% endcomment %}
+                            </div>
+                          </div>
+                          <div class="col-md-4">
+                            <label class="form-label small fw-bold">Branch <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-sm">
+                              <span class="input-group-text bg-white"><i class="bx bx-building-house"></i></span>
+                              <input type="text" class="form-control form-control-sm" name="branch" required>
+                              {% comment %} <div class="invalid-feedback">Branch is required</div> {% endcomment %}
                             </div>
                           </div>
                         </div>

@@ -4,32 +4,25 @@
 {% block title %}Create Purchase Order{% endblock title %}
 
 {% block main-content %}
-<div class="page-content bg-light p-4">
+<div class="page-content">
 
   <!-- Page Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
-    <div>
-      <h3 class="fw-semibold text-primary mb-0">
-        <i class="bi bi-file-earmark-plus-fill me-2"></i> Create Purchase Order
-      </h3>
-      <p class="text-muted small mb-0">Manage and create new purchase orders easily</p>
-    </div>
-    <a href="{% url 'purchaseorder' %}" class="btn btn-outline-primary btn-sm shadow-sm">
-      <i class="bi bi-arrow-left-circle me-1"></i> Back to List
+   <a href="{% url 'purchaseorder' %}" class="btn btn-outline-primary btn-sm shadow-sm">
+      <i class="fadeIn animated bx bx-arrow-to-left"></i>
     </a>
-  </div>
 
   <!-- Main Form -->
   <form method="POST"  >
     {% csrf_token %}
 
     <!-- Basic Details Card -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card border-0 shadow-sm rounded-4 border-bottom" style="margin-bottom: 0;">
       <div class="card-header bg-gradient text-white py-3 rounded-top-4" 
            style="background: linear-gradient(90deg, #0d6efd, #007bff);">
         <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2"></i>Purchase Order Details</h6>
+        
       </div>
-      <div class="card-body bg-white p-4">
+      <div class="card-body bg-white p-4 " >
         <div class="row g-4">
           <div class="col-md-3">
             <label class="form-label fw-semibold">PO Date <span class="text-danger">*</span></label>
@@ -70,9 +63,9 @@
     </div>
 
     <!-- Items Table Card -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card border-0 shadow-sm rounded-4">
       <div class="card-header d-flex justify-content-between align-items-center py-3 bg-light border-bottom">
-        <h6 class="fw-semibold mb-0"><i class="bi bi-bag-check me-2"></i>Purchase Order Items</h6>
+        
         <button type="button" id="addItemBtn" class="btn btn-sm btn-outline-primary">
           <i class="bi bi-plus-circle me-1"></i> Add Item
         </button>
@@ -436,10 +429,140 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<style>
+{% comment %} <style>
   body { background-color: #f5f7fa !important; }
   .table th, .table td { vertical-align: middle !important; }
   .table-hover tbody tr:hover { background: #f1f6ff !important; transition: 0.3s; }
   .form-control-sm, .form-select-sm { border-radius: 8px; }
+</style> {% endcomment %}
+
+
+<style>
+/* 🌐 Background */
+body {
+  background-color: #f5f7fa !important;
+}
+
+/* 🟣 Compact Table Look */
+.table th, 
+.table td {
+  vertical-align: middle !important;
+  font-size: 0.82rem !important; /* smaller text */
+  padding: 0.4rem 0.5rem !important; /* tighter cell spacing */
+}
+
+/* 🩵 Hover effect */
+.table-hover tbody tr:hover {
+  background-color: #eef5ff !important;
+  transition: background 0.3s ease;
+}
+
+/* ✨ Compact form controls */
+.form-control-sm,
+.form-select-sm {
+  border-radius: 0.4rem;
+  font-size: 0.82rem !important;
+  padding: 0.25rem 0.4rem !important;
+  height: calc(1.5em + 0.5rem + 2px) !important;
+}
+
+/* 🧾 Column Width Adjustments */
+.table th:nth-child(1) { width: 35px; }   /* # */
+.table th:nth-child(2) { width: 260px; }  /* Item / Description */
+.table th:nth-child(3) { width: 100px; }  /* Color */
+.table th:nth-child(4) { width: 70px; }   /* Qty */
+.table th:nth-child(5) { width: 90px; }   /* Unit */
+.table th:nth-child(6) { width: 90px; }   /* Rate */
+.table th:nth-child(7) { width: 75px; }   /* Discount */
+.table th:nth-child(8) { width: 100px; }  /* Amount */
+.table th:nth-child(9) { width: 70px; }   /* Action */
+
+/* 🧹 Buttons */
+.btn-sm {
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.82rem !important;
+  border-radius: 0.3rem;
+}
+
+/* Trash icon smaller */
+.remove-row i {
+  font-size: 0.9rem;
+}
+
+.card-body.p-4 {
+  padding: 1rem 1.25rem !important; /* reduce padding inside card */
+}
+
+.card-header.py-3 {
+  padding: 0.6rem 1rem !important; /* smaller header height */
+}
+
+/* Smaller labels and inputs inside top section */
+.card-body .form-label {
+  font-size: 0.82rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.card-body .form-control-sm,
+.card-body .form-select-sm {
+  height: calc(1.4em + 0.4rem + 2px) !important;
+  font-size: 0.8rem !important;
+  padding: 0.25rem 0.4rem !important;
+}
+
+/* Reduce row spacing between inputs */
+.card-body .row.g-4 {
+  --bs-gutter-x: 0.75rem !important;
+  --bs-gutter-y: 0.75rem !important;
+}
+
+/* Make heading smaller and more compact */
+.card-header h6 {
+  font-size: 0.95rem !important;
+  margin: 0;
+}
+
+/* Adjust bottom space between cards */
+.card.border-0.shadow-sm.rounded-4.mb-4 {
+  margin-bottom: 1rem !important;
+}
+
+/* Sticky header with light shadow */
+thead.table-light.sticky-top {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.table-responsive.fixed-height {
+  max-height: 350px; /* 🔹 Change height here (e.g., 300px / 350px / 400px) */
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 0 0 0.5rem 0.5rem;
+  border-top: 1px solid #dee2e6;
+  scrollbar-width: thin;
+  scrollbar-color: #c7d4e2 #f8f9fa;
+}
+
+/* ✅ For Webkit browsers (Chrome, Edge, Safari) */
+.table-responsive.fixed-height::-webkit-scrollbar {
+  width: 6px;
+}
+.table-responsive.fixed-height::-webkit-scrollbar-track {
+  background: #f8f9fa;
+}
+.table-responsive.fixed-height::-webkit-scrollbar-thumb {
+  background-color: #b9c7db;
+  border-radius: 4px;
+}
+
+/* 🩵 Sticky header stays visible */
+.table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background-color: #f8f9fa !important;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.05);
+}
 </style>
+
+
 {% endblock main-content %}

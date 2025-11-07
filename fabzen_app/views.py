@@ -68,6 +68,8 @@ def company_list(request):
     }
     return render(request, 'fabzen_app/Masters/company/partials/company_list.html',context)
 
+
+
 def edit_company(request,pk):
     company = get_object_or_404(Company, id=pk)
     company_banks = CompanyBank.objects.filter(company=company)
@@ -139,6 +141,11 @@ def edit_company(request,pk):
         'mode': 'edit'
     }
     return render(request,'fabzen_app/Masters/company/partials/multistep2.html',context)
+
+
+
+
+
 def toggle_company_status(request, pk):
     company = get_object_or_404(Company, id=pk)
     
@@ -197,13 +204,7 @@ def add_company(request):
             
         # ------------------------------  Bank Details -------------------
 
-        # account_holder_name = request.POST.get('holder_name')
-        # ac_no = request.POST.get('ac_no')
-        # ifsc_code = request.POST.get('ifsc_code')
-        # swift_code = request.POST.get('swift_code')
-        # micr_no = request.POST.get('micr_no')
-        # bank_name = request.POST.get('bank_name')
-        # branch = request.POST.get('branch')
+        
 
         account_holder_names = request.POST.getlist('account_holder_name') or request.POST.getlist('holder_name')
         ac_nos = request.POST.getlist('account_number') or request.POST.getlist('ac_no')
@@ -240,17 +241,29 @@ def add_company(request):
 
    
 
+        # for i in range(len(account_holder_names)):
+        #     CompanyBank.objects.create(
+        #         company=company,
+        #         holder_name=account_holder_names[i],
+        #         account_number=ac_nos[i],
+        #         ifsc_code=ifsc_codes[i],
+        #         swift_code=swift_codes[i],
+        #         micr_no=micr_nos[i],
+        #         bank_name=bank_names[i],
+        #         branch=branches[i]
+        #     )
         for i in range(len(account_holder_names)):
             CompanyBank.objects.create(
                 company=company,
                 holder_name=account_holder_names[i],
-                account_number=ac_nos[i],
-                ifsc_code=ifsc_codes[i],
-                swift_code=swift_codes[i],
-                micr_no=micr_nos[i],
-                bank_name=bank_names[i],
-                branch=branches[i]
+                account_number=ac_nos[i] if i < len(ac_nos) else '',
+                ifsc_code=ifsc_codes[i] if i < len(ifsc_codes) else '',
+                swift_code=swift_codes[i] if i < len(swift_codes) else '',
+                micr_no=micr_nos[i] if i < len(micr_nos) else '',
+                bank_name=bank_names[i] if i < len(bank_names) else '',
+                branch=branches[i] if i < len(branches) else ''
             )
+
 
         return redirect(reverse_lazy('company'))
         # ----------------------------  END Bank Details -------------------
@@ -258,6 +271,10 @@ def add_company(request):
 
         
     return render(request,'fabzen_app/Masters/company/partials/multistep3.html',{'mode': 'add'})
+
+
+
+
 # def party_list(request):
     
 #     parties_list = Party.objects.all().order_by('-id')
@@ -1868,7 +1885,7 @@ def add_purchase_order(request):
             print("Error creating PO:", e)
             messages.error(request, f"Error creating PO: {e}")
 
-    return render(request, 'fabzen_app/Purchase/PurchaseOrder/adding_purchase_order.html', {'garment': garment})
+    return render(request, 'fabzen_app/Purchase/PurchaseOrder/adding_purchase_ordercopy.html', {'garment': garment})
 
 
 def PurchaseOrderListView(request):
@@ -2861,7 +2878,7 @@ def convert_greypurchase_to_purchasereturn(request, pk):
             pr_no=pr_no,
             pr_date=date.today(),
             supplier=grey_purchase.supplier,
-            grn=grey_purchase,  # if linked greypurchase exists
+            greypurchase=grey_purchase,  # if linked greypurchase exists
             status='Draft',
             reason=f"Auto-generated from Grey Purchase {grey_purchase.gp_no}"
         )

@@ -10,7 +10,7 @@
          </div>
 
          <div class="modal-body">
-            {{indent.id}}
+            
             <form method="POST" action="{% url "edit_indent" indent.id %}">
                {% csrf_token %}
                <div class="row mb-2">

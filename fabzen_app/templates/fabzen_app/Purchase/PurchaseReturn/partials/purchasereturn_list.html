@@ -12,7 +12,7 @@
    {% comment %} <td>{{order.delivery_date|date:"d M"}}</td> {% endcomment %}
    {% comment %} <td>{{order.received_percent}}</td> {% endcomment %}
    {% comment %} <td>{{order.status}}ddddddddd</td> {% endcomment %}
-   <td><span class="badge {% if order.status == 'Pending' %}bg-warning {% elif order.status == 'Completed' %}bg-success {% elif order.status == 'Cancelled' %}bg-danger {% elif order.status == 'Partial' %}bg-primary{% endif %}">{{order.status}}</span></td>
+   <td><span class="badge {% if order.status == 'Pending' %}bg-warning {% elif order.status == 'Draft' %}bg-success {% elif order.status == 'Cancelled' %}bg-danger {% elif order.status == 'Partial' %}bg-primary{% endif %}">{{order.status}}</span></td>
    
    <td>
       <a class="btn btn-primary btn-sm" href="{% url "edit_purchase_return" order.id %}">Edit</a>

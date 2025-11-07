@@ -128,3 +128,24 @@ window.nextStep = function () {
 window.prevStep = function () {
     stepper2.previous(); // <- stepper2 use karo
 };
+
+
+form.addEventListener('submit', e => {
+  e.preventDefault(); // form submit temporarily rok do
+  let isValid = true;
+
+  // Check all required fields manually (like nextStep)
+  form.querySelectorAll('[required]').forEach(field => {
+    if (!field.value.trim()) {
+      field.classList.add('is-invalid');
+      isValid = false;
+    } else {
+      field.classList.remove('is-invalid');
+    }
+  });
+
+  if (isValid) {
+    form.submit(); // ✅ agar sab valid hai tabhi actual form submit karo
+  }
+});
+
