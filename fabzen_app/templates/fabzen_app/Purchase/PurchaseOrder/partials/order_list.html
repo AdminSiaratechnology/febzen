@@ -10,6 +10,7 @@
    
    <td>{{order.total_amount}}</td>
    <td>{{order.delivery_date|date:"d M"}}</td>
+   <td>{% if order.converted_status == 'Yes' %} <span class="badge bg-primary">From Indent</span> {% else %} <span class="badge bg-secondary">Direct</span> {% endif %}</td>
    {% comment %} <td>{{order.received_percent}}</td> {% endcomment %}
    {% comment %} <td>{{order.status}}ddddddddd</td> {% endcomment %}
    <td><span class="badge {% if order.status == 'Open' %}bg-warning {% elif order.status == 'Completed' %}bg-success {% elif order.status == 'Cancelled' %}bg-danger {% elif order.status == 'Close' %}bg-primary{% endif %}">{{order.status}}</span></td>
@@ -25,7 +26,7 @@
 </tr>
 {% empty %}
 <tr>
-   <td colspan="8" class="text-center">No orders found.</td>
+   <td colspan="9" class="text-center">No orders found.</td>
 </tr>
 {% endfor %}
 

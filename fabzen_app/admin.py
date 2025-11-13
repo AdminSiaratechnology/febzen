@@ -29,6 +29,20 @@ class GreyPurchaseItemInline(admin.TabularInline):
     readonly_fields = ('amount',)
     show_change_link = True
 
+class PurchaseOrderItemInline(admin.TabularInline):
+    model = PurchaseOrderItem
+    extra = 1
+    fields = ('garment', 'description', 'quantity', 'uom', 'rate', 'discount', 'amount')
+    readonly_fields = ('amount',)
+    show_change_link = True
+
+class PurchaseIndentItemInline(admin.TabularInline):
+    model = PurchaseIndentItem
+    extra = 1
+    fields = ('garment', 'quantity', 'uom',  'pending_qty','converted_qty','preclose_qty')
+    readonly_fields = ('converted_qty', 'pending_qty')
+    show_change_link = True
+
 admin.site.register(Party)
 admin.site.register(Company)
 admin.site.register(CompanyBank)
@@ -40,10 +54,10 @@ admin.site.register(Machine)
 admin.site.register(Operator)
 admin.site.register(Ledger)
 admin.site.register(LedgerGroup)
-admin.site.register(PurchaseIndent)
-admin.site.register(PurchaseIndentItem)
-admin.site.register(PurchaseOrder)
-admin.site.register(PurchaseOrderItem)
+# admin.site.register(PurchaseIndent)
+# admin.site.register(PurchaseIndentItem)
+# admin.site.register(PurchaseOrder)
+# admin.site.register(PurchaseOrderItem)
 
 @admin.register(GoodsReceiveNote)
 class GoodsReceiveNoteAdmin(admin.ModelAdmin):
@@ -59,3 +73,13 @@ class GreyPurchaseAdmin(admin.ModelAdmin):
 class PurchaseReturnAdmin(admin.ModelAdmin):
     list_display = ('pr_no', 'supplier', 'pr_date', 'total_amount')  # Adjust fields
     inlines = [PurchaseReturnItemInline]
+
+@admin.register(PurchaseOrder)
+class PurchaseOrderAdmin(admin.ModelAdmin):
+    list_display = ('po_no', 'supplier', 'po_date', 'total_amount', 'status')  # Adjust fields
+    inlines = [PurchaseOrderItemInline]
+
+@admin.register(PurchaseIndent)
+class PurchaseIndentAdmin(admin.ModelAdmin):
+    list_display = ('indent_no', 'indent_date', 'status')  # Adjust fields
+    inlines = [PurchaseIndentItemInline]    

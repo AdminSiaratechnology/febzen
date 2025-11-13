@@ -101,10 +101,14 @@ urlpatterns = [
     # --------------------      Purchase  --------------------------
 
     path('indent/', views.IndentListView, name='indent'),
+    path('Addindent/', views.add_indent, name='add_indent'),
     path('indentList/', views.indent_list, name='indent_list'),
     path('indent/edit/<int:pk>/', views.edit_indent, name='edit_indent'),
 
     path('purchase-indent/convert-to-po/<int:pk>/', views.convert_to_po, name='convert_to_po'),
+    path("modern/", views.Modern, name="modern"),
+    path('save-preclose/<int:pk>/', views.save_preclose_qty, name='save_preclose_qty'),
+
 
 
     # --------------------      End Purchase  --------------------------

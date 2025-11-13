@@ -101,11 +101,11 @@
   </div>
 
   <!-- ➕ Add Button -->
-  {% comment %} <a href="#" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm">
+   <a href="{% url "add_indent" %}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm">
     <i class="bi bi-plus-circle"></i> Add Purchase Indent
-  </a> {% endcomment %}
-  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleLargeModal2">Add Indent</button>
-  {% include "fabzen_app/Purchase/PurchaseIndent/add_indentcopy.html" %}
+  </a> 
+  {% comment %} <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleLargeModal2">Add Indent</button> {% endcomment %}
+  {% comment %} {% include "fabzen_app/Purchase/PurchaseIndent/add_indentcopy.html" %} {% endcomment %}
   {% comment %} {% include "fabzen_app/Purchase/PurchaseIndent/add_indent.html" %} {% endcomment %}
   
 

@@ -1,0 +1,587 @@
+{% extends "fabzen_app/Base/base.html" %}
+
+{% block title %}Create Purchase Order{% endblock title %}
+{% block main-content %}
+ <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #f0f4ff; color: #1e293b; padding: 20px; }
+    .container { max-width: 1100px; margin: auto; }
+
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .header h1 { font-size: 1.9rem; color: #5b21b6; }
+    .back-btn, .btn-secondary, .btn-primary, .add-line, .remove {
+      padding: 10px 18px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;
+    }
+    .back-btn { background: white; border: 1.5px solid #ddd; }
+    .btn-secondary { background: #f8fafc; color: #475569; border: 1.5px solid #e2e8f0; }
+    .btn-primary { background: #7c3aed; color: white; border: none; }
+    .add-line { background: #10b981; color: white; border: none; margin-top: 12px; }
+    .remove { background: #fee2e2; color: #dc2626; width: 34px; height: 34px; font-size: 18px; }
+
+    .form-card {
+      background: white; border-radius: 20px; padding: 30px; box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+      border: 1px solid #eee;
+    }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 24px; }
+    .input-group { display: flex; flex-direction: column; }
+    label { font-weight: 600; margin-bottom: 6px; color: #1e293b; font-size: 0.95rem; }
+    .required { color: #e11d48; }
+    input, select, textarea { padding: 12px 14px; border: 1.5px solid #e0d4ff; border-radius: 12px; font-size: 15px; background: #faf8ff; }
+    input:focus, select:focus, textarea:focus { border-color: #7c3aed; outline: none; background: white; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+
+    .error-msg { color: #e11d48; font-size: 0.82rem; margin-top: 4px; min-height: 1.3em; display: block; }
+
+    .table-container { overflow-x: auto; margin: 20px 0; border: 1.5px solid #e0d4ff; border-radius: 14px; }
+    .invoice-table { width: 100%; border-collapse: collapse; background: white; }
+    .invoice-table th { background: #f3e8ff; padding: 14px 10px; text-align: left; font-weight: 600; color: #5b21b6; font-size: 0.9rem; }
+    .invoice-table td { padding: 10px; border-bottom: 1px solid #f0e8ff; }
+    .invoice-table input, .invoice-table select { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+    .hsn-input { width: 80px; }
+    .line-total { text-align: right; font-weight: 600; color: #1e293b; }
+
+    .summary-card { background: #f8f5ff; padding: 22px; border-radius: 16px; margin: 24px 0; border: 1.5px dashed #c4b5fd; }
+    .summary-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 1rem; }
+    .summary-row.total { font-weight: 700; font-size: 1.25rem; color: #5b21b6; border-top: 2px solid #ddd; padding-top: 14px; margin-top: 10px; }
+
+    .actions { display: flex; gap: 14px; justify-content: flex-end; margin-top: 28px; }
+    .irn-badge { background: #ecfdf5; color: #059669; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; }
+
+    @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
+      .btn-primary, .btn-secondary { width: 100%; }
+    }
+  </style>
+<div class="page-content">
+
+    <header class="header">
+      <h1>Invoice Management</h1>
+      <button class="back-btn" onclick="history.back()">Back</button>
+    </header>
+
+    <form id="invoice-form" class="form-card" novalidate>
+      <!-- Invoice Header -->
+      <div class="form-grid">
+        <div class="input-group">
+          <label>Invoice No. <span class="required">*</span></label>
+          <input type="text" id="invoice-no" value="INV-2025-0001" required pattern="^INV-[0-9]{4}-[0-9]{4}$" />
+          <span class="error-msg">Format: INV-YYYY-XXXX</span>
+        </div>
+        <div class="input-group">
+          <label>Date <span class="required">*</span></label>
+          <input type="date" id="invoice-date" value="2025-11-11" required />
+          <span class="error-msg"></span>
+        </div>
+        <div class="input-group">
+          <label>Due Date</label>
+          <input type="date" id="due-date" value="2025-12-11" />
+        </div>
+        <div class="input-group">
+          <label>Invoice Type</label>
+          <select id="invoice-type">
+            <option>B2B</option>
+            <option selected>B2C</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Customer -->
+      <div class="form-grid">
+        <div class="input-group full-width">
+          <label>Customer Name <span class="required">*</span></label>
+          <input type="text" id="customer-name" value="Rahul Sharma" required />
+        </div>
+        <div class="input-group">
+          <label>GSTIN</label>
+          <input type="text" id="gstin" placeholder="29ABCDE1234F1Z5" />
+        </div>
+        <div class="input-group">
+          <label>State</label>
+          <select id="state">
+            <option>Karnataka</option>
+            <option>Maharashtra</option>
+            <option>Delhi</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <div class="table-container">
+        <table class="invoice-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Item / Description</th>
+              <th>HSN</th>
+              <th>Qty</th>
+              <th>Unit</th>
+              <th>Rate</th>
+              <th>GST %</th>
+              <th>Disc %</th>
+              <th>Amount</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="items">
+            <tr>
+              <td>1</td>
+              <td><input type="text" class="desc" value="Web Design Service" required /></td>
+              <td><input type="text" class="hsn" value="9983" /></td>
+              <td><input type="number" min="1" value="1" class="qty" required /></td>
+              <td><select class="unit"><option>Hrs</option><option>Pcs</option></select></td>
+              <td><input type="number" step="0.01" value="5000.00" class="rate" required /></td>
+              <td><select class="gst"><option selected>18</option><option>12</option><option>5</option><option>0</option></select></td>
+              <td><input type="number" min="0" max="100" value="0" class="disc" /></td>
+              <td class="line-total">5,000.00</td>
+              <td><button type="button" class="remove">X</button></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><input type="text" class="desc" value="Domain & Hosting" required /></td>
+              <td><input type="text" class="hsn" value="9983" /></td>
+              <td><input type="number" min="1" value="1" class="qty" required /></td>
+              <td><select class="unit"><option selected>Year</option></select></td>
+              <td><input type="number" step="0.01" value="2500.00" class="rate" required /></td>
+              <td><select class="gst"><option selected>18</option></select></td>
+              <td><input type="number" min="0" max="100" value="5" class="disc" /></td>
+              <td class="line-total">2,375.00</td>
+              <td><button type="button" class="remove">X</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <button type="button" class="add-line">+ Add Item</button>
+      </div>
+
+      <!-- Summary -->
+      <div class="summary-card">
+        <div class="summary-row"><span>Subtotal</span> <strong id="subtotal">₹7,375.00</strong></div>
+        <div class="summary-row"><span>CGST (9%)</span> <strong id="cgst">₹663.75</strong></div>
+        <div class="summary-row"><span>SGST (9%)</span> <strong id="sgst">₹663.75</strong></div>
+        <div class="summary-row"><span>IGST (18%)</span> <strong id="igst">₹0.00</strong></div>
+        <div class="summary-row total"><span>Total Amount</span> <strong id="total">₹8,702.50</strong></div>
+        <div class="summary-row" id="irn-row" style="display:none;">
+          <span>IRN</span> <strong><span class="irn-badge" id="irn">ACK123456789</span></strong>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn-secondary">Save Draft</button>
+        <button type="button" class="btn-primary" id="generate-pdf">Download PDF</button>
+        <button type="submit" class="btn-primary">Generate e-Invoice</button>
+      </div>
+    </form>
+    
+</div>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const { jsPDF } = window.jspdf;
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('invoice-form');
+      const table = document.getElementById('items');
+      const addBtn = document.querySelector('.add-line');
+      const pdfBtn = document.getElementById('generate-pdf');
+
+      addBtn.onclick = () => {
+        const row = document.createElement('tr');
+        const idx = table.rows.length + 1;
+        row.innerHTML = `
+          <td>${idx}</td>
+          <td><input type="text" class="desc" placeholder="Description" required /></td>
+          <td><input type="text" class="hsn" placeholder="HSN" /></td>
+          <td><input type="number" min="1" value="1" class="qty" required /></td>
+          <td><select class="unit"><option>Pcs</option><option>Hrs</option></select></td>
+          <td><input type="number" step="0.01" value="0" class="rate" required /></td>
+          <td><select class="gst"><option>18</option><option>12</option><option>5</option><option>0</option></select></td>
+          <td><input type="number" min="0" max="100" value="0" class="disc" /></td>
+          <td class="line-total">0.00</td>
+          <td><button type="button" class="remove">X</button></td>
+        `;
+        table.appendChild(row);
+        updateNumbers();
+      };
+
+      table.addEventListener('click', e => {
+        if (e.target.classList.contains('remove') && table.rows.length > 1) {
+          e.target.closest('tr').remove();
+          updateNumbers();
+          calculate();
+        }
+      });
+
+      table.addEventListener('input', calculate);
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        if (validate()) {
+          document.getElementById('irn-row').style.display = 'flex';
+          alert('e-Invoice Generated! IRN: ACK123456789');
+        }
+      });
+
+      pdfBtn.onclick = generatePDF;
+
+      function updateNumbers() {
+        Array.from(table.rows).forEach((r, i) => r.cells[0].textContent = i + 1);
+      }
+
+      function calculate() {
+        let subtotal = 0, cgst = 0, sgst = 0, igst = 0;
+        const isIntra = document.getElementById('state').value === 'Karnataka'; // Your state
+
+        table.querySelectorAll('tr').forEach(row => {
+          const qty = +row.querySelector('.qty').value || 0;
+          const rate = +row.querySelector('.rate').value || 0;
+          const disc = +row.querySelector('.disc').value || 0;
+          const gstRate = +row.querySelector('.gst').value || 0;
+          const amount = qty * rate * (1 - disc / 100);
+          const tax = amount * gstRate / 100;
+          row.querySelector('.line-total').textContent = amount.toFixed(2);
+          subtotal += amount;
+          if (isIntra) {
+            cgst += tax / 2; sgst += tax / 2;
+          } else {
+            igst += tax;
+          }
+        });
+
+        document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
+        document.getElementById('cgst').textContent = `₹${cgst.toFixed(2)}`;
+        document.getElementById('sgst').textContent = `₹${sgst.toFixed(2)}`;
+        document.getElementById('igst').textContent = `₹${igst.toFixed(2)}`;
+        document.getElementById('total').textContent = `₹${(subtotal + cgst + sgst + igst).toFixed(2)}`;
+      }
+
+      function validate() {
+        let valid = true;
+        const invNo = document.getElementById('invoice-no').value;
+        if (!/^INV-\d{4}-\d{4}$/.test(invNo)) valid = false;
+        if (!document.getElementById('customer-name').value) valid = false;
+        if (table.rows.length === 0) valid = false;
+        if (!valid) alert('Please fix errors');
+        return valid;
+      }
+
+      function generatePDF() {
+        const doc = new jsPDF();
+        doc.setFontSize(18);
+        doc.text('TAX INVOICE', 105, 20, { align: 'center' });
+        doc.setFontSize(10);
+        doc.text(`Invoice: ${document.getElementById('invoice-no').value}`, 20, 35);
+        doc.text(`Date: ${document.getElementById('invoice-date').value}`, 20, 41);
+        doc.text(`Customer: ${document.getElementById('customer-name').value}`, 20, 47);
+
+        let y = 65;
+        table.querySelectorAll('tr').forEach(row => {
+          const cells = row.querySelectorAll('input, select');
+          doc.text(`${cells[0].value} × ₹${cells[4].value} = ₹${row.querySelector('.line-total').textContent}`, 20, y);
+          y += 8;
+        });
+
+        doc.setFontSize(12);
+        doc.text(`Total: ${document.getElementById('total').textContent}`, 140, y + 15);
+        doc.save('Invoice-INV-2025-0001.pdf');
+      }
+
+      calculate();
+    });
+  </script>
+{% endblock main-content %}
+{% comment %} <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoice Management System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #f0f4ff; color: #1e293b; padding: 20px; }
+    .container { max-width: 1100px; margin: auto; }
+
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .header h1 { font-size: 1.9rem; color: #5b21b6; }
+    .back-btn, .btn-secondary, .btn-primary, .add-line, .remove {
+      padding: 10px 18px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;
+    }
+    .back-btn { background: white; border: 1.5px solid #ddd; }
+    .btn-secondary { background: #f8fafc; color: #475569; border: 1.5px solid #e2e8f0; }
+    .btn-primary { background: #7c3aed; color: white; border: none; }
+    .add-line { background: #10b981; color: white; border: none; margin-top: 12px; }
+    .remove { background: #fee2e2; color: #dc2626; width: 34px; height: 34px; font-size: 18px; }
+
+    .form-card {
+      background: white; border-radius: 20px; padding: 30px; box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+      border: 1px solid #eee;
+    }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 24px; }
+    .input-group { display: flex; flex-direction: column; }
+    label { font-weight: 600; margin-bottom: 6px; color: #1e293b; font-size: 0.95rem; }
+    .required { color: #e11d48; }
+    input, select, textarea { padding: 12px 14px; border: 1.5px solid #e0d4ff; border-radius: 12px; font-size: 15px; background: #faf8ff; }
+    input:focus, select:focus, textarea:focus { border-color: #7c3aed; outline: none; background: white; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+
+    .error-msg { color: #e11d48; font-size: 0.82rem; margin-top: 4px; min-height: 1.3em; display: block; }
+
+    .table-container { overflow-x: auto; margin: 20px 0; border: 1.5px solid #e0d4ff; border-radius: 14px; }
+    .invoice-table { width: 100%; border-collapse: collapse; background: white; }
+    .invoice-table th { background: #f3e8ff; padding: 14px 10px; text-align: left; font-weight: 600; color: #5b21b6; font-size: 0.9rem; }
+    .invoice-table td { padding: 10px; border-bottom: 1px solid #f0e8ff; }
+    .invoice-table input, .invoice-table select { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+    .hsn-input { width: 80px; }
+    .line-total { text-align: right; font-weight: 600; color: #1e293b; }
+
+    .summary-card { background: #f8f5ff; padding: 22px; border-radius: 16px; margin: 24px 0; border: 1.5px dashed #c4b5fd; }
+    .summary-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 1rem; }
+    .summary-row.total { font-weight: 700; font-size: 1.25rem; color: #5b21b6; border-top: 2px solid #ddd; padding-top: 14px; margin-top: 10px; }
+
+    .actions { display: flex; gap: 14px; justify-content: flex-end; margin-top: 28px; }
+    .irn-badge { background: #ecfdf5; color: #059669; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; }
+
+    @media (max-width: 768px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
+      .btn-primary, .btn-secondary { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Invoice Management</h1>
+      <button class="back-btn" onclick="history.back()">Back</button>
+    </header>
+
+    <form id="invoice-form" class="form-card" novalidate>
+      <!-- Invoice Header -->
+      <div class="form-grid">
+        <div class="input-group">
+          <label>Invoice No. <span class="required">*</span></label>
+          <input type="text" id="invoice-no" value="INV-2025-0001" required pattern="^INV-[0-9]{4}-[0-9]{4}$" />
+          <span class="error-msg">Format: INV-YYYY-XXXX</span>
+        </div>
+        <div class="input-group">
+          <label>Date <span class="required">*</span></label>
+          <input type="date" id="invoice-date" value="2025-11-11" required />
+          <span class="error-msg"></span>
+        </div>
+        <div class="input-group">
+          <label>Due Date</label>
+          <input type="date" id="due-date" value="2025-12-11" />
+        </div>
+        <div class="input-group">
+          <label>Invoice Type</label>
+          <select id="invoice-type">
+            <option>B2B</option>
+            <option selected>B2C</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Customer -->
+      <div class="form-grid">
+        <div class="input-group full-width">
+          <label>Customer Name <span class="required">*</span></label>
+          <input type="text" id="customer-name" value="Rahul Sharma" required />
+        </div>
+        <div class="input-group">
+          <label>GSTIN</label>
+          <input type="text" id="gstin" placeholder="29ABCDE1234F1Z5" />
+        </div>
+        <div class="input-group">
+          <label>State</label>
+          <select id="state">
+            <option>Karnataka</option>
+            <option>Maharashtra</option>
+            <option>Delhi</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <div class="table-container">
+        <table class="invoice-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Item / Description</th>
+              <th>HSN</th>
+              <th>Qty</th>
+              <th>Unit</th>
+              <th>Rate</th>
+              <th>GST %</th>
+              <th>Disc %</th>
+              <th>Amount</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="items">
+            <tr>
+              <td>1</td>
+              <td><input type="text" class="desc" value="Web Design Service" required /></td>
+              <td><input type="text" class="hsn" value="9983" /></td>
+              <td><input type="number" min="1" value="1" class="qty" required /></td>
+              <td><select class="unit"><option>Hrs</option><option>Pcs</option></select></td>
+              <td><input type="number" step="0.01" value="5000.00" class="rate" required /></td>
+              <td><select class="gst"><option selected>18</option><option>12</option><option>5</option><option>0</option></select></td>
+              <td><input type="number" min="0" max="100" value="0" class="disc" /></td>
+              <td class="line-total">5,000.00</td>
+              <td><button type="button" class="remove">X</button></td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><input type="text" class="desc" value="Domain & Hosting" required /></td>
+              <td><input type="text" class="hsn" value="9983" /></td>
+              <td><input type="number" min="1" value="1" class="qty" required /></td>
+              <td><select class="unit"><option selected>Year</option></select></td>
+              <td><input type="number" step="0.01" value="2500.00" class="rate" required /></td>
+              <td><select class="gst"><option selected>18</option></select></td>
+              <td><input type="number" min="0" max="100" value="5" class="disc" /></td>
+              <td class="line-total">2,375.00</td>
+              <td><button type="button" class="remove">X</button></td>
+            </tr>
+          </tbody>
+        </table>
+        <button type="button" class="add-line">+ Add Item</button>
+      </div>
+
+      <!-- Summary -->
+      <div class="summary-card">
+        <div class="summary-row"><span>Subtotal</span> <strong id="subtotal">₹7,375.00</strong></div>
+        <div class="summary-row"><span>CGST (9%)</span> <strong id="cgst">₹663.75</strong></div>
+        <div class="summary-row"><span>SGST (9%)</span> <strong id="sgst">₹663.75</strong></div>
+        <div class="summary-row"><span>IGST (18%)</span> <strong id="igst">₹0.00</strong></div>
+        <div class="summary-row total"><span>Total Amount</span> <strong id="total">₹8,702.50</strong></div>
+        <div class="summary-row" id="irn-row" style="display:none;">
+          <span>IRN</span> <strong><span class="irn-badge" id="irn">ACK123456789</span></strong>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn-secondary">Save Draft</button>
+        <button type="button" class="btn-primary" id="generate-pdf">Download PDF</button>
+        <button type="submit" class="btn-primary">Generate e-Invoice</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const { jsPDF } = window.jspdf;
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('invoice-form');
+      const table = document.getElementById('items');
+      const addBtn = document.querySelector('.add-line');
+      const pdfBtn = document.getElementById('generate-pdf');
+
+      addBtn.onclick = () => {
+        const row = document.createElement('tr');
+        const idx = table.rows.length + 1;
+        row.innerHTML = `
+          <td>${idx}</td>
+          <td><input type="text" class="desc" placeholder="Description" required /></td>
+          <td><input type="text" class="hsn" placeholder="HSN" /></td>
+          <td><input type="number" min="1" value="1" class="qty" required /></td>
+          <td><select class="unit"><option>Pcs</option><option>Hrs</option></select></td>
+          <td><input type="number" step="0.01" value="0" class="rate" required /></td>
+          <td><select class="gst"><option>18</option><option>12</option><option>5</option><option>0</option></select></td>
+          <td><input type="number" min="0" max="100" value="0" class="disc" /></td>
+          <td class="line-total">0.00</td>
+          <td><button type="button" class="remove">X</button></td>
+        `;
+        table.appendChild(row);
+        updateNumbers();
+      };
+
+      table.addEventListener('click', e => {
+        if (e.target.classList.contains('remove') && table.rows.length > 1) {
+          e.target.closest('tr').remove();
+          updateNumbers();
+          calculate();
+        }
+      });
+
+      table.addEventListener('input', calculate);
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        if (validate()) {
+          document.getElementById('irn-row').style.display = 'flex';
+          alert('e-Invoice Generated! IRN: ACK123456789');
+        }
+      });
+
+      pdfBtn.onclick = generatePDF;
+
+      function updateNumbers() {
+        Array.from(table.rows).forEach((r, i) => r.cells[0].textContent = i + 1);
+      }
+
+      function calculate() {
+        let subtotal = 0, cgst = 0, sgst = 0, igst = 0;
+        const isIntra = document.getElementById('state').value === 'Karnataka'; // Your state
+
+        table.querySelectorAll('tr').forEach(row => {
+          const qty = +row.querySelector('.qty').value || 0;
+          const rate = +row.querySelector('.rate').value || 0;
+          const disc = +row.querySelector('.disc').value || 0;
+          const gstRate = +row.querySelector('.gst').value || 0;
+          const amount = qty * rate * (1 - disc / 100);
+          const tax = amount * gstRate / 100;
+          row.querySelector('.line-total').textContent = amount.toFixed(2);
+          subtotal += amount;
+          if (isIntra) {
+            cgst += tax / 2; sgst += tax / 2;
+          } else {
+            igst += tax;
+          }
+        });
+
+        document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
+        document.getElementById('cgst').textContent = `₹${cgst.toFixed(2)}`;
+        document.getElementById('sgst').textContent = `₹${sgst.toFixed(2)}`;
+        document.getElementById('igst').textContent = `₹${igst.toFixed(2)}`;
+        document.getElementById('total').textContent = `₹${(subtotal + cgst + sgst + igst).toFixed(2)}`;
+      }
+
+      function validate() {
+        let valid = true;
+        const invNo = document.getElementById('invoice-no').value;
+        if (!/^INV-\d{4}-\d{4}$/.test(invNo)) valid = false;
+        if (!document.getElementById('customer-name').value) valid = false;
+        if (table.rows.length === 0) valid = false;
+        if (!valid) alert('Please fix errors');
+        return valid;
+      }
+
+      function generatePDF() {
+        const doc = new jsPDF();
+        doc.setFontSize(18);
+        doc.text('TAX INVOICE', 105, 20, { align: 'center' });
+        doc.setFontSize(10);
+        doc.text(`Invoice: ${document.getElementById('invoice-no').value}`, 20, 35);
+        doc.text(`Date: ${document.getElementById('invoice-date').value}`, 20, 41);
+        doc.text(`Customer: ${document.getElementById('customer-name').value}`, 20, 47);
+
+        let y = 65;
+        table.querySelectorAll('tr').forEach(row => {
+          const cells = row.querySelectorAll('input, select');
+          doc.text(`${cells[0].value} × ₹${cells[4].value} = ₹${row.querySelector('.line-total').textContent}`, 20, y);
+          y += 8;
+        });
+
+        doc.setFontSize(12);
+        doc.text(`Total: ${document.getElementById('total').textContent}`, 140, y + 15);
+        doc.save('Invoice-INV-2025-0001.pdf');
+      }
+
+      calculate();
+    });
+  </script>
+</body>
+</html> {% endcomment %}
+
+
+

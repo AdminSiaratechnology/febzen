@@ -1,7 +1,11 @@
 from django.db import models
 from django.db.models import Max
 
+from django.contrib.auth.models import AbstractUser
+
 # Create your models here.
+
+
 
 
 class Company(models.Model):
@@ -417,6 +421,7 @@ class PurchaseIndent(models.Model):
     required_date = models.DateField(auto_now_add=False,null=True,blank=True)
     requested_by = models.CharField(max_length=100, blank=True, null=True)
     priority = models.CharField(max_length=20,choices=[('High', 'High'),('Medium', 'Medium'), ('Low', 'Low')])
+    
     status = models.CharField(
         max_length=20,
         choices=[
@@ -431,16 +436,48 @@ class PurchaseIndent(models.Model):
 
     def __str__(self):
         return f"{self.indent_no}"
-    
 
+    def all_items_closed(self):
+        """
+        Returns True if no item has pending_qty > 0
+        """
+        return not self.items.filter(pending_qty__gt=0).exists()
+    
+from decimal import Decimal
 class PurchaseIndentItem(models.Model):
     indent = models.ForeignKey(PurchaseIndent, on_delete=models.CASCADE, related_name='items')
     # item_name = models.CharField(max_length=150)
     garment = models.ForeignKey(Garment, on_delete=models.CASCADE)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
     uom = models.CharField(max_length=20, verbose_name="Unit of Measure", blank=True, null=True)
-    required_date = models.DateField(blank=True, null=True)
     remarks = models.CharField(max_length=255, blank=True, null=True)
+    # 👇 ye do naye fields add karo
+    converted_qty = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # kitna qty PO me gaya
+    preclose_qty = models.DecimalField(max_digits=10, decimal_places=2, default=0)    # manually closed qty
+    pending_qty = models.DecimalField(max_digits=10, decimal_places=2, default=0)     # kitna qty bacha hai
+    
+
+    def save(self, *args, **kwargs):
+        """
+        Jab bhi save hoga to pending_qty auto update hoga
+        pending_qty = total quantity - (converted_qty + preclose_qty)
+        """
+        total_closed = (self.converted_qty or Decimal('0')) + (self.preclose_qty or Decimal('0'))
+        self.pending_qty = (self.quantity or Decimal('0')) - total_closed
+        if self.pending_qty < 0:
+            self.pending_qty = Decimal('0')
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.garment.garment_name} - {self.quantity}"
+    
+    def all_items_closed(self):
+        """
+        Return True if *all* items of this indent have pending_qty = 0
+        """
+        # agar koi item hai jiska pending_qty > 0 hai, toh False
+        return not self.items.filter(pending_qty__gt=0).exists()
+
 
 
 from datetime import date
@@ -515,6 +552,11 @@ class PurchaseOrder(models.Model):
         ('Close', 'Close'),
     ]
 
+    converted_FROM_INDENT = [
+        ('Yes', 'Yes'), 
+        ('No', 'No'),
+    ]
+
     PAYMENT_TERMS = [
         ('Immediate', 'Immediate'),
         ('30 Days', '30 Days'),
@@ -537,6 +579,7 @@ class PurchaseOrder(models.Model):
     received_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Open')
+    converted_status = models.CharField(max_length=20, choices=converted_FROM_INDENT, default='No')
     termscondition = models.TextField(blank=True, null=True)
 
     class Meta:

@@ -9,13 +9,50 @@
    <td><span class="badge {% if indent.priority == 'High' %}bg-danger {% elif indent.priority == 'Medium' %}bg-primary {% elif indent.priority == 'Low' %}bg-success{% endif %}">{{indent.priority}}</span></td>
    <td>{{indent.required_date|date:"d M"}}</td>
    <td><span class="badge {% if indent.status == 'Pending' %}bg-warning {% elif indent.status == 'Approved' %}bg-success {% elif indent.status == 'Rejected' %}bg-danger {% elif indent.status == 'Close' %}bg-primary{% endif %}">{{indent.status}}</span></td>
-   
+   {% comment %} <td>
+      <div class="dropdown ms-auto">
+         <div class="cursor-pointer text-dark font-24 dropdown-toggle dropdown-toggle-nocaret" data-bs-toggle="dropdown"><i class="bx bx-dots-horizontal-rounded text-option"></i>
+         </div>
+         <div class="dropdown-menu dropdown-menu-end">
+            <a href="{% url "edit_indent" indent.id %}" ><i class="fadeIn animated bx bx-edit bx-sm"></i></a>
+            <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#viewIndentModal-{{indent.id}}"><i class="fadeIn animated bx bx-show "></i></button>
+            
+            
+         </div>
+      </div>
+      {% include "fabzen_app/Purchase/PurchaseIndent/view_indent.html" %}
+   </td> {% endcomment %}
    <td>
-      <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editIndentModal-{{indent.id}}">Edit</button>
-      <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#viewIndentModal-{{indent.id}}">View</button>
-      {% include "fabzen_app/Purchase/PurchaseIndent/edit_indent.html" %}
+      <div class="dropdown ms-auto">
+         <!-- Dropdown trigger -->
+         <div class="cursor-pointer text-dark fs-4 dropdown-toggle dropdown-toggle-nocaret" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bx bx-dots-horizontal-rounded text-option"></i>
+         </div>
+
+         <!-- Dropdown menu -->
+         <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+            <li>
+            <a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'edit_indent' indent.id %}">
+               <i class="bx bx-edit bx-sm text-primary"></i> Edit
+            </a>
+            </li>
+            <li>
+            <button type="button" class="dropdown-item d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#viewIndentModal-{{indent.id}}">
+               <i class="bx bx-show bx-sm text-primary"></i> View
+            </button>
+            </li>
+            <li>
+               <a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'edit_indent' indent.id %}">
+                  <i class="fadeIn animated bx bx-printer bx-sm text-primary"></i> Print
+               </a>
+            </li>
+         </ul>
+      </div>
+
       {% include "fabzen_app/Purchase/PurchaseIndent/view_indent.html" %}
    </td>
+
+   
 </tr>
 {% empty %}
 <tr>

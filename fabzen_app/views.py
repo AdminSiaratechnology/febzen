@@ -1501,6 +1501,7 @@ def IndentListView(request):
         requested_by = request.POST.get('requested_by')
         required_date = request.POST.get('required_date')
         remarks = request.POST.get('purpose')
+        
 
         # ✅ Generate unique indent number
         last_indent = PurchaseIndent.objects.order_by('-id').first()
@@ -1526,7 +1527,7 @@ def IndentListView(request):
         item_descriptions = request.POST.getlist('item_description[]')
         quantities = request.POST.getlist('quantity[]')
         units = request.POST.getlist('unit[]')
-        item_remarks = request.POST.getlist('remarks[]')
+        item_remarks = request.POST.getlist('description[]')
 
         # ✅ Loop through all items
         for i in range(len(item_descriptions)):
@@ -1562,6 +1563,83 @@ def IndentListView(request):
     }
     return render(request, 'fabzen_app/Purchase/PurchaseIndent/indent.html', context)
 
+def add_indent(request):
+    garment = Garment.objects.all()
+    
+    if request.method == "POST":
+        # Get main fields
+        indent_date = request.POST.get('indent_date')
+        department = request.POST.get('department')
+        priority = request.POST.get('priority')
+        requested_by = request.POST.get('requested_by')
+        required_date = request.POST.get('required_date')
+        remarks = request.POST.get('purpose')
+        
+
+        # ✅ Generate unique indent number
+        last_indent = PurchaseIndent.objects.order_by('-id').first()
+        if last_indent:
+            new_number = int(last_indent.indent_no.split('-')[-1]) + 1
+        else:
+            new_number = 1
+        indent_no = f"PI-{new_number:04d}"
+
+        # ✅ Create main PurchaseIndent record
+        indent = PurchaseIndent.objects.create(
+            indent_no=indent_no,
+            department=department,
+            indent_date=indent_date,
+            required_date=required_date,
+            priority=priority,
+            requested_by=requested_by,
+            remarks=remarks,
+            status='Pending'
+        )
+
+        # ✅ Get list fields
+        item_descriptions = request.POST.getlist('item_description[]')
+        quantities = request.POST.getlist('quantity[]')
+        units = request.POST.getlist('unit[]')
+        item_remarks = request.POST.getlist('description[]')
+
+        # ✅ Loop through all items
+        for i in range(len(item_descriptions)):
+            garment_id = item_descriptions[i]
+            quantity = quantities[i]
+            unit = units[i]
+            remark = item_remarks[i]
+
+            if garment_id and quantity:
+                try:
+                    garment_obj = Garment.objects.get(id=garment_id)
+                except Garment.DoesNotExist:
+                    continue
+
+                try:
+                    quantity_decimal = Decimal(quantity)
+                except:
+                    quantity_decimal = Decimal('0')
+
+                PurchaseIndentItem.objects.create(
+                    indent=indent,
+                    garment=garment_obj,
+                    quantity=quantity_decimal,  # ✅ string → Decimal
+                    uom=unit,
+                    remarks=remark
+                )
+
+        messages.success(request, f"Purchase Indent {indent.indent_no} created successfully!")
+        return redirect('indent')
+
+    context = {
+        'garment': garment
+    }
+    return render(request, 'fabzen_app/Purchase/PurchaseIndent/adding_purchase_indent.html', context)
+
+
+
+
+
 def indent_list(request):
     
     search_query = request.GET.get('search', '').strip()
@@ -1591,6 +1669,8 @@ def indent_list(request):
         indents = paginator.page(1)
     except EmptyPage:
         indents = paginator.page(paginator.num_pages)
+    
+
     context = {
         'indents': indents,
         'paginator': paginator,
@@ -1672,50 +1752,142 @@ def indent_list(request):
 #     return render(request, 'fabzen_app/Purchase/PurchaseIndent/indent.html', context)
 
 
+# def edit_indent(request, pk):
+#     indent = get_object_or_404(PurchaseIndent, pk=pk)
+#     garment = Garment.objects.all()
+
+#     if request.method == "POST":
+#         # 🔹 Update main fields
+#         indent.indent_date = request.POST.get('indent_date')
+#         indent.department = request.POST.get('department')
+#         indent.priority = request.POST.get('priority')
+#         indent.requested_by = request.POST.get('requested_by')
+#         indent.required_date = request.POST.get('required_date')
+#         indent.remarks = request.POST.get('purpose')
+
+#         indent.save()
+
+#         # 🔹 Remove old items first (to replace with new ones)
+#         indent.items.all().delete()
+
+#         # 🔹 Get new item list fields
+#         item_descriptions = request.POST.getlist('item_description[]')
+#         quantities = request.POST.getlist('quantity[]')
+#         units = request.POST.getlist('unit[]')
+#         item_remarks = request.POST.getlist('description[]')
+
+#         # 🔹 Recreate all items
+#         for i in range(len(item_descriptions)):
+#             garment_id = item_descriptions[i]
+#             quantity = quantities[i]
+#             unit = units[i]
+#             remark = item_remarks[i]
+
+#             if garment_id and quantity:
+#                 try:
+#                     garment_obj = Garment.objects.get(id=garment_id)
+#                 except Garment.DoesNotExist:
+#                     continue
+
+#                 PurchaseIndentItem.objects.create(
+#                     indent=indent,
+#                     garment=garment_obj,
+#                     quantity=quantity,
+#                     uom=unit,
+#                     remarks=remark
+#                 )
+
+#         messages.success(request, f"Purchase Indent {indent.indent_no} updated successfully!")
+#         return redirect('indent')
+
+#     context = {
+#         'indent': indent,
+#         'garment': garment,
+#     }
+#     return render(request, 'fabzen_app/Purchase/PurchaseIndent/edit_indentt.html', context)
+#     # return render(request, 'fabzen_app/Purchase/PurchaseIndent/indent_edit.html', context)
+
+from decimal import Decimal
+
 def edit_indent(request, pk):
     indent = get_object_or_404(PurchaseIndent, pk=pk)
     garment = Garment.objects.all()
 
     if request.method == "POST":
-        # 🔹 Update main fields
         indent.indent_date = request.POST.get('indent_date')
         indent.department = request.POST.get('department')
         indent.priority = request.POST.get('priority')
         indent.requested_by = request.POST.get('requested_by')
         indent.required_date = request.POST.get('required_date')
         indent.remarks = request.POST.get('purpose')
-
         indent.save()
 
-        # 🔹 Remove old items first (to replace with new ones)
-        indent.items.all().delete()
-
-        # 🔹 Get new item list fields
+        # Collect posted lists for items
         item_descriptions = request.POST.getlist('item_description[]')
         quantities = request.POST.getlist('quantity[]')
         units = request.POST.getlist('unit[]')
-        item_remarks = request.POST.getlist('remarks[]')
+        item_remarks = request.POST.getlist('description[]')
+        item_ids = request.POST.getlist('item_id[]')
 
-        # 🔹 Recreate all items
-        for i in range(len(item_descriptions)):
-            garment_id = item_descriptions[i]
-            quantity = quantities[i]
-            unit = units[i]
-            remark = item_remarks[i]
+        processed_existing_ids = set()
 
-            if garment_id and quantity:
+        # Iterate over posted rows and update or create items accordingly
+        total_rows = len(item_descriptions)
+        for i in range(total_rows):
+            garment_id = item_descriptions[i] if i < len(item_descriptions) else None
+            quantity = quantities[i] if i < len(quantities) else None
+            unit = units[i] if i < len(units) else ''
+            remark = item_remarks[i] if i < len(item_remarks) else ''
+            item_id = item_ids[i] if i < len(item_ids) else ''
+
+            # Skip completely blank rows
+            if not garment_id or not quantity:
+                continue
+
+            try:
+                garment_obj = Garment.objects.get(id=garment_id)
+            except Garment.DoesNotExist:
+                continue
+
+            # Convert quantity safely to Decimal
+            try:
+                quantity_decimal = Decimal(quantity)
+            except Exception:
+                quantity_decimal = Decimal('0')
+
+            if item_id:
+                # Update existing item if it belongs to this indent
                 try:
-                    garment_obj = Garment.objects.get(id=garment_id)
-                except Garment.DoesNotExist:
-                    continue
-
-                PurchaseIndentItem.objects.create(
+                    existing_item = PurchaseIndentItem.objects.get(id=item_id, indent=indent)
+                    existing_item.garment = garment_obj
+                    existing_item.quantity = quantity_decimal
+                    existing_item.uom = unit
+                    existing_item.remarks = remark
+                    existing_item.save()
+                    processed_existing_ids.add(existing_item.id)
+                except PurchaseIndentItem.DoesNotExist:
+                    # If the posted ID does not exist, create a new item
+                    new_item = PurchaseIndentItem.objects.create(
+                        indent=indent,
+                        garment=garment_obj,
+                        quantity=quantity_decimal,
+                        uom=unit,
+                        remarks=remark
+                    )
+                    processed_existing_ids.add(new_item.id)
+            else:
+                # No ID posted means a new row; create the item
+                new_item = PurchaseIndentItem.objects.create(
                     indent=indent,
                     garment=garment_obj,
-                    quantity=quantity,
+                    quantity=quantity_decimal,
                     uom=unit,
                     remarks=remark
                 )
+                processed_existing_ids.add(new_item.id)
+
+        # Delete any items that were removed in the edit form
+        indent.items.exclude(id__in=processed_existing_ids).delete()
 
         messages.success(request, f"Purchase Indent {indent.indent_no} updated successfully!")
         return redirect('indent')
@@ -1724,77 +1896,257 @@ def edit_indent(request, pk):
         'indent': indent,
         'garment': garment,
     }
-    return render(request, 'fabzen_app/Purchase/PurchaseIndent/indent_edit.html', context)
+    return render(request, 'fabzen_app/Purchase/PurchaseIndent/edit_indentt.html', context)
 
 
 # ----------------------------------- END Indent ---------------------
 
 
 
-# from django.shortcuts import get_object_or_404
-# from django.http import JsonResponse
-# from django.contrib import messages
-# from datetime import date
-# from .models import PurchaseIndent, PurchaseIndentItem, PurchaseOrder, PurchaseOrderItem
+
+# def convert_to_po(request, pk):
+#     indent = get_object_or_404(PurchaseIndent, pk=pk)
+#     indent_items = PurchaseIndentItem.objects.filter(indent=indent)
+    
+   
+#     garments = Garment.objects.all()
+
+#     if request.method == "POST":
+        
+#         po_no = request.POST.get('po_no')
+#         supplier_id = request.POST.get('supplier')
+#         payment_terms = request.POST.get('payment_terms')
+#         indent_id = request.POST.get('indent_id')  # optional hidden field
+#         # optional hidden field
+#         terms = request.POST.get('terms')  # optional hidden field
+        
+        
+# # 
+#         po = PurchaseOrder.objects.create(
+#             indent_id=indent_id,
+#             po_no=po_no,
+#             po_date=request.POST.get('po_date'),
+#             delivery_date=request.POST.get('delivery_date'),
+#             payment_terms=payment_terms,
+#             supplier=supplier_id,
+#             termscondition=terms,
+#         )
+
+
+#         # get lists safely
+#         item_descriptions = request.POST.getlist('item_description[]')
+#         descriptions = request.POST.getlist('description[]')
+#         colors = request.POST.getlist('color[]')
+#         quantities = request.POST.getlist('quantity[]')
+#         units = request.POST.getlist('unit[]')
+#         rates = request.POST.getlist('price[]')
+#         discounts = request.POST.getlist('discount[]')
+#         amounts = request.POST.getlist('amount[]')
+
+#         num_rows = len(item_descriptions)
+#         for i in range(num_rows):
+            
+#             try:
+#                 garment_id = item_descriptions[i]
+#                 if not garment_id:
+#                     continue
+
+#                 garment_obj = Garment.objects.filter(id=garment_id).first()
+                
+
+#                 # ✅ use safe indexing with fallback values
+#                 desc = descriptions[i] if i < len(descriptions) else ""
+#                 color = colors[i] if i < len(colors) else ""
+#                 qty = Decimal(quantities[i]) if i < len(quantities) and quantities[i] else Decimal(0)
+#                 uom = units[i] if i < len(units) else ""
+#                 rate = Decimal(rates[i]) if i < len(rates) and rates[i] else Decimal(0)
+#                 discount = Decimal(discounts[i]) if i < len(discounts) and discounts[i] else Decimal(0)
+#                 amt = Decimal(amounts[i]) if i < len(amounts) and amounts[i] else Decimal(0)
+
+#                 PurchaseOrderItem.objects.create(
+#                     po=po,
+#                     garment=garment_obj,
+#                     description=desc,
+#                     color=color,
+#                     quantity=qty,
+#                     uom=uom,
+#                     rate=rate,
+#                     discount=discount,
+#                     amount=amt,
+#                 )
+
+#                 indent_item = PurchaseIndentItem.objects.get(indent=indent, garment=garment_obj)
+#                 indent_item.converted_qty += qty
+#                 indent_item.save()
+
+#             except Exception as inner_e:
+#                 print(f"❌ Skipping row {i} due to error:", inner_e)
+
+#         po.calculate_totals()
+#         messages.success(request, f"Purchase Order {po_no} created successfully!")
+#         return redirect('purchaseorder')
+    
+
+
+#     context = {
+#         'indent': indent,
+#         'indent_items': indent_items,
+#         'garment': garments,
+#     }
+#     # return render(request, 'fabzen_app/Purchase/PurchaseOrder/add_purchase_order.html', context)
+#     return render(request, 'fabzen_app/Purchase/PurchaseOrder/adding_purchase_ordercopy.html', context)
+
+
+from decimal import Decimal
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from .models import PurchaseOrder, PurchaseOrderItem, PurchaseIndent, PurchaseIndentItem, Garment
 
 def convert_to_po(request, pk):
     indent = get_object_or_404(PurchaseIndent, pk=pk)
-
-    # Agar pehle se converted hai
-    existing_po = PurchaseOrder.objects.filter(indent=indent).first()
-    if existing_po:
-        messages.warning(request, f'This indent is already converted to PO ({existing_po.po_no}).')
-        return redirect('indent')
-        # return JsonResponse({
-        #     'status': 'error',
-        #     'message': f'This indent is already converted to PO ({existing_po.po_no}).'
-        # })
-
-    # Generate next PO number
-    last_po = PurchaseOrder.objects.order_by('-id').first()
-    next_no = 1
-    if last_po and last_po.po_no.startswith('PO-'):
-        try:
-            next_no = int(last_po.po_no.split('-')[-1]) + 1
-        except ValueError:
-            pass
-    po_no = f"PO-{next_no:04d}"
-
-    # Create new PO
-    po = PurchaseOrder.objects.create(
-        po_no=po_no,
-        po_date=date.today(),
-        indent=indent,
-        status="Open"
-    )
-
-    # Copy all indent items to PO items
     indent_items = PurchaseIndentItem.objects.filter(indent=indent)
-    for item in indent_items:
-        PurchaseOrderItem.objects.create(
-            po=po,
-            garment=item.garment,
-            quantity=item.quantity,
-            uom=item.uom,
-            # remarks=item.remarks
+    garments = Garment.objects.all()
+
+    if request.method == "POST":
+        po_no = request.POST.get('po_no')
+        supplier_id = request.POST.get('supplier')
+        payment_terms = request.POST.get('payment_terms')
+        indent_id = request.POST.get('indent_id')
+        terms = request.POST.get('terms')
+
+        # ✅ Create PO
+        po = PurchaseOrder.objects.create(
+            indent_id=indent_id,
+            po_no=po_no,
+            po_date=request.POST.get('po_date'),
+            delivery_date=request.POST.get('delivery_date'),
+            payment_terms=payment_terms,
+            supplier=supplier_id,
+            termscondition=terms,
         )
 
-    # Update indent status
-    indent.status = "Close"
-    indent.save()
+        # ✅ Fetch all lists safely
+        indent_item_ids = request.POST.getlist('indent_item_id[]')  # added hidden field
+        item_descriptions = request.POST.getlist('item_description[]')
+        descriptions = request.POST.getlist('description[]')
+        colors = request.POST.getlist('color[]')
+        quantities = request.POST.getlist('quantity[]')
+        units = request.POST.getlist('unit[]')
+        rates = request.POST.getlist('price[]')
+        discounts = request.POST.getlist('discount[]')
+        amounts = request.POST.getlist('amount[]')
 
-    messages.success(request, f"Indent {indent.indent_no} successfully converted to PO {po_no}")
-    return redirect('indent')
+        num_rows = len(item_descriptions)
+        for i in range(num_rows):
+            try:
+                garment_id = item_descriptions[i]
+                if not garment_id:
+                    continue
+
+                garment_obj = Garment.objects.filter(id=garment_id).first()
+                if not garment_obj:
+                    continue
+
+                # ✅ Safe values with fallbacks
+                desc = descriptions[i] if i < len(descriptions) else ""
+                color = colors[i] if i < len(colors) else ""
+                qty = Decimal(quantities[i]) if i < len(quantities) and quantities[i] else Decimal(0)
+                uom = units[i] if i < len(units) else ""
+                rate = Decimal(rates[i]) if i < len(rates) and rates[i] else Decimal(0)
+                discount = Decimal(discounts[i]) if i < len(discounts) and discounts[i] else Decimal(0)
+                amt = Decimal(amounts[i]) if i < len(amounts) and amounts[i] else Decimal(0)
+
+                # ✅ Create PO Item
+                PurchaseOrderItem.objects.create(
+                    po=po,
+                    garment=garment_obj,
+                    description=desc,
+                    color=color,
+                    quantity=qty,
+                    uom=uom,
+                    rate=rate,
+                    discount=discount,
+                    amount=amt,
+                )
+
+                # ✅ Update converted qty only if this item was from indent
+                indent_item_id = indent_item_ids[i] if i < len(indent_item_ids) else ""
+                if indent_item_id:
+                    indent_item = PurchaseIndentItem.objects.filter(id=indent_item_id).first()
+                    if indent_item:
+                        indent_item.converted_qty += qty
+                        indent_item.save()
+
+            except Exception as inner_e:
+                print(f"❌ Skipping row {i} due to error:", inner_e)
+
+        # ✅ Final total calculation
+        po.calculate_totals()
+        messages.success(request, f"Purchase Order {po_no} created successfully!")
+        return redirect('purchaseorder')
+
+    context = {
+        'indent': indent,
+        'indent_items': indent_items,
+        'garment': garments,
+    }
+    return render(request, 'fabzen_app/Purchase/PurchaseOrder/adding_purchase_ordercopy.html', context)
+
+
+
+
+# def convert_to_po(request, pk):
+#     indent = get_object_or_404(PurchaseIndent, pk=pk)
+
+#     # Agar pehle se converted hai
+#     existing_po = PurchaseOrder.objects.filter(indent=indent).first()
+#     if existing_po:
+#         messages.warning(request, f'This indent is already converted to PO ({existing_po.po_no}).')
+#         return redirect('indent')
+#         # return JsonResponse({
+#         #     'status': 'error',
+#         #     'message': f'This indent is already converted to PO ({existing_po.po_no}).'
+#         # })
+
+#     # Generate next PO number
+#     last_po = PurchaseOrder.objects.order_by('-id').first()
+#     next_no = 1
+#     if last_po and last_po.po_no.startswith('PO-'):
+#         try:
+#             next_no = int(last_po.po_no.split('-')[-1]) + 1
+#         except ValueError:
+#             pass
+#     po_no = f"PO-{next_no:04d}"
+
+#     # Create new PO
+#     po = PurchaseOrder.objects.create(
+#         po_no=po_no,
+#         po_date=date.today(),
+#         indent=indent,
+#         converted_status='Yes',
+#         status="Open"
+#     )
+
+#     # Copy all indent items to PO items
+#     indent_items = PurchaseIndentItem.objects.filter(indent=indent)
+#     for item in indent_items:
+#         PurchaseOrderItem.objects.create(
+#             po=po,
+#             garment=item.garment,
+#             quantity=item.quantity,
+#             uom=item.uom,
+#             # remarks=item.remarks
+#         )
+#     po.calculate_totals()
+#     # Update indent status
+#     indent.status = "Close"
+#     indent.save()
+
+   
+#     return redirect('add_purchase_order')
     
 
 # --------------------------------------- Purchase Order ------------------     
-
-# def add_purchase_order(request):
-#     garment = Garment.objects.all()
-#     context = {
-#         'garment': garment
-#     }
-#     return render(request, 'fabzen_app/Purchase/PurchaseOrder/adding_purchase_order.html', context)
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -1822,6 +2174,13 @@ def add_purchase_order(request):
 
             # ✅ convert supplier id to object (important)
             # supplier_obj = Supplier.objects.filter(id=supplier_id).first() if supplier_id else None
+
+            # ✅ Check if PO number already exists
+            if PurchaseOrder.objects.filter(po_no=po_no).exists():
+                messages.warning(request, f"Purchase Order number '{po_no}' already exists.")
+                return redirect('add_purchase_order')  # or re-render same form if you prefer
+
+
 
             po = PurchaseOrder.objects.create(
                 po_no=po_no,
@@ -2115,7 +2474,7 @@ def edit_purchase_order(request, pk):
         'purchase_order': purchase_order,
         'garment': garment,
     }
-    return render(request, 'fabzen_app/Purchase/PurchaseOrder/edit_purchase_order.html', context)
+    return render(request, 'fabzen_app/Purchase/PurchaseOrder/edit_purchase_ordercopy.html', context)
 
 # --------------------------------------- END Purchase Order ------------------
 
@@ -3393,3 +3752,47 @@ def edit_purchase_return(request, pk):
 # --------------------------------------- END Purchase Return ------------------
 
 
+def Modern(request):
+    return render(request, 'fabzen_app/modern.html')    
+
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from decimal import Decimal
+from .models import PurchaseIndent, PurchaseIndentItem
+from decimal import Decimal
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+
+def save_preclose_qty(request, pk):
+    indent = get_object_or_404(PurchaseIndent, pk=pk)
+
+    if request.method == "POST":
+        for item in indent.items.all():
+            field_name = f"preclose_qty_{item.id}"
+            preclose_qty_value = request.POST.get(field_name)
+            print(f"Received preclose_qty for item {item.id}: {preclose_qty_value}")
+
+            if preclose_qty_value:
+                try:
+                    preclose_qty_value = Decimal(preclose_qty_value)
+                except:
+                    preclose_qty_value = Decimal('0')
+
+                if preclose_qty_value > 0:
+                    # ✅ ensure preclose_qty does not exceed pending
+                    if preclose_qty_value > item.pending_qty:
+                        messages.warning(
+                            request,
+                            f"⚠️ Preclose qty for {item.garment.garment_name} exceeds pending qty ({item.pending_qty})."
+                        )
+                        continue
+
+                    # ✅ update the preclose_qty (add to existing value)
+                    item.preclose_qty += preclose_qty_value
+                    item.save()  # auto-updates pending_qty as per model.save()
+
+        messages.success(request, "✅ Preclose quantities saved successfully.")
+        return redirect('indent')
+
+    return redirect('indent')

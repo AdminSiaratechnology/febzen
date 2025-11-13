@@ -258,7 +258,138 @@
                   <div class="col-12">
                     <div id="bank-details-container">
                       {% if mode == 'edit' %}
-                        {# same accordion bank loop here #}
+                      <div class="accordion" id="bankAccordion">
+                        {% for bank in company_banks %}
+                        <div class="accordion-item mb-2">
+                          <h2 class="accordion-header" id="heading{{forloop.counter}}">
+                            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{forloop.counter}}" aria-expanded="false" aria-controls="collapse{{forloop.counter}}">
+                              {{ bank.bank_name|default:"Bank" }}
+                              {% if bank.branch %}<span class="small text-muted ms-2">{{ bank.branch }}</span>{% endif %}
+                            </button>
+                          </h2>
+                          <div id="collapse{{forloop.counter}}" class="accordion-collapse collapse" aria-labelledby="heading{{forloop.counter}}" data-bs-parent="#bankAccordion">
+                            <div class="accordion-body p-2">
+                              <div class="bank-details-group border rounded p-2 mb-2 shadow-sm bg-light">
+                                <div class="row g-2">
+                                  <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Account Holder <span class="text-danger">*</span></label>
+                                    <div class="input-group input-group-sm">
+                                      <span class="input-group-text bg-white"><i class="bx bx-user"></i></span>
+                                      <input type="text" class="form-control form-control-sm" name="account_holder_name" value="{{ bank.holder_name }}" required>
+                                      <div class="invalid-feedback">Account holder name is required</div>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Account Number <span class="text-danger">*</span></label>
+                                    <div class="input-group input-group-sm">
+                                      <span class="input-group-text bg-white"><i class="bx bx-hash"></i></span>
+                                      <input type="text" class="form-control form-control-sm" name="account_number" value="{{ bank.account_number }}" required>
+                                      <div class="invalid-feedback">Account number is required</div>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <label class="form-label small fw-bold">IFSC Code <span class="text-danger">*</span></label>
+                                    <div class="input-group input-group-sm">
+                                      <span class="input-group-text bg-white"><i class="bx bx-code"></i></span>
+                                      <input type="text" class="form-control form-control-sm" name="ifsc_code" value="{{ bank.ifsc_code }}" required>
+                                      <div class="invalid-feedback">IFSC code is required</div>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <label class="form-label small fw-bold">SWIFT Code</label>
+                                    <div class="input-group input-group-sm">
+                                      <span class="input-group-text bg-white"><i class="bx bx-code-curly"></i></span>
+                                      <input type="text" class="form-control form-control-sm" name="swift_code" value="{{ bank.swift_code }}">
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <label class="form-label small fw-bold">MICR</label>
+                                    <div class="input-group input-group-sm">
+                                      <span class="input-group-text bg-white"><i class="bx bx-barcode"></i></span>
+                                      <input type="text" class="form-control form-control-sm" name="micr_no" value="{{ bank.micr_no }}">
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Bank Name <span class="text-danger">*</span></label>
+                                    <div class="input-group input-group-sm">
+                                      <span class="input-group-text bg-white"><i class="bx bx-building-house"></i></span>
+                                      <input type="text" class="form-control form-control-sm" name="bank_name" value="{{ bank.bank_name }}" required>
+                                      <div class="invalid-feedback">Bank name is required</div>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Branch</label>
+                                    <div class="input-group input-group-sm">
+                                      <span class="input-group-text bg-white"><i class="bx bx-buildings"></i></span>
+                                      <input type="text" class="form-control form-control-sm" name="branch" value="{{ bank.branch }}">
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {% endfor %}
+                        {% if company_banks|length == 0 %}
+                        <div class="bank-details-group border rounded p-2 mb-2 shadow-sm bg-light">
+                          <div class="row g-2">
+                            <div class="col-md-6">
+                              <label class="form-label small fw-bold">Account Holder <span class="text-danger">*</span></label>
+                              <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i class="bx bx-user"></i></span>
+                                <input type="text" class="form-control form-control-sm" name="account_holder_name" required>
+                                <div class="invalid-feedback">Account holder name is required</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label small fw-bold">Account Number <span class="text-danger">*</span></label>
+                              <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i class="bx bx-hash"></i></span>
+                                <input type="text" class="form-control form-control-sm" name="account_number" required>
+                                <div class="invalid-feedback">Account number is required</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label small fw-bold">IFSC Code <span class="text-danger">*</span></label>
+                              <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i class="bx bx-code"></i></span>
+                                <input type="text" class="form-control form-control-sm" name="ifsc_code" required>
+                                <div class="invalid-feedback">IFSC code is required</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label small fw-bold">SWIFT Code</label>
+                              <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i class="bx bx-code-curly"></i></span>
+                                <input type="text" class="form-control form-control-sm" name="swift_code">
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label small fw-bold">MICR</label>
+                              <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i class="bx bx-barcode"></i></span>
+                                <input type="text" class="form-control form-control-sm" name="micr_no">
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label small fw-bold">Bank Name <span class="text-danger">*</span></label>
+                              <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i class="bx bx-building-house"></i></span>
+                                <input type="text" class="form-control form-control-sm" name="bank_name" required>
+                                <div class="invalid-feedback">Bank name is required</div>
+                              </div>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label small fw-bold">Branch</label>
+                              <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i class="bx bx-buildings"></i></span>
+                                <input type="text" class="form-control form-control-sm" name="branch">
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {% endif %}
+                      </div>
                       {% else %}
                       <div class="bank-details-group border rounded p-2 mb-2 shadow-sm bg-light">
                         <div class="row g-2">
@@ -299,7 +430,7 @@
                       {% endif %}
                     </div>
 
-                    {% if mode == 'add' %}
+                    {% if mode == 'add' or mode == 'edit' %}
                     <button type="button" class="btn btn-outline-primary btn-sm mt-1" id="add-more-bank">
                       <i class="bx bx-plus"></i> Add More Bank
                     </button>
@@ -536,23 +667,110 @@ document.querySelectorAll('.step-trigger').forEach((btn, index) => {
     window.companyStepper.previous();
   };
 
-  // ✅ Bank "Add More" logic (unchanged)
+  // ✅ Bank "Add More" logic (supports accordion in edit mode)
   const addMoreBankBtn = document.getElementById('add-more-bank');
   if (addMoreBankBtn) {
     addMoreBankBtn.addEventListener('click', function() {
       const container = document.getElementById('bank-details-container');
-      const bankGroup = document.querySelector('.bank-details-group');
-      const newBankGroup = bankGroup.cloneNode(true);
-      newBankGroup.querySelectorAll('input').forEach(i => i.value = '');
+      const accordion = container.querySelector('#bankAccordion');
 
-      const removeBtn = document.createElement('button');
-      removeBtn.className = 'btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-1';
-      removeBtn.innerHTML = '<i class="bx bx-x"></i>';
-      removeBtn.onclick = () => container.removeChild(newBankGroup);
+      if (accordion) {
+        const count = accordion.querySelectorAll('.accordion-item').length + 1;
+        const headerId = 'headingNew' + count;
+        const collapseId = 'collapseNew' + count;
+        const item = document.createElement('div');
+        item.className = 'accordion-item mb-2';
+        item.innerHTML = `
+          <h2 class="accordion-header" id="${headerId}">
+            <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="false" aria-controls="${collapseId}">
+              New Bank
+            </button>
+          </h2>
+          <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="${headerId}" data-bs-parent="#bankAccordion">
+            <div class="accordion-body p-2">
+              <div class="bank-details-group border rounded p-2 mb-2 shadow-sm bg-light" style="position: relative;">
+                <div class="row g-2">
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Account Holder <span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-white"><i class="bx bx-user"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="account_holder_name" required>
+                      <div class="invalid-feedback">Account holder name is required</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Account Number <span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-white"><i class="bx bx-hash"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="account_number" required>
+                      <div class="invalid-feedback">Account number is required</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">IFSC Code <span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-white"><i class="bx bx-code"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="ifsc_code" required>
+                      <div class="invalid-feedback">IFSC code is required</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">SWIFT Code</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-white"><i class="bx bx-code-curly"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="swift_code">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">MICR</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-white"><i class="bx bx-barcode"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="micr_no">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Bank Name <span class="text-danger">*</span></label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-white"><i class="bx bx-building-house"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="bank_name" required>
+                      <div class="invalid-feedback">Bank name is required</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label small fw-bold">Branch</label>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text bg-white"><i class="bx bx-buildings"></i></span>
+                      <input type="text" class="form-control form-control-sm" name="branch">
+                    </div>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-1 remove-bank-item"><i class="bx bx-x"></i></button>
+              </div>
+            </div>
+          </div>
+        `;
 
-      newBankGroup.style.position = 'relative';
-      newBankGroup.appendChild(removeBtn);
-      container.appendChild(newBankGroup);
+        // Append and wire up remove button
+        accordion.appendChild(item);
+        const removeBtn = item.querySelector('.remove-bank-item');
+        removeBtn.addEventListener('click', function() {
+          accordion.removeChild(item);
+        });
+      } else {
+        // Add mode: clone the base group, clear inputs, allow removal
+        const bankGroup = document.querySelector('.bank-details-group');
+        const newBankGroup = bankGroup.cloneNode(true);
+        newBankGroup.querySelectorAll('input').forEach(i => i.value = '');
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-1';
+        removeBtn.innerHTML = '<i class="bx bx-x"></i>';
+        removeBtn.onclick = () => container.removeChild(newBankGroup);
+
+        newBankGroup.style.position = 'relative';
+        newBankGroup.appendChild(removeBtn);
+        container.appendChild(newBankGroup);
+      }
     });
   }
 

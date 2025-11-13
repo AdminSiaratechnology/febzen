@@ -1,0 +1,373 @@
+{% extends "fabzen_app/Base/base.html" %}
+{% load static %}
+{% block title %}Create Purchase Order{% endblock title %}
+{% block main-content %}
+<div class="page-content">
+   <!-- Back Button -->
+   <!-- Main Form -->
+   <form method="POST" id="poForm">
+      {% csrf_token %}
+      <!-- Basic Details Card -->
+      <div class="card border-0 shadow-sm rounded-4">
+         {% comment %} 
+         <div class="card-header bg-gradient text-white py-3 rounded-top-4" 
+            style="background: linear-gradient(90deg, #0d6efd, #0056b3);">
+            <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2"></i>Purchase Order Details</h6>
+         </div>
+         {% endcomment %}
+         <div class="text-end p-2">
+            <a href="{% url 'purchaseorder' %}" class="btn btn-primary btn-sm shadow-sm">
+            <i class="fadeIn animated bx bx-arrow-from-right"></i>
+            </a>
+         </div>
+         <div class="card-body bg-white p-4">
+            <div class="row g-3">
+               <div class="col-md-4">
+                  <label class="form-label fw-semibold">PO Date <span class="text-danger">*</span></label>
+                  <input type="date" class="form-control form-control-sm shadow-sm" name="po_date" value="{{ purchase_order.po_date|date:'Y-m-d' }}" required>
+               </div>
+               <div class="col-md-4">
+                  <label class="form-label fw-semibold">PO Number <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-sm shadow-sm" name="po_no" value="{{ purchase_order.po_no }}" readonly>
+               </div>
+               <div class="col-md-4">
+                  <label class="form-label fw-semibold">Delivery Date <span class="text-danger">*</span></label>
+                  <input type="date" class="form-control form-control-sm shadow-sm" name="delivery_date" value="{{ purchase_order.delivery_date|date:'Y-m-d' }}" required>
+               </div>
+               <div class="col-md-6">
+                  <label class="form-label fw-semibold">Payment Terms <span class="text-danger">*</span></label>
+                  <select name="payment_terms" class="form-select form-select-sm shadow-sm" required>
+                     <option value="" disabled selected>Select Term</option>
+                     {% for key, val in purchase_order.PAYMENT_TERMS %}
+                     <option value="{{ key }}" {% if purchase_order.payment_terms == key %}selected{% endif %}>{{ val }}</option>
+                     {% endfor %}
+                  </select>
+               </div>
+               <div class="col-md-6">
+                  <label class="form-label fw-semibold">Supplier <span class="text-danger">*</span></label>
+                  <select name="supplier" class="form-select form-select-sm shadow-sm" required>
+                     <option value="" disabled>Select Supplier</option>
+                     <option value="Surat Mills Ltd" {% if purchase_order.supplier == 'Surat Mills Ltd' %}selected{% endif %}>Surat Mills Ltd</option>
+                     <option value="Gujarat Textiles" {% if purchase_order.supplier == 'Gujarat Textiles' %}selected{% endif %}>Gujarat Textiles</option>
+                     <option value="Ahmedabad Fab" {% if purchase_order.supplier == 'Ahmedabad Fab' %}selected{% endif %}>Ahmedabad Fab</option>
+                  </select>
+               </div>
+               <div class="card border-0 shadow-sm rounded-4 mb-4">
+                  <div class="card-header bg-light py-3">
+                     <ul class="nav nav-tabs nav-primary" id="itemsSummaryTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                           <button type="button" class="nav-link active fw-semibold" id="first-item-tab" data-bs-toggle="pill" data-bs-target="#first-item">
+                           <i class="bi bi-cart3 me-1"></i>Order Lines
+                           </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                           <button type="button" class="nav-link fw-semibold" id="second-others-tab" data-bs-toggle="pill" data-bs-target="#second-others">
+                           <i class="bi bi-calculator me-1"></i>Order Info
+                           </button>
+                        </li>
+                     </ul>
+                  </div>
+                  <div class="card-body p-0">
+                     <div class="tab-content" id="itemsSummaryTabContent">
+                        <!-- Order Items Tab -->
+                        <div class="tab-pane fade show active" id="first-item">
+                           <div class="table-responsive" style="max-height: 420px;">
+                              <table class="table align-middle mb-0 text-end">
+                                 <thead class="table-light sticky-top shadow-sm">
+                                    <tr>
+                                       <th width="40">#</th>
+                                       <th colspan='2' class="text-start" width="100">Item / Description</th>
+                                       {% comment %} 
+                                       <th width="100">Color</th>
+                                       {% endcomment %}
+                                       <th width="80" class="text-center">Qty</th>
+                                       <th width="90" class="text-center">Unit</th>
+                                       <th width="100" class="text-center">Rate</th>
+                                       <th width="90" class="text-center">Disc(%)</th>
+                                       <th width="90" class="text-end">Amount</th>
+                                    </tr>
+                                 </thead>
+                                 <tbody id="itemsTableBody">
+                                    <!-- First row -->
+                                    {% for item in purchase_order.items.all %}
+                                    <tr class="item-row">
+                                       <td>1</td>
+                                       <td class="text-start" colspan='2'>
+                                          <select name="item_description[]" class="form-control form-control-sm mb-1 border-0" onchange="fetchGarmentDetails(this)" required>
+                                             <option value="" disabled>Select Quality</option>
+                                             {% for i in garment %}
+                                             <option value="{{ i.id }}" {% if item.garment.id == i.id %}selected{% endif %}>{{ i.garment_name }}</option>
+                                             {% endfor %}
+                                          </select>
+                                          <textarea class="form-control form-control-sm desc-text border-0" name="description[]" rows="1" placeholder="Auto description..." style="height:38px; resize:none;"></textarea>
+                                       </td>
+                                       <td><input type="number" class="form-control form-control-sm text-center qty border-0" name="quantity[]" min="1" value="{{ item.quantity }}"></td>
+                                       <td>
+                                          <select class="form-control form-control-sm text-center border-0" name="unit[]" required>
+                                             <option value="" selected disabled>Unit</option>
+                                             
+                                             <option {% if item.uom == 'Pcs' %}selected{% endif %}>Pcs</option>
+                                             <option {% if item.uom == 'Kg' %}selected{% endif %}>Kg</option>
+                                             <option {% if item.uom == 'Meter' %}selected{% endif %}>Meter</option>
+                                             <option {% if item.uom == 'Liter' %}selected{% endif %}>Liter</option>
+                                          </select>
+                                       </td>
+                                       <td><input type="number" class="form-control form-control-sm text-center rate border-0" name="price[]" value="{{ item.rate }}"  step="0.01" placeholder="0"></td>
+                                       <td><input type="number" class="form-control form-control-sm text-center disc border-0" name="discount[]" value="{{ item.discount }}" step="0.01" value="0"></td>
+                                       <td><input type="number" class="form-control form-control-sm text-end amount border-0" name="amount[]" value="{{ item.amount }}" placeholder="0.00" readonly></td>
+                                    </tr>
+                                    {% endfor %}
+                                 </tbody>
+                              </table>
+                           </div>
+                        </div>
+                        <!-- Second Others Tab -->
+                        <div class="tab-pane fade" id="second-others">
+                           <div class="p-4">
+                              <div class="row mb-4">
+                                 <div class="col-md-6">
+                                    <h6 class="fw-semibold mb-3 text-primary">Item Summary</h6>
+                                    <div class="d-flex justify-content-between mb-2">
+                                       <label>Subtotal:</label>
+                                       <input type="text" id="subtotal_summary" class="form-control form-control-sm text-end w-50 bg-light" value="0.00" readonly>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                       <label>Total Items:</label>
+                                       <input type="text" id="total_items" class="form-control form-control-sm text-end w-50 bg-light" value="1" readonly>
+                                    </div>
+                                 </div>
+                                 <div class="col-md-6">
+                                    <h6 class="fw-semibold mb-3 text-primary">Tax Summary</h6>
+                                    <div class="d-flex justify-content-between mb-2">
+                                       <label>CGST (2.5%):</label>
+                                       <input type="text" id="cgst_amount_summary" class="form-control form-control-sm text-end w-50 bg-light" value="0.00" readonly>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                       <label>SGST (2.5%):</label>
+                                       <input type="text" id="sgst_amount_summary" class="form-control form-control-sm text-end w-50 bg-light" value="0.00" readonly>
+                                    </div>
+                                 </div>
+                              </div>
+                              <h6 class="fw-semibold mb-3 text-primary">Other Charges</h6>
+                              <div class="row g-3">
+                                 <div class="col-md-6">
+                                    <div class="d-flex justify-content-between mb-2">
+                                       <label>Freight:</label>
+                                       <input type="number" step="0.01" id="freight" class="form-control form-control-sm text-end w-50" value="0">
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                       <label>Packaging:</label>
+                                       <input type="number" step="0.01" id="packaging" class="form-control form-control-sm text-end w-50" value="0">
+                                    </div>
+                                 </div>
+                                 <div class="col-md-6">
+                                    <div class="d-flex justify-content-between mb-2">
+                                       <label>Insurance:</label>
+                                       <input type="number" step="0.01" id="insurance" class="form-control form-control-sm text-end w-50" value="0">
+                                    </div>
+                                 </div>
+                              </div>
+                              <hr class="my-4">
+                              <div class="d-flex justify-content-between align-items-center bg-primary text-white rounded-4 p-4 shadow">
+                                 <h5 class="fw-bold mb-0">Grand Total:</h5>
+                                 <h4 class="mb-0">₹ <span id="grand_total_summary">0.00</span></h4>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                  <!-- Bottom Summary + Remarks -->
+                  {% comment %} 
+                  <div class="d-flex justify-content-between flex-wrap align-items-start p-4 border-top bg-light">
+                     <div class="flex-grow-1 me-3">
+                        <textarea name="remarks" class="form-control" rows="3" placeholder="Terms & Conditions, special instructions..."></textarea>
+                     </div>
+                     <div class="p-4 rounded-4 bg-white border shadow-sm" style="min-width: 280px;">
+                        <div class="d-flex justify-content-between mb-3">
+                           <span class="fw-semibold">Untaxed Amount</span>
+                           <span class="fw-bold">₹ <span id="untaxed_total">0.00</span></span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                           <span class="fw-bold text-primary fs-5">Total</span>
+                           <span class="fw-bold text-primary fs-5">₹ <span id="grand_total">0.00</span></span>
+                        </div>
+                     </div>
+                  </div>
+                  {% endcomment %}
+                  <div class="row g-4 align-items-start p-3">
+                     <!-- 📝 Left: Terms & Conditions -->
+                     <div class="col-lg-8 col-md-7">
+                        <textarea name="terms" class="form-control border-0 bg-white shadow-none" 
+                           rows="4" placeholder="Terms and conditions...">{{ purchase_order.termscondition }}</textarea>
+                     </div>
+                     <!-- 💰 Right: Order Summary -->
+                     <div class="col-lg-4 col-md-5">
+                        <div class="p-4  rounded-4 h-100">
+                           <div class="d-flex justify-content-between mb-2">
+                              <span class="text-muted fw-semibold">Untaxed Amount:</span>
+                              <span class="fw-bold text-dark">₹ <span id="untaxed_total">0.00</span></span>
+                           </div>
+                           <div class="d-flex justify-content-between mb-0">
+                              <span class="text-muted fw-semibold">Total:</span>
+                              <span class="fw-bold text-primary">₹ <span id="grand_total">0.00</span></span>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+               <!-- Submit -->
+               <div class="text-end mt-4">
+                  <button type="submit" class="btn btn-primary px-5 fw-bold shadow">
+                  Update Order
+                  </button>
+               </div>
+   </form>
+   </div>
+   </div>
+   </div>
+</div>
+<!-- Tabbed Interface -->
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+       const tbody = document.getElementById('itemsTableBody');
+   
+       // Auto add new row when last garment is selected
+       window.fetchGarmentDetails = function(select) {
+           const garmentId = select.value;
+           const row = select.closest('tr');
+           const desc = row.querySelector('textarea[name="description[]"]');
+           const priceInput = row.querySelector('input[name="price[]"]');
+   
+           if (!garmentId) return;
+   
+           fetch(`/get-garment-details/${garmentId}/`)
+           .then(res => res.json())
+           .then(data => {
+               desc.value = data.description || '';
+               priceInput.value = data.price || 0;
+               calculateRow(row);
+               
+               // ✅ Auto add new row when last one is selected
+               if (row === tbody.lastElementChild) {
+                   addNewRow();
+               }
+           });
+       };
+   
+       function addNewRow() {
+           const rowCount = tbody.children.length + 1;
+           const newRow = document.createElement('tr');
+           newRow.className = 'item-row';
+           newRow.innerHTML = `
+               <td>${rowCount}</td>
+               <td class="text-start" colspan='2'>
+                 <select name="item_description[]" class="form-control form-control-sm mb-1 border-0" onchange="fetchGarmentDetails(this)">
+                   <option value="" selected disabled>Select</option>
+                   {% for i in garment %}
+                     <option value="{{ i.id }}">{{ i.garment_name }}</option>
+                   {% endfor %}
+                 </select>
+                 <textarea class="form-control form-control-sm desc-text border-0" name="description[]" rows="0" placeholder="Auto description..."></textarea>
+               </td>
+               <td><input type="number" class="form-control form-control-sm text-center qty border-0" name="quantity[]" min="1" value="1"></td>
+               <td><select class="form-control form-control-sm text-center border-0" name="unit[]" >
+                   <option value="" selected disabled>Unit</option>
+                   <option>Pcs</option><option>Kg</option><option>Meter</option><option>Liter</option>
+               </select></td>
+               <td><input type="number" class="form-control form-control-sm text-center rate border-0" name="price[]" step="0.01" placeholder="0.00"></td>
+               <td><input type="number" class="form-control form-control-sm text-center disc border-0" name="discount[]" step="0.01" value="0"></td>
+               <td><input type="number" class="form-control form-control-sm text-end amount border-0" name="amount[]" placeholder="0.00" readonly></td>
+           `;
+           tbody.appendChild(newRow);
+           attachListeners(newRow);
+       }
+   
+       function attachListeners(row) {
+           row.querySelectorAll('.qty, .rate, .disc').forEach(input => {
+               input.addEventListener('input', () => calculateRow(row));
+           });
+       }
+   
+       function calculateRow(row) {
+           const qty = parseFloat(row.querySelector('.qty').value) || 0;
+           const rate = parseFloat(row.querySelector('.rate').value) || 0;
+           const disc = parseFloat(row.querySelector('.disc').value) || 0;
+           const amount = qty * rate * (1 - disc / 100);
+           row.querySelector('.amount').value = amount.toFixed(2);
+           updateAllTotals();
+       }
+   
+       function updateAllTotals() {
+           let subtotal = 0;
+           let totalItems = tbody.children.length;
+   
+           tbody.querySelectorAll('.amount').forEach(input => {
+               subtotal += parseFloat(input.value) || 0;
+           });
+   
+           const freight = parseFloat(document.getElementById('freight')?.value) || 0;
+           const packaging = parseFloat(document.getElementById('packaging')?.value) || 0;
+           const insurance = parseFloat(document.getElementById('insurance')?.value) || 0;
+   
+           const cgst = subtotal * 0.025;
+           const sgst = subtotal * 0.025;
+           const grandTotal = subtotal + cgst + sgst + freight + packaging + insurance;
+   
+           document.getElementById('subtotal_summary').value = subtotal.toFixed(2);
+           document.getElementById('total_items').value = totalItems;
+           document.getElementById('cgst_amount_summary').value = cgst.toFixed(2);
+           document.getElementById('sgst_amount_summary').value = sgst.toFixed(2);
+           document.getElementById('grand_total_summary').textContent = grandTotal.toFixed(2);
+           document.getElementById('untaxed_total').textContent = subtotal.toFixed(2);
+           document.getElementById('grand_total').textContent = grandTotal.toFixed(2);
+       }
+   
+       // Attach to existing rows
+       document.querySelectorAll('.item-row').forEach(attachListeners);
+       
+       // Listen to other charges
+       ['freight', 'packaging', 'insurance'].forEach(id => {
+           const el = document.getElementById(id);
+           if (el) el.addEventListener('input', updateAllTotals);
+       });
+   
+       // ✅ If last garment already selected, auto add new blank row
+       const lastRowSelect = tbody.querySelector('tr:last-child select[name="item_description[]"]');
+       if (lastRowSelect && lastRowSelect.value) {
+           addNewRow();
+       }
+   
+       // Initial calculation
+       updateAllTotals();
+   });
+</script>
+<style>
+   .card { transition: all 0.2s ease; }
+   .card:hover { box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important; }
+   .table th { font-size: 0.82rem !important; padding: 0.5rem !important; }
+   .form-control-sm, .form-select-sm { font-size: 0.82rem !important; }
+   .sticky-top { top: 0; z-index: 10; }
+   #grand_total_summary { font-size: 1.8rem; font-weight: 800; }
+   /* Fix jumping - NO MORE JUMP! */
+   textarea.desc-text {
+   height: 38px !important;
+   resize: none !important;
+   overflow: hidden !important;
+   line-height: 1.4;
+   }
+   #itemsTableBody .form-control,
+   #itemsTableBody .form-select {
+   border: 0 !important;
+   }
+   #itemsTableBody .form-control:focus,
+   #itemsTableBody .form-select:focus {
+   box-shadow: none !important;
+   border: 0 !important;
+   outline: none !important;
+   }
+   .card{
+   margin-bottom: 0;
+   }
+</style>
+{% endblock %}
