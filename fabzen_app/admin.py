@@ -1,5 +1,36 @@
 from django.contrib import admin
-from .models import GreyPurchase, GreyPurchaseItem, Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine,Operator,Ledger,LedgerGroup,PurchaseIndent,PurchaseIndentItem,PurchaseOrder,PurchaseOrderItem,GoodsReceiveNote,GoodsReceiveNoteItem,PurchaseReturn,PurchaseReturnItem
+from django.contrib.auth.admin import UserAdmin
+# from .models import GreyPurchase, GreyPurchaseItem, Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine,Operator,Ledger,LedgerGroup,PurchaseIndent,PurchaseIndentItem,PurchaseOrder,PurchaseOrderItem,GoodsReceiveNote,GoodsReceiveNoteItem,PurchaseReturn,PurchaseReturnItem
+from .models import (
+    GreyPurchase,
+    GreyPurchaseItem,
+    Party,
+    Company,
+    CompanyBank,
+    Fabric,
+    Size,
+    Garment,
+    Process,
+    Machine,
+    Operator,
+    Ledger,
+    LedgerGroup,
+    PurchaseIndent,
+    PurchaseIndentItem,
+    PurchaseOrder,
+    PurchaseOrderItem,
+    GoodsReceiveNote,
+    GoodsReceiveNoteItem,
+    PurchaseReturn,
+    PurchaseReturnItem,
+    CustomUser,
+    Client,
+    Admin
+
+)
+
+
+
 
     
 # Register your models here.
@@ -43,6 +74,20 @@ class PurchaseIndentItemInline(admin.TabularInline):
     readonly_fields = ('converted_qty', 'pending_qty')
     show_change_link = True
 
+
+class ClientInline(admin.TabularInline):
+    model = Client
+    extra = 1
+    fields = ('multiplePhones', 'contactPerson', 'country', 'state', 'city', 'pincode', 'limit', 'status', 'documents')
+    show_change_link = True
+
+class AdminInline(admin.TabularInline):
+    model = Admin
+    extra = 1
+    fields = ('client',)
+    show_change_link = True
+
+
 admin.site.register(Party)
 admin.site.register(Company)
 admin.site.register(CompanyBank)
@@ -83,3 +128,36 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
 class PurchaseIndentAdmin(admin.ModelAdmin):
     list_display = ('indent_no', 'indent_date', 'status')  # Adjust fields
     inlines = [PurchaseIndentItemInline]    
+
+
+
+@admin.register(CustomUser)
+class CustomUserAdmin(UserAdmin):
+    list_display = ('username', 'email', 'role', 'is_staff', 'is_active')
+    list_filter = ('role', 'is_staff', 'is_active')
+    search_fields = ('username', 'email')
+    inlines = [ClientInline,AdminInline]
+
+    fieldsets = (
+        (None, {"fields": ("username", "password")}),
+        ("Personal Info", {"fields": ("email",)}),
+        ("Permissions", {
+            "fields": (
+                "role", "is_active", "is_staff", "is_superuser",
+                "groups", "user_permissions"
+            )
+        }),
+    )
+
+    add_fieldsets = (
+        (None, {
+            "classes": ("wide",),
+            "fields": (
+                "username", "email", "role",
+                "password1", "password2",
+                "is_staff", "is_active"
+            ),
+        }),
+    )
+
+

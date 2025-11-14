@@ -1,9 +1,7 @@
 {% extends "fabzen_app/Base/base.html" %}
 {% block title %}Indent{% endblock title %}
 {% block main-content %}
-
 <div class="page-content">
-   
    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4">
       <div class="col">
          <div class="card radius-10" style="background-color:#fd5b00;">
@@ -67,51 +65,84 @@
       <div class="col">
          <div class="card">
             <div class="card-body">
-              <div class="mb-4 d-flex justify-content-between align-items-center">
-  
-  <!-- 🔍 Search Input -->
-  <div class="d-flex gap-2 align-items-center">
-    <input 
-      type="text" 
-      class="form-control"
-      placeholder="Search Purchase Indents..."
-      style="max-width: 300px;"
-      name="search"
-      hx-get="{% url 'indent_list' %}"
-      hx-trigger="keyup changed delay:500ms"
-      hx-target="#indent-table"
-    >
-     <select 
-                     class="form-select" 
-                     style="max-width: 200px;"
-                     name="type"
-                     hx-get="{% url 'indent_list' %}"
-                     hx-trigger="change"
-                     hx-target="#indent-table"
-                     hx-include="[name='search']"
-                     >
-                     <option value="" selected disabled>Filter by status</option>
-                     <option value="">All</option>
-                     <option value="Pending">Pending</option>
-                     <option value="Approved">Approved</option>
-                     <option value="Rejected">Rejected</option>
-                     <option value="Close">Close</option>
-                     
-                  </select>
+               <div class="mb-2 d-flex justify-content-between align-items-center">
+                  <!-- 🔍 Search Input -->
+                  <div class="d-flex gap-2 align-items-center">
+                     <input 
+                        type="text" 
+                        class="form-control"
+                        placeholder="Search Purchase Indents..."
+                        style="max-width: 300px;"
+                        name="search"
+                        hx-get="{% url 'indent_list' %}"
+                        hx-trigger="keyup changed delay:500ms"
+                        hx-target="#indent-table"
+                        >
+                     <select 
+                        class="form-select" 
+                        style="max-width: 200px;"
+                        name="type"
+                        hx-get="{% url 'indent_list' %}"
+                        hx-trigger="change"
+                        hx-target="#indent-table"
+                        hx-include="[name='search']"
+                        >
+                        <option value="" selected disabled>Filter by status</option>
+                        <option value="">All</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Close">Close</option>
+                     </select>
+                  </div>
+                  <!-- ➕ Add Button -->
+                  <a href="{% url "add_indent" %}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm">
+                  <i class="bi bi-plus-circle"></i> Add Purchase Indent
+                  </a> 
+               </div>
+               <div class="row mb-3">
+  <div class="col">
+    <div class="">
+
+      <form 
+        method="GET" 
+        action="#"
+        class="d-flex align-items-center gap-3 flex-wrap"
+      >
+
+        <!-- From Date Inline -->
+        <div class="d-flex align-items-center gap-2">
+          <label class="fw-bold">From Date:</label>
+          <input 
+            type="date" 
+            name="from_date" 
+            class="form-control"
+            style="width: 170px;"
+          >
+        </div>
+
+        <!-- To Date Inline -->
+        <div class="d-flex align-items-center gap-2">
+          <label class="fw-bold">To Date:</label>
+          <input 
+            type="date" 
+            name="to_date" 
+            class="form-control"
+            style="width: 170px;"
+          >
+        </div>
+
+        <!-- Export Button Inline -->
+        <button class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+          <i class="bi bi-download"></i> Export
+        </button>
+
+      </form>
+
+    </div>
   </div>
-
-  <!-- ➕ Add Button -->
-   <a href="{% url "add_indent" %}" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm">
-    <i class="bi bi-plus-circle"></i> Add Purchase Indent
-  </a> 
-  {% comment %} <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleLargeModal2">Add Indent</button> {% endcomment %}
-  {% comment %} {% include "fabzen_app/Purchase/PurchaseIndent/add_indentcopy.html" %} {% endcomment %}
-  {% comment %} {% include "fabzen_app/Purchase/PurchaseIndent/add_indent.html" %} {% endcomment %}
-  
-
 </div>
 
-              
                <hr>
                {% include "fabzen_app/Base/messages.html" %}
                <div class="card">
@@ -147,8 +178,4 @@
       </div>
    </div>
 </div>
-
-
-
-
 {% endblock main-content %}

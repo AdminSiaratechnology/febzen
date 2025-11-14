@@ -5,6 +5,65 @@ from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 
+# accounts/models.py
+
+
+class CustomUser(AbstractUser):
+    ROLE_CHOICES = (
+        ('client', 'Client'),
+        ('admin', 'Admin'),
+    )
+
+    email = models.EmailField(unique=True)
+
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']   # username still required for Django admin
+
+    def __str__(self):
+        return f"{self.email} ({self.role})"
+
+
+class Client(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'active'),
+        ('inactive', 'inactive'),
+        ('delete', 'delete'),
+        ('suspended', 'suspended'),
+        ('hold', 'hold'),
+    ]
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    multiplePhones = models.JSONField(default=list, blank=True)
+    contactPerson = models.CharField(max_length=255, null=True, blank=True)
+    country = models.CharField(max_length=100, null=True, blank=True)
+    state = models.CharField(max_length=100, null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)
+    pincode = models.CharField(max_length=100, null=True, blank=True)
+    limit = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
+    documents = models.FileField(upload_to='client_documents/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Client: {self.user}"
+    
+
+class Admin(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.CASCADE,
+        related_name="admins"
+    )
+
+    def __str__(self):
+        return f"Admin: {self.user.username}"
+
+
+
 
 
 
