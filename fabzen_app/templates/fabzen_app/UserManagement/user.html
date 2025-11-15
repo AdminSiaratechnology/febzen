@@ -1,0 +1,153 @@
+{% extends "fabzen_app/Base/base.html" %}
+{% block title %}Fabric Management{% endblock title %}
+
+{% block main-content %}
+<div class="page-content">
+    <div class="container-fluid">
+
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0 fw-bold text-dark">Fabric Inventory</h4>
+            <a href="{% url "add_user" %}" class="btn btn-primary btn-sm px-4">
+                <i class="bx bx-plus me-1"></i> Users
+            </a>
+        </div>
+
+        <!-- Search & Filter Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-center">
+                    <!-- Search Input -->
+                    <div class="col-lg-5 col-md-6">
+                        <div class="position-relative">
+                            <input 
+                                type="text" 
+                                class="form-control ps-5" 
+                                placeholder="Search fabric by name, ID..."
+                                name="search"
+                                hx-get="{% url 'fabric_list' %}"
+                                hx-trigger="keyup changed delay:500ms"
+                                hx-target="#fabric-table-body"
+                                hx-include="[name='garment_category'], [name='type']"
+                                style="height: 48px;">
+                            <i class="bx bx-search position-absolute top-50 start-3 translate-middle-y text-muted"></i>
+                        </div>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="col-lg-3 col-md-4">
+                        <select 
+                            class="form-select h-48" 
+                            name="garment_category"
+                            hx-get="{% url 'fabric_list' %}"
+                            hx-trigger="change"
+                            hx-target="#fabric-table-body"
+                            hx-include="[name='search'], [name='type']">
+                            <option value="">All Categories</option>
+                            <option value="Synthetic">Synthetic</option>
+                            <option value="Voile">Voile</option>
+                            <option value="Poplin">Poplin</option>
+                            <option value="Cambric">Cambric</option>
+                            <option value="Knit">Knit</option>
+                        </select>
+                    </div>
+
+                    <!-- Type Filter -->
+                    <div class="col-lg-3 col-md-4">
+                        <select 
+                            class="form-select h-48" 
+                            name="type"
+                            hx-get="{% url 'fabric_list' %}"
+                            hx-trigger="change"
+                            hx-target="#fabric-table-body"
+                            hx-include="[name='search'], [name='garment_category']">
+                            <option value="">Filter by Type</option>
+                            <option value="cotton">Cotton</option>
+                            <option value="polyester">Polyester</option>
+                            <option value="blended">Blended</option>
+                        </select>
+                    </div>
+
+                    <!-- Clear Filters -->
+                    <div class="col-lg-1 col-md-2 text-end">
+                        <button class="btn btn-outline-secondary btn-sm h-48 w-100" 
+                                hx-get="{% url 'fabric_list' %}"
+                                hx-target="#fabric-table-body">
+                            <i class="bx bx-reset"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">User</th>
+                                <th>Status</th>
+                                <th>Companies</th>
+                                <th>Last Login</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-table-body"
+                            
+                            hx-get="{% url 'user_list' %}" 
+                            hx-trigger="load" 
+                            hx-target="this" 
+                            hx-swap="innerHTML"
+                            >
+
+                            
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- No Results Message (Optional - show via HTMX if empty) -->
+                <div id="no-results" class="d-none text-center py-5 text-muted">
+                    <i class="bx bx-search fs-1"></i>
+                    <p class="mt-2">No fabrics found matching your criteria.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock main-content %}
+
+{% block extra_css %}
+<style>
+    .h-48 { height: 48px; }
+    .recent-product-img img {
+        width: 48px;
+        height: 48px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    .order-actions a {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    .order-actions a:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+        font-size: 0.75rem;
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+</style>
+{% endblock %}

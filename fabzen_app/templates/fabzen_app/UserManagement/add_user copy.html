@@ -1,0 +1,383 @@
+{% extends "fabzen_app/Base/base.html" %}
+{% block title %}User | Add{% endblock title %}
+{% block main-content %}
+<div class="page-content">
+
+<style>
+    :root {
+        --primary: #4f46e5;
+        --primary-light: #eef2ff;
+        --primary-soft: #c7d2fe;
+        --success: #10b981;
+        --danger: #ef4444;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-600: #4b5563;
+        --gray-800: #1f2937;
+        --radius: 12px;
+        --transition: all .25s ease;
+        --shadow-xl: 0 18px 35px rgba(0,0,0,0.08);
+        --shadow-md: 0 3px 10px rgba(0,0,0,0.08);
+        --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
+    }
+
+    body {
+        background: var(--gray-100);
+        font-family: "Inter", sans-serif;
+    }
+
+    /* MAIN CARD */
+    .card {
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-xl);
+        border: none;
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: white;
+        padding: 1.4rem 1.7rem;
+        font-size: 1.3rem;
+        font-weight: 600;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    /* FORM SECTION TITLES */
+    .section-title {
+        font-size: 1.15rem;
+        font-weight: 600;
+        padding-bottom: .5rem;
+        border-bottom: 2px solid var(--primary);
+        display: inline-block;
+        margin-bottom: 1.5rem;
+        color: var(--gray-800);
+    }
+
+    /* INPUTS */
+    .form-control, .form-select {
+        padding: 0.7rem 1rem;
+        border-radius: 8px;
+        border: 1.5px solid var(--gray-300);
+        background: white;
+        transition: var(--transition);
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99,102,241,.15);
+    }
+
+    /* MULTI SELECT */
+    #companySelect {
+        height: 150px !important;
+        border-radius: 10px;
+        background: var(--gray-50);
+        border: 1.5px solid var(--gray-300);
+    }
+
+    /* PERMISSION CARDS */
+    .permission-card {
+        background: white;
+        border-radius: var(--radius);
+        padding: 1.7rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--gray-200);
+        margin-bottom: 1.5rem;
+        transition: var(--transition);
+    }
+
+    .permission-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,.08);
+    }
+
+    .company-header {
+        background: var(--primary-light);
+        padding: .8rem 1rem;
+        border-radius: 10px;
+        color: var(--primary);
+        font-weight: 600;
+        margin-bottom: 1.2rem;
+        display: flex;
+        gap: .5rem;
+    }
+
+    .module-title {
+        font-weight: 600;
+        font-size: 1rem;
+        margin: 1rem 0 .6rem;
+        color: var(--gray-800);
+    }
+
+    /* CHECKBOXES */
+    .form-check-input {
+        width: 1.1rem;
+        height: 1.1rem;
+        border-radius: 4px;
+        border: 2px solid var(--gray-300);
+    }
+
+    .form-check-input:checked {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    .form-check-label {
+        font-size: .92rem;
+        color: var(--gray-600);
+    }
+
+    /* BUTTONS */
+    .btn {
+        padding: .65rem 1.4rem;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+
+    .btn-success {
+        background: var(--success);
+        border: none;
+    }
+    .btn-success:hover {
+        background: #059669;
+        transform: translateY(-2px);
+    }
+
+    .btn-outline-danger {
+        border: 1.5px solid var(--danger);
+        color: var(--danger);
+    }
+    .btn-outline-danger:hover {
+        background: var(--danger);
+        color: white;
+    }
+
+    /* Fade Animation */
+    .fade-in-up {
+        animation: fadeInUp .45s ease both;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+   
+    
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-person-badge-fill"></i> Create User – Multi-Company Access
+        </div>
+
+        <div class="card-body">
+            <form id="userForm" novalidate>
+
+                <!-- 1. User Info -->
+                <div class="mb-5">
+                    <h5 class="section-title">User Information</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="firstName" required>
+                            <div class="invalid-feedback">Required</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control" name="lastName">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="email" required>
+                            <div class="invalid-feedback">Valid email</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" class="form-control" name="phone" pattern="[0-9]{10}">
+                            <div class="invalid-feedback">10 digits</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Username <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="username" required>
+                            <div class="invalid-feedback">Required</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="pwd" name="password" required minlength="6">
+                                <button class="btn btn-outline-secondary ripple" type="button" id="togglePwd">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <div class="invalid-feedback">Min 6 chars</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Role <span class="text-danger">*</span></label>
+                            <select class="form-select" id="roleSelect" name="role" required>
+                                <option value="">-- Select Role --</option>
+                                <option value="superadmin">Super Admin</option>
+                                <option value="admin">Company Admin</option>
+                                <option value="manager">Manager</option>
+                                <option value="editor">Editor</option>
+                                <option value="viewer">Viewer</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Companies -->
+                <div class="mb-5">
+                    <h5 class="section-title">Assign Companies</h5>
+                    <select class="form-select" id="companySelect" multiple required>
+                        <option value="c1">Tech Solutions Pvt Ltd</option>
+                        <option value="c2">Global Exports Inc</option>
+                        <option value="c3">Alpha Manufacturing Co</option>
+                        <option value="c4">Beta Services Ltd</option>
+                    </select>
+                    <div class="form-text mt-2">Hold <kbd>Ctrl</kbd> to select multiple</div>
+                    <div class="invalid-feedback">Select at least one</div>
+                </div>
+
+                <!-- 3. Permissions -->
+                <div id="permissionsContainer" class="mb-4"></div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-3">
+                    <button type="button" class="btn btn-outline-danger ripple" onclick="resetForm()">Reset</button>
+                    <button type="submit" class="btn btn-success ripple shadow-sm">
+                        <i class="bi bi-check-circle-fill"></i> Create User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ========== DATA ========== */
+const companies = {
+    c1: { name: "Tech Solutions Pvt Ltd", modules: { users:{read:true,create:true,update:true,delete:false}, products:{read:true,create:true,update:true,delete:true}, orders:{read:true,create:true,update:true,delete:false}, invoices:{read:true,create:true,update:false,delete:false}, reports:{read:true,create:false,update:false,delete:false} }},
+    c2: { name: "Global Exports Inc", modules: { users:{read:true,create:false,update:true,delete:false}, products:{read:true,create:true,update:true,delete:true}, orders:{read:true,create:true,update:true,delete:true}, invoices:{read:true,create:true,update:true,delete:false}, reports:{read:true,create:true,update:false,delete:false} }},
+    c3: { name: "Alpha Manufacturing Co", modules: { users:{read:true,create:true,update:true,delete:true}, products:{read:true,create:true,update:true,delete:true}, orders:{read:true,create:true,update:true,delete:true}, invoices:{read:true,create:true,update:true,delete:true}, reports:{read:true,create:true,update:true,delete:true} }},
+    c4: { name: "Beta Services Ltd", modules: { users:{read:true,create:false,update:false,delete:false}, products:{read:true,create:false,update:false,delete:false}, orders:{read:true,create:false,update:false,delete:false}, invoices:{read:true,create:false,update:false,delete:false}, reports:{read:true,create:false,update:false,delete:false} }}
+};
+
+const rolePresets = {
+    superadmin: {read:true,create:true,update:true,delete:true},
+    admin: {read:true,create:true,update:true,delete:false},
+    manager: {read:true,create:true,update:true,delete:false},
+    editor: {read:true,create:true,update:true,delete:false},
+    viewer: {read:true,create:false,update:false,delete:false}
+};
+
+/* ========== RENDER PERMISSIONS ========== */
+function renderPermissions() {
+    const container = document.getElementById('permissionsContainer');
+    const selected = Array.from(document.getElementById('companySelect').selectedOptions).map(o => o.value);
+    const role = document.getElementById('roleSelect').value;
+    const preset = rolePresets[role] || {read:true,create:false,update:false,delete:false};
+
+    if (selected.length === 0) {
+        container.innerHTML = `<div class="text-center text-muted py-4 fst-italic">Select companies to configure permissions</div>`;
+        return;
+    }
+
+    let html = '';
+    selected.forEach((compId, idx) => {
+        const comp = companies[compId];
+        html += `<div class="permission-card fade-in-up" style="animation-delay: ${idx * 100}ms">
+            <div class="company-header">
+                <i class="bi bi-building"></i> ${comp.name}
+            </div>`;
+
+        Object.entries(comp.modules).forEach(([mod, perms]) => {
+            const modName = mod.charAt(0).toUpperCase() + mod.slice(1);
+            html += `<div class="module-title">${modName}</div>
+                <div class="row g-3 mb-3">`;
+
+            ['read','create','update','delete'].forEach(act => {
+                const label = act.charAt(0).toUpperCase() + act.slice(1);
+                const checked = (role && ['superadmin','admin'].includes(role)) ? preset[act] : perms[act];
+                const disabled = (role === 'viewer' && act !== 'read') ? 'disabled' : '';
+                html += `<div class="col-6 col-md-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="${compId}_${mod}_${act}"
+                               ${checked?'checked':''} ${disabled}>
+                        <label class="form-check-label" for="${compId}_${mod}_${act}">${label}</label>
+                    </div>
+                </div>`;
+            });
+            html += `</div>`;
+        });
+        html += `</div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+/* ========== EVENTS ========== */
+document.getElementById('companySelect').addEventListener('change', renderPermissions);
+document.getElementById('roleSelect').addEventListener('change', renderPermissions);
+
+/* Password Toggle */
+document.getElementById('togglePwd').addEventListener('click', function () {
+    const pwd = document.getElementById('pwd');
+    const icon = this.querySelector('i');
+    pwd.type = pwd.type === 'password' ? 'text' : 'password';
+    icon.classList.toggle('bi-eye');
+    icon.classList.toggle('bi-eye-slash');
+});
+
+/* Submit */
+document.getElementById('userForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!this.checkValidity()) {
+        this.classList.add('was-validated');
+        return;
+    }
+
+    const fd = new FormData(this);
+    const companies = Array.from(document.getElementById('companySelect').selectedOptions).map(o => o.value);
+
+    const permissions = {};
+    companies.forEach(compId => {
+        permissions[compId] = {};
+        document.querySelectorAll(`input[id^="${compId}_"][type="checkbox"]`).forEach(cb => {
+            const [, mod, act] = cb.id.split('_');
+            if (!permissions[compId][mod]) permissions[compId][mod] = {};
+            permissions[compId][mod][act] = cb.checked;
+        });
+    });
+
+    const payload = {
+        user: {
+            firstName: fd.get('firstName'),
+            lastName: fd.get('lastName'),
+            email: fd.get('email'),
+            phone: fd.get('phone'),
+            username: fd.get('username'),
+            role: fd.get('role')
+        },
+        companies,
+        permissions
+    };
+
+    console.log('User Created →', payload);
+    alert('User created successfully!\nCheck console for JSON.');
+});
+
+/* Reset */
+function resetForm() {
+    document.getElementById('userForm').reset();
+    document.getElementById('userForm').classList.remove('was-validated');
+    document.getElementById('permissionsContainer').innerHTML = '';
+}
+</script>
+{% endblock main-content  %}

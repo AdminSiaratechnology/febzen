@@ -8,8 +8,6 @@
 
   <!-- Back Button -->
   
-
-
   <!-- Main Form -->
   <form method="POST" id="poForm">
     {% csrf_token %}
@@ -139,8 +137,7 @@
                         <option>Liter</option>
                       </select>
                     </td>
-                    
-                    
+            
                     
                   </tr>
                 </tbody>
@@ -206,23 +203,7 @@
         </div>
       </div>
 
-      <!-- Bottom Summary + Remarks -->
-      {% comment %} <div class="d-flex justify-content-between flex-wrap align-items-start p-4 border-top bg-light">
-        <div class="flex-grow-1 me-3">
-          <textarea name="remarks" class="form-control" rows="3" placeholder="Terms & Conditions, special instructions..."></textarea>
-        </div>
-        <div class="p-4 rounded-4 bg-white border shadow-sm" style="min-width: 280px;">
-          <div class="d-flex justify-content-between mb-3">
-            <span class="fw-semibold">Untaxed Amount</span>
-            <span class="fw-bold">₹ <span id="untaxed_total">0.00</span></span>
-          </div>
-          <hr>
-          <div class="d-flex justify-content-between">
-            <span class="fw-bold text-primary fs-5">Total</span>
-            <span class="fw-bold text-primary fs-5">₹ <span id="grand_total">0.00</span></span>
-          </div>
-        </div>
-      </div> {% endcomment %}
+     
        <div class="row g-4 align-items-start p-3">
       
       <!-- 📝 Left: Terms & Conditions -->

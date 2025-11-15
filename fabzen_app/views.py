@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine,Operator,Ledger,LedgerGroup,PurchaseIndent,PurchaseIndentItem,PurchaseOrder,PurchaseOrderItem,GreyPurchase,GreyPurchaseItem,PurchaseReturn,PurchaseReturnItem
+from .models import Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine,Operator,Ledger,LedgerGroup,PurchaseIndent,PurchaseIndentItem,PurchaseOrder,PurchaseOrderItem,GreyPurchase,GreyPurchaseItem,PurchaseReturn,PurchaseReturnItem,CustomUser
 from .forms import PartyForm,FabricForm
 from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -3796,3 +3796,100 @@ def save_preclose_qty(request, pk):
         return redirect('indent')
 
     return redirect('indent')
+
+
+
+
+
+# ---------------------------------------------- USER MANAGEMENT --------------------------------
+
+def Users(request):
+    # return render(request, 'fabzen_app/UserManagement/user.html')
+    return render(request, 'fabzen_app/UserManagement/user.html')
+
+def user_list(request):
+    search_query = request.GET.get('search', '').strip()
+    
+    #  user_qs = User.object.all().order_by('-id')
+
+    # if search_query:
+    #     user_qs = user_qs.filter(username__icontains=search_query)
+
+    # context = {
+    #     'user_qs': user_qs,
+    # }
+
+    return render(request, 'fabzen_app/UserManagement/partials/user_list.html')    
+
+
+# def add_user(request):
+#     company = Company.objects.filter(status='active')
+#     if request.method == "POST":
+#         username = request.POST.get('username')
+#         email = request.POST.get('email')
+#         password = request.POST.get('password')
+#         phone = request.POST.get('phone')
+#         area = request.POST.get('area')
+#         city = request.POST.get('city')
+
+#         company_id = request.POST.get('company')
+
+#         if CustomUser.objects.filter(username=username).exists():
+#             messages.error(request, "Username already exists.")
+#             return redirect('users')
+
+#         user = CustomUser.objects.create_user(username=username, email=email, password=password)
+#         if company_id:
+#             company_obj = get_object_or_404(Company, id=company_id)
+#             user.client.company = company_obj
+#             user.save()
+
+#         user.city = city
+        
+#         user.save()
+
+#         messages.success(request, "User added successfully.")
+#         return redirect('users')
+#     context = {
+#         'company': company,
+#     }
+#     return render(request, 'fabzen_app/UserManagement/add_user.html', context)
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import CustomUser, Company
+
+def add_user(request):
+    company = Company.objects.filter(status='active')
+    if request.method == "POST":
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        phone = request.POST.get('phone')
+        area = request.POST.get('area')
+        city = request.POST.get('city')
+        company_id = request.POST.get('company')
+
+        if CustomUser.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+            return redirect('users')
+
+        # Create the user with the client role
+        user = CustomUser.objects.create_user(username=username, email=email, password=password, role='client')
+        
+        # Assign the company if provided
+        if company_id:
+            company_obj = get_object_or_404(Company, id=company_id)
+            user.client.company.add(company_obj)
+
+        # Additional user fields can be set
+        user.city = city
+        user.save()
+
+        messages.success(request, "User added successfully.")
+        return redirect('users')
+    
+    context = {
+        'company': company,
+    }
+    return render(request, 'fabzen_app/UserManagement/add_user.html', context)

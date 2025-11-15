@@ -1,0 +1,177 @@
+{% extends "fabzen_app/Base/base.html" %}
+{% block title %}User | Add{% endblock %}
+
+{% block main-content %}
+<div class="page-content">
+
+<style>
+.permission-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 15px;
+    background: #fafafa;
+    margin-bottom: 15px;
+}
+.module-title {
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #374151;
+}
+.company-header {
+    background: #EEF2FF;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #4F46E5;
+    margin-bottom: 13px;
+}
+</style>
+
+<div class="card shadow-sm border rounded-3">
+    <div class="card-body p-4">
+
+        <form method="POST" action="">
+            {% csrf_token %}
+
+            <!-- USER DETAILS -->
+            <h6 class="fw-bold mb-3 text-primary">User Details</h6>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-semibold">Username</label>
+                    <input type="text" class="form-control form-control-sm" name="username" placeholder="username" required>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-semibold">Email</label>
+                    <input type="email" class="form-control form-control-sm" name="email" placeholder="email@example.com" required>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-semibold">Password</label>
+                    <input type="password" class="form-control form-control-sm" name="password" placeholder="password" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-semibold">Phone</label>
+                    <input type="text" class="form-control form-control-sm" name="phone" placeholder="phone" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-semibold">Area</label>
+                    <input type="text" class="form-control form-control-sm" name="area" placeholder="area" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-semibold">City</label>
+                    <input type="text" class="form-control form-control-sm" name="city" placeholder="city" required>
+                </div>
+                
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                <label class="form-label small fw-semibold">Company</label>
+                <select name="company" class="form-select" id="multiple-select-custom-field" data-placeholder="Choose anything" multiple="">
+                    {% for i in company %}
+                    <option value="{{ i.id }}">{{ i.company_name_street }}</option>
+                    {% endfor %}                    
+                </select>                
+            </div>
+
+            <!-- COMPANY SELECTION -->
+            {% comment %} <h6 class="fw-bold mt-4 mb-2 text-primary">Select Companies</h6>
+
+            <select id="companySelect" class="form-select form-select-sm" multiple>
+                <option value="c1">Tech Solutions Pvt Ltd</option>
+                <option value="c2">Global Exports Inc</option>
+                <option value="c3">Alpha Manufacturing Co</option>
+                <option value="c4">Beta Services Ltd</option>
+            </select>
+
+            <small class="text-muted">Hold CTRL to select multiple</small>
+
+            <!-- PERMISSIONS -->
+            <h6 class="fw-bold mt-4 text-primary">Permissions</h6>
+            <div id="permissionsContainer">
+                <p class="text-muted small">Select companies to load permissions</p>
+            </div> {% endcomment %}
+
+            <div class="d-flex justify-content-end mt-3">
+                <button class="btn btn-primary btn-sm px-3">Save</button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+</div>
+
+<script>
+/* Example company modules */
+const companyModules = {
+    c1: ["Users", "Products", "Orders", "Reports"],
+    c2: ["Users", "Inventory", "Sales", "Invoices"],
+    c3: ["Users", "Production", "Quality", "Logs"],
+    c4: ["Users", "Billing"]
+};
+function renderPermissions() {
+    const container = document.getElementById("permissionsContainer");
+    const selected = Array.from(document.getElementById("companySelect").selectedOptions)
+                    .map(o => o.value);
+
+    if (selected.length === 0) {
+        container.innerHTML = `<p class="text-muted small">Select companies to load permissions</p>`;
+        return;
+    }
+
+    let html = `<div class="accordion" id="companyPermissionAccordion">`;
+
+    selected.forEach((companyId, index) => {
+        const companyName = document.querySelector('option[value="'+companyId+'"]').text;
+
+        html += `
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="heading${index}">
+                <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapse${index}">
+                    ${companyName}
+                </button>
+            </h2>
+
+            <div id="collapse${index}" class="accordion-collapse collapse"
+                 data-bs-parent="#companyPermissionAccordion">
+                <div class="accordion-body">
+        `;
+
+        // Loop Modules inside the accordion body
+        companyModules[companyId].forEach(module => {
+            html += `
+                <div class="border rounded p-2 mb-2">
+                    <div class="fw-semibold mb-1">${module}</div>
+                    <div class="row">
+                        <div class="col-3"><input type="checkbox" name="${companyId}_${module}_read"> Read</div>
+                        <div class="col-3"><input type="checkbox" name="${companyId}_${module}_create"> Create</div>
+                        <div class="col-3"><input type="checkbox" name="${companyId}_${module}_update"> Update</div>
+                        <div class="col-3"><input type="checkbox" name="${companyId}_${module}_delete"> Delete</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+        </div>`;
+    });
+
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
+document.getElementById("companySelect").addEventListener("change", renderPermissions);
+</script>
+
+{% endblock %}

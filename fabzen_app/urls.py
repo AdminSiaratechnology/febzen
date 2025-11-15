@@ -4,7 +4,7 @@ from . import views
 urlpatterns = [
    
 
-    path('', views.home, name='dashboard'),
+    path('dashboard/', views.home, name='dashboard'),
     # ----------------------    PARTY     ----------------------------
     path("company/",views.company,name="company"),
     path("add_company/",views.add_company,name="add_company"),
@@ -168,6 +168,15 @@ urlpatterns = [
 
     # --------------------      End Purchase Return  --------------------------
 
+
+    # --------------------     User Management  --------------------------
+
+    path('users/', views.Users, name='users'),
+    path('userList/', views.user_list, name='user_list'),
+    path('addUser/', views.add_user, name='add_user'),
+
+
+    # --------------------      End User Management  --------------------------
 
 
     
