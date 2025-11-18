@@ -6,15 +6,14 @@
     <div class="container-fluid">
 
         <!-- Page Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0 fw-bold text-dark">Fabric Inventory</h4>
+        <div class="text-end mb-2">
             <a href="{% url "add_user" %}" class="btn btn-primary btn-sm px-4">
                 <i class="bx bx-plus me-1"></i> Users
             </a>
         </div>
 
         <!-- Search & Filter Card -->
-        <div class="card border-0 shadow-sm mb-4">
+        {% comment %} <div class="card border-0 shadow-sm mb-4">
             <div class="card-body p-4">
                 <div class="row g-3 align-items-center">
                     <!-- Search Input -->
@@ -79,6 +78,8 @@
                 </div>
             </div>
         </div>
+         {% endcomment %}
+        {% include "fabzen_app/Base/messages.html" %}
 
         <!-- Table Card -->
         <div class="card border-0 shadow-sm">

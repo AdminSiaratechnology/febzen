@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import Max
-
+import random
 from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
@@ -32,6 +32,8 @@ class Company(models.Model):
         ('inactive', 'Inactive'),
         ('deleted', 'Deleted'),
     ]
+    
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='banks')
     company_name_street = models.CharField(max_length=100)
     company_name_print = models.CharField(max_length=100)
     address_line1 = models.TextField()
@@ -65,6 +67,26 @@ class Company(models.Model):
     tan_no =  models.CharField(max_length=15, null=True,blank=True)
     msme_no =  models.CharField(max_length=15, null=True,blank=True)
     udyan_no =  models.CharField(max_length=15, null=True,blank=True)
+
+    company_code = models.CharField(
+        max_length=6,
+        unique=True,
+        blank=True,
+        null=True
+    )
+
+    def save(self, *args, **kwargs):
+        # Generate only when creating new record
+        if not self.company_code:
+            self.company_code = self.generate_unique_code()
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def generate_unique_code():
+        while True:
+            code = f"{random.randint(0, 999999):06d}"  # 6 digit code
+            if not Company.objects.filter(company_code=code).exists():
+                return code
  
 
 
@@ -100,7 +122,8 @@ class Client(models.Model):
         ('hold', 'hold'),
     ]
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    company = models.ManyToManyField(Company, related_name='clients')
+    company = models.ManyToManyField(Company, related_name='clients', blank=True)
+
     multiplePhones = models.JSONField(default=list, blank=True)
     contactPerson = models.CharField(max_length=255, null=True, blank=True)
     country = models.CharField(max_length=100, null=True, blank=True)
@@ -108,8 +131,12 @@ class Client(models.Model):
     city = models.CharField(max_length=100, null=True, blank=True)
     pincode = models.CharField(max_length=100, null=True, blank=True)
     limit = models.PositiveIntegerField(default=0)
+    phone = models.CharField(max_length=12,null=True,blank=True)
+    area = models.CharField(max_length=100,null=True,blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
     documents = models.FileField(upload_to='client_documents/', null=True, blank=True)
+    created_by = models.ForeignKey(CustomUser,on_delete=models.SET_NULL,null=True,blank=True,related_name="clients_created")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -150,9 +177,10 @@ class Party(models.Model):
     pincode = models.CharField(max_length=10, blank=True, null=True)
     gst_number = models.CharField(max_length=20, blank=True, null=True)
     pan_number = models.CharField(max_length=20, blank=True, null=True)
+    company = models.ForeignKey(Company,on_delete=models.SET_NULL,null=True,blank=True,related_name="company")
     rating = models.CharField(max_length=20, blank=True, null=True)
     outstanding = models.BigIntegerField(null=True,blank=True)
-
+    created_by = models.ForeignKey(CustomUser,on_delete=models.SET_NULL,null=True,blank=True,related_name="party_created")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -199,7 +227,8 @@ class Fabric(models.Model):
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, verbose_name="Category")
     rate_per_meter = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Rate per Meter (₹)", null=True,blank=True)
     description = models.TextField(null=True,blank=True)
-    
+    company = models.ForeignKey(Company,on_delete=models.SET_NULL,null=True,blank=True,related_name="fabric_company")
+    created_by = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -248,6 +277,8 @@ class Size(models.Model):
     length = models.DecimalField(
         max_digits=6, decimal_places=2, null=True, blank=True, verbose_name="Length (cm)"
     )
+    company = models.ForeignKey(Company,on_delete=models.SET_NULL,null=True,blank=True,related_name="size_company")
+    created_by = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -282,6 +313,8 @@ class Garment(models.Model):
     avg_fabric_consumption = models.CharField(max_length=20, blank=True, null=True)  # Example: '2.2m'
     avg_production_time = models.CharField(max_length=20, blank=True, null=True)    # Example: '45 min'
     description = models.TextField(blank=True, null=True)
+    company = models.ForeignKey(Company,on_delete=models.SET_NULL,null=True,blank=True,related_name="garment_company")
+    created_by = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.garment_name} ({self.garment_code})"
@@ -321,6 +354,8 @@ class Process(models.Model):
     rate = models.DecimalField(max_digits=10, decimal_places=2)
     average_time = models.CharField(max_length=50, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    company = models.ForeignKey(Company,on_delete=models.SET_NULL,null=True,blank=True,related_name="process_company")
+    created_by = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     # def save(self, *args, **kwargs):
@@ -359,6 +394,8 @@ class Operator(models.Model):
     daily_wage = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     address = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=50,choices=STATUS_CHOICES, default="active")
+    company = models.ForeignKey(Company,on_delete=models.SET_NULL,null=True,blank=True,related_name="operator_company")
+    created_by = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
     
 
     def __str__(self):
@@ -395,6 +432,8 @@ class Machine(models.Model):
     )
     notes = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=100,choices=status_choices,default="Running")
+    company = models.ForeignKey(Company,on_delete=models.SET_NULL,null=True,blank=True,related_name="machine_company")
+    created_by = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -412,7 +451,11 @@ class LedgerGroup(models.Model):
     ]
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=50, choices=ledger_type)
-
+    company = models.ForeignKey(Company,on_delete=models.SET_NULL,null=True,blank=True,related_name="group_company")
+    created_by = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
+    
+    class Meta:
+        unique_together = ('name', 'company')   
     def __str__(self):
         return self.name
     
@@ -464,6 +507,8 @@ class Ledger(models.Model):
 
     opening_balance = models.BigIntegerField(default=0)
     balance_type = models.CharField(max_length=10, choices=BALANCE_TYPE_CHOICES)
+    company = models.ForeignKey(Company,on_delete=models.SET_NULL,null=True,blank=True,related_name="ledger_company")
+    created_by = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

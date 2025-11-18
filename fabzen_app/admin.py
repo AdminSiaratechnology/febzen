@@ -77,8 +77,10 @@ class PurchaseIndentItemInline(admin.TabularInline):
 
 class ClientInline(admin.TabularInline):
     model = Client
-    extra = 1
-    fields = ('multiplePhones', 'contactPerson', 'country', 'state', 'city', 'pincode', 'limit', 'status', 'documents')
+    extra = 0
+    fk_name = 'user'
+    fields = ('company','multiplePhones', 'contactPerson', 'country', 'state', 'city', 'pincode', 'limit', 'status', 'documents')
+    readonly_fields = ('user',)
     show_change_link = True
 
 class AdminInline(admin.TabularInline):
@@ -159,5 +161,8 @@ class CustomUserAdmin(UserAdmin):
             ),
         }),
     )
+
+
+
 
 

@@ -1,8 +1,14 @@
-from django.urls import path
+from django.urls import path,include
 from . import views
+from rest_framework import routers
+from .views import ClientViewSet
+
+router = routers.DefaultRouter()
+router.register('clients', ClientViewSet, basename='clients')
 
 urlpatterns = [
    
+    path("api/", include(router.urls)),
 
     path('dashboard/', views.home, name='dashboard'),
     # ----------------------    PARTY     ----------------------------
@@ -174,6 +180,8 @@ urlpatterns = [
     path('users/', views.Users, name='users'),
     path('userList/', views.user_list, name='user_list'),
     path('addUser/', views.add_user, name='add_user'),
+    path('users/edit/<int:pk>/', views.edit_user, name='edit_user'),
+
 
 
     # --------------------      End User Management  --------------------------

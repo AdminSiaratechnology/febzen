@@ -9,6 +9,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("clientAdmin/",include('fabzen_app.urls')),
     path("",include('accounts.urls')),
+    
+    
 ]
 
 if settings.DEBUG:

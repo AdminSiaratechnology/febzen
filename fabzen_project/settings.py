@@ -1,5 +1,4 @@
 
-
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -22,6 +21,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # 'debug_toolbar',
+    'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'django_htmx',
     'fabzen_app.apps.FabzenAppConfig',
     'accounts',
+    
 ]
 
 MIDDLEWARE = [
@@ -39,6 +40,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'accounts.middleware.LoginRequiredMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "django_htmx.middleware.HtmxMiddleware",
@@ -58,6 +60,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'fabzen_app.context_processors.company_context',
+
             ],
         },
     },
@@ -127,6 +131,10 @@ INTERNAL_IPS = [
 ]
 
 AUTH_USER_MODEL = 'fabzen_app.CustomUser'
+
+# Auth redirects
+LOGIN_URL = '/'
+LOGIN_REDIRECT_URL = '/clientAdmin/dashboard/'
 
 
 

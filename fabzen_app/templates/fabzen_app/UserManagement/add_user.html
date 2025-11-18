@@ -39,32 +39,32 @@
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <label class="form-label small fw-semibold">Username</label>
-                    <input type="text" class="form-control form-control-sm" name="username" placeholder="username" required>
+                    <input type="text" class="form-control form-control-sm" name="username" placeholder="username" value="{{client.user.username}}" required>
                 </div>
 
                 <div class="col-md-4 mb-3">
                     <label class="form-label small fw-semibold">Email</label>
-                    <input type="email" class="form-control form-control-sm" name="email" placeholder="email@example.com" required>
+                    <input type="email" class="form-control form-control-sm" name="email" placeholder="email@example.com" value="{{client.user.email}}" {% if edit %}edit{% endif %} x required>
                 </div>
 
                 <div class="col-md-4 mb-3">
                     <label class="form-label small fw-semibold">Password</label>
-                    <input type="password" class="form-control form-control-sm" name="password" placeholder="password" required>
+                    <input type="password" class="form-control form-control-sm" name="password" placeholder="Enter new password(leave blank to keep current)">
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <label class="form-label small fw-semibold">Phone</label>
-                    <input type="text" class="form-control form-control-sm" name="phone" placeholder="phone" required>
+                    <input type="text" class="form-control form-control-sm" name="phone" placeholder="phone" value="{{client.phone}}" required>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label small fw-semibold">Area</label>
-                    <input type="text" class="form-control form-control-sm" name="area" placeholder="area" required>
+                    <input type="text" class="form-control form-control-sm" name="area" placeholder="area" value="{{client.area}}" required>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label small fw-semibold">City</label>
-                    <input type="text" class="form-control form-control-sm" name="city" placeholder="city" required>
+                    <input type="text" class="form-control form-control-sm" name="city" placeholder="city" value="{{client.city}}" required>
                 </div>
                 
             </div>
@@ -72,10 +72,14 @@
             <div class="row">
                 <div class="col-md-12 mb-3">
                 <label class="form-label small fw-semibold">Company</label>
-                <select name="company" class="form-select" id="multiple-select-custom-field" data-placeholder="Choose anything" multiple="">
+                <select name="company" class="form-select" id="multiple-select-custom-field" data-placeholder="Choose anything" multiple>
+
                     {% for i in company %}
-                    <option value="{{ i.id }}">{{ i.company_name_street }}</option>
-                    {% endfor %}                    
+                        <option value="{{ i.id }}"
+                            {% if i.id in selected_company_ids %}selected{% endif %}>
+                            {{ i.company_name_street }}
+                        </option>
+                    {% endfor %}                   
                 </select>                
             </div>
 

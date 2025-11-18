@@ -78,6 +78,9 @@
               <input type="text" class="form-control" name="panno"
                      value="{{ form.panno.value|default_if_none:'' }}">
             </div>
+            <div class="col-md-12">
+              <input type="hidden" value="{{company.id}}" name="company_id"> 
+            </div>
           </div>
 
           <div class="modal-footer">

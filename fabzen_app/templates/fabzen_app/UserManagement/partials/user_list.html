@@ -1,26 +1,47 @@
+{% for client in user_qs %}
 <tr>
-    <td class="ps-4 fw-medium">armaan</td>
+    <td class="ps-4 fw-medium">{{client.user.username}}</td>
     <td>
-        <span class="badge bg-success-subtle text-success">Active</span>
+        <span class="badge bg-success-subtle text-success">{{client.status}}</span>
     </td>
 
     <td>
         <div>
-            <h6 class="mb-0 fw-semibold"> siara technology</h6>
-            {% comment %} <small class="text-muted">Cotton</small> {% endcomment %}
+            
+            <h6 class="mb-0 fw-semibold">
+
+    {% for comp in client.company.all %}
+        
+        {{ comp.company_name_street }}
+
+        {# Add comma unless it's the 2nd item in a row or last item #}
+        {% if not forloop.last and forloop.counter|divisibleby:2 == False %}
+            ,
+        {% endif %}
+
+        {# After every 2 companies → new line #}
+        {% if forloop.counter|divisibleby:2 %}
+            <br>
+        {% endif %}
+        
+    {% endfor %}
+
+</h6>
+
         </div>
     </td>
     {% comment %} <td>12 Oct, 2025</td>/ {% endcomment %}
     
-     <td class="fw-semibold">2 min ago</td>
+     <td class="fw-semibold">{{client.user.last_login}}</td>
     <td class="text-end pe-4">
         <div class="d-flex gap-2 justify-content-end order-actions">
             <a href="javascript:;" class="text-danger bg-danger-subtle" title="Delete">
                 <i class="bx bxs-trash"></i>
             </a>
-            <a href="#" class="text-primary bg-primary-subtle" title="Edit">
+            <a href="{% url "edit_user" client.id %}" class="text-primary bg-primary-subtle" title="Edit">
                 <i class="bx bxs-edit"></i>
             </a>
         </div>
     </td>
 </tr>
+{% endfor %}

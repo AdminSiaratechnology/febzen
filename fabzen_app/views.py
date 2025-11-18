@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine,Operator,Ledger,LedgerGroup,PurchaseIndent,PurchaseIndentItem,PurchaseOrder,PurchaseOrderItem,GreyPurchase,GreyPurchaseItem,PurchaseReturn,PurchaseReturnItem,CustomUser
+from .models import Client, Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine,Operator,Ledger,LedgerGroup,PurchaseIndent,PurchaseIndentItem,PurchaseOrder,PurchaseOrderItem,GreyPurchase,GreyPurchaseItem,PurchaseReturn,PurchaseReturnItem,CustomUser
 from .forms import PartyForm,FabricForm
 from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -9,6 +9,8 @@ from django.views.generic import ListView,CreateView
 from django.urls import reverse_lazy
 import json
 from datetime import date
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 # Create your views here.
 
 
@@ -24,17 +26,20 @@ def get_garment_details(request, garment_id):
         return JsonResponse({'description': '', 'price': ''})
 
 
+@login_required(login_url='/')
 def home(request):
+          
     return render(request, 'fabzen_app/dashboard.html')
 
+@login_required(login_url='/')
 def company(request):
+    
     return render(request, 'fabzen_app/Masters/company/company.html')
-
 
 def company_list(request):
     search_query = request.GET.get('search', '').strip()
     status = request.GET.get('status', '').strip()
-    company = Company.objects.all().order_by('-id')
+    company = Company.objects.filter(user=request.user).order_by('-id')
     # company = Company.objects.filter(status ='active').order_by('-id')
    
 
@@ -69,7 +74,7 @@ def company_list(request):
     return render(request, 'fabzen_app/Masters/company/partials/company_list.html',context)
 
 
-
+@login_required(login_url='/')
 def edit_company(request,pk):
     company = get_object_or_404(Company, id=pk)
     company_banks = CompanyBank.objects.filter(company=company)
@@ -159,6 +164,7 @@ def toggle_company_status(request, pk):
     # Re-render only the updated row HTML and return it
     return render(request, 'fabzen_app/Masters/company/partials/company_list.html', {'cmp': company})
 
+@login_required(login_url='/')
 def add_company(request):
     if request.method == "POST":
 
@@ -217,6 +223,7 @@ def add_company(request):
 
 
         company = Company.objects.create(
+            user = request.user,
             company_name_street=cmp_steet,
             company_name_print=cmpprint,
             address_line1=addressline1,
@@ -300,8 +307,11 @@ def add_company(request):
 def party_list(request):
     search_query = request.GET.get('search', '').strip()
     party_type = request.GET.get('type', '').strip()
+    company_code = request.session.get('active_company_id')
 
-    parties_list = Party.objects.all().order_by('-id')
+    parties_list = Party.objects.filter(created_by = request.user, company__company_code = company_code).order_by('-id')
+    # parties_list = Party.objects.all().order_by('-id')
+   
 
     # 🔍 Search filter
     if search_query:
@@ -334,6 +344,7 @@ def party_list(request):
     })
 
 
+@login_required(login_url='/')
 def party(request):
     return render(request,'fabzen_app/Masters/Party/party.html')
 
@@ -353,8 +364,13 @@ def add_party(request):
             pincode = request.POST.get('pincode')
             gstno = request.POST.get('gstno')
             panno = request.POST.get('panno')
+            company_id = request.POST.get('company_id')
 
-            party = Party.objects.create(party_name=party_name,party_type=party_type,contact_person=contact_person,mobile=mobile,address=address,city=city,state=state,pincode=pincode,gst_number=gstno,pan_number=panno)
+            company = Company.objects.get(id=company_id)
+
+            
+
+            party = Party.objects.create(party_name=party_name,party_type=party_type,contact_person=contact_person,mobile=mobile,address=address,city=city,state=state,pincode=pincode,gst_number=gstno,pan_number=panno,company=company,created_by=request.user)
             party.save()
             
             parties_list = Party.objects.all().order_by('-id')
@@ -446,18 +462,13 @@ def view_party(request, id):
 
 # ----------------------------------- FABRIC QUALITIEST ---------------------
 
-class FabricListView(ListView):
+class FabricListView(LoginRequiredMixin,ListView):
+    login_url = '/'
     model = Fabric
     template_name = 'fabzen_app/Masters/fabrics/fabric.html'
     context_object_name = 'fabrics'
     ordering = ['-id']
     paginate_by = 10
-
-    # def get_template_names(self):
-    #     # HTMX request par sirf list partial bhejo
-    #     if self.request.htmx:
-    #         return ['fabzen_app/Masters/fabrics/partials/fabric_list.html']
-    #     return [self.template_name]
 
 
 
@@ -472,7 +483,10 @@ class FabricListView(ListView):
 def fabric_list(request):
     search_query = request.GET.get('search', '').strip()
     category_type = request.GET.get('type', '').strip()
-    fabrics_qs = Fabric.objects.all().order_by('-id')
+    company_code = request.session.get('active_company_id')
+
+    fabrics_qs = Fabric.objects.filter(created_by=request.user,company__company_code = company_code).order_by('-id')
+    # fabrics_qs = Fabric.objects.all().order_by('-id')
     if search_query:
         fabrics_qs = fabrics_qs.filter(
             Q(code__icontains=search_query) |
@@ -511,10 +525,16 @@ def create_fabric(request):
         category = request.POST.get('category')
         rate_per_meter = request.POST.get('rate_per_meter')
         description = request.POST.get('description')
+        company_id = request.POST.get('company_id')
+
+
+
+        company = Company.objects.get(id=company_id)
+        
 
         
     
-        fabric = Fabric.objects.create(code=code,quality_name=quality_name,construction=construction,width=width,gsm=gsm,category=category,rate_per_meter=rate_per_meter,description=description)
+        fabric = Fabric.objects.create(code=code,quality_name=quality_name,construction=construction,width=width,gsm=gsm,category=category,rate_per_meter=rate_per_meter,description=description,company=company,created_by=request.user)
         # if not fabric.code:
         #     last = Fabric.objects.order_by('-id').first()
         #     next_num = (last.id + 1) if last else 1
@@ -544,7 +564,7 @@ def update_fabric(request, pk):
 
 # ----------------------------------- SIZES ---------------------
 
-
+@login_required(login_url='/')
 def SizesListView(request):
     if request.method == "POST":
        
@@ -554,6 +574,9 @@ def SizesListView(request):
         chest = request.POST.get("chest") or None
         waist = request.POST.get("waist") or None
         length = request.POST.get("length") or None
+        company_id = request.POST.get("company_id")
+
+        company = Company.objects.get(id=company_id)
 
         # Validation (optional but recommended)
         if not size_category or not size_label:
@@ -566,6 +589,8 @@ def SizesListView(request):
                 chest=chest,
                 waist=waist,
                 length=length,
+                company = company,
+                created_by = request.user
             )
             messages.success(request, f"Size '{size.size_label}' added successfully!")
             return redirect("size")  # <- apne URL name ke hisaab se change karein
@@ -585,11 +610,12 @@ def SizesListView(request):
 
 
 def size_list(request):
+    company_code = request.session.get('active_company_id')
     context = {
-        "shirts": Size.objects.filter(size_category="shirts").order_by("display_order"),
-        "pants": Size.objects.filter(size_category="pants").order_by("display_order"),
-        "ladies": Size.objects.filter(size_category="ladies").order_by("display_order"),
-        "kids": Size.objects.filter(size_category="kids").order_by("display_order"),
+        "shirts": Size.objects.filter(created_by=request.user,company__company_code=company_code,size_category="shirts").order_by("display_order"),
+        "pants": Size.objects.filter(created_by=request.user,company__company_code=company_code,size_category="pants").order_by("display_order"),
+        "ladies": Size.objects.filter(created_by=request.user,company__company_code=company_code,size_category="ladies").order_by("display_order"),
+        "kids": Size.objects.filter(created_by=request.user,company__company_code=company_code,size_category="kids").order_by("display_order"),
     }
 
     return render(request, 'fabzen_app/Masters/sizes/sizelist.html', context)
@@ -622,7 +648,7 @@ def size_list(request):
 
 # -----------------------------------  Garments ---------------------
 
-
+@login_required(login_url='/')
 def GarmentsListView(request):
     garments = Garment.objects.all().order_by('-id')
 
@@ -635,7 +661,9 @@ def GarmentsListView(request):
         avg_fabric_consumption = request.POST.get('avg_fabric_consumption', '').strip()
         avg_production_time = request.POST.get('avg_production_time', '').strip()
         description = request.POST.get('description', '').strip()
+        company_id = request.POST.get('company_id')
 
+        company = Company.objects.get(id=company_id)
         # Validate required fields
         if not garment_code or not garment_name or not garment_category or not rate_per_meter:
             messages.error(request, "Please fill all required fields.")
@@ -655,6 +683,8 @@ def GarmentsListView(request):
             avg_fabric_consumption=avg_fabric_consumption,
             avg_production_time=avg_production_time,
             description=description,
+            company=company,
+            created_by = request.user
         )
 
         messages.success(request, "Garment added successfully!")
@@ -708,7 +738,9 @@ def delete_garment(request, garment_id):
 def garments_list(request):
     search_query = request.GET.get('search', '').strip()
     category_type = request.GET.get('type', '').strip()
-    garments_qs = Garment.objects.all().order_by('-id')
+    company_code = request.session.get('active_company_id')
+    garments_qs = Garment.objects.filter(created_by= request.user,company__company_code=company_code ).order_by('-id')
+    # garments_qs = Garment.objects.all().order_by('-id')
 
     if search_query:
         garments_qs = garments_qs.filter(
@@ -780,7 +812,7 @@ def garments_list(request):
 #     return render(request, 'fabzen_app/Masters/processes/processes.html', {'garments': garments})
 
 
-
+@login_required(login_url='/')
 def ProcessesListView(request):
     processes = Process.objects.all().order_by('-id')
 
@@ -792,7 +824,9 @@ def ProcessesListView(request):
         rate = request.POST.get('rate', '').strip()
         average_time = request.POST.get('avg_time', '').strip()
         description = request.POST.get('description', '').strip()
+        company_id = request.POST.get('company_id')
 
+        company = Company.objects.get(id=company_id)
         # Validate required fields
         if not process_code or not process_name or not process_type or not unit or not rate:
             messages.error(request, "Please fill all required fields.")
@@ -811,7 +845,9 @@ def ProcessesListView(request):
             unit=unit,
             rate=rate,
             average_time=average_time,
-            description=description
+            description=description,
+            company=company,
+            created_by = request.user
         )
 
         messages.success(request, f"Process '{process_name}' added successfully!")
@@ -825,7 +861,9 @@ def ProcessesListView(request):
 def process_list(request):
     search_query = request.GET.get('search', '').strip()
     category_type = request.GET.get('type', '').strip()
-    process_qs = Process.objects.all().order_by('-id')
+    company_code = request.session.get('active_company_id')
+    process_qs = Process.objects.filter(created_by = request.user, company__company_code=company_code).order_by('-id')
+    # process_qs = Process.objects.all().order_by('-id')
 
     if search_query:
         process_qs = process_qs.filter(
@@ -889,9 +927,8 @@ def edit_process(request, pk):
 
 
 
-
+@login_required(login_url='/')
 def MachineListView(request):
-    
 
     if request.method == "POST":
         machine_code = request.POST.get('machine_code', '').strip()
@@ -903,6 +940,8 @@ def MachineListView(request):
         assign_operator_id = request.POST.get('assign_operator', '').strip()
 
         notes  = request.POST.get('notes', '').strip()
+        company_id = request.POST.get('company_id')
+        company = Company.objects.get(id=company_id)
 
        
 
@@ -920,7 +959,9 @@ def MachineListView(request):
             capacity_per_day=capacity,
             purchase_date=purchase_date,
             assigned_operator=assign_operator,
-            notes=notes
+            notes=notes,
+            created_by = request.user,
+            company = company
         )
         messages.success(request, f"Machine '{machine_name}' added successfully!")
         return redirect('machine')
@@ -939,7 +980,9 @@ def machine_list(request):
     
     search_query = request.GET.get('search', '').strip()
     type = request.GET.get('type', '').strip()
-    machine_qs = Machine.objects.all().order_by('-id')
+    company_code = request.session.get('active_company_id')
+    machine_qs = Machine.objects.filter(created_by=request.user,company__company_code=company_code).order_by('-id')
+    # machine_qs = Machine.objects.all().order_by('-id')
 
     if search_query:
         machine_qs = machine_qs.filter(
@@ -1052,7 +1095,7 @@ def edit_machine(request, pk):
 
 #     return render(request, 'fabzen_app/Masters/operators/operator.html')
 
-
+@login_required(login_url='/')
 def OperatorListView(request):
     if request.method == "POST":
         operator_code = request.POST.get('operator_code', '').strip()
@@ -1063,12 +1106,13 @@ def OperatorListView(request):
         date_of_joining = request.POST.get('date_of_joining', '').strip()
         daily_wage = request.POST.get('daily_wage', '').strip()
         address = request.POST.get('address', '').strip()
+        company_id = request.POST.get('company_id')
 
         # ✅ Check for duplicate operator code
         if Operator.objects.filter(operator_code__iexact=operator_code).exists():
             messages.error(request, f"Operator code '{operator_code}' already exists!")
             return redirect('operator-list')
-
+        company = Company.objects.get(id=company_id)
         # ✅ Create and save operator
         Operator.objects.create(
             operator_code=operator_code,
@@ -1079,6 +1123,8 @@ def OperatorListView(request):
             date_of_joining=date_of_joining,
             daily_wage=daily_wage,
             address=address,
+            company = company,
+            created_by = request.user
         )
 
         messages.success(request, f"Operator '{full_name}' added successfully!")
@@ -1095,8 +1141,10 @@ def operator_list(request):
     
     search_query = request.GET.get('search', '').strip()
     type = request.GET.get('type', '').strip()
-    operator_qs = Operator.objects.all().order_by('-id')
-    
+    company_code = request.session.get('active_company_id')
+    operator_qs = Operator.objects.filter(created_by=request.user,company__company_code=company_code).order_by('-id')
+    # operator_qs = Operator.objects.all().order_by('-id')
+ 
 
     if search_query:
         operator_qs = operator_qs.filter(
@@ -1246,7 +1294,7 @@ def edit_operator(request, pk):
 #     return render(request, 'fabzen_app/Masters/ledgers/ledger.html',{'ledger_group':ledger_group})
 
 
-
+@login_required(login_url='/')
 def LedgerListView(request):
     if request.method == "POST":
         ledger_code = request.POST.get('ledger_code', '').strip()
@@ -1254,6 +1302,7 @@ def LedgerListView(request):
         group_id = request.POST.get('ledger_group', '').strip()
         opening_balance = request.POST.get('opening_balance', '').strip()
         balance_type = request.POST.get('balance_type', '').strip()  # ✅ fixed field name
+        company_id = request.POST.get('company_id')
 
         # ✅ Validate and convert opening_balance
         opening_balance = int(opening_balance) if opening_balance else 0
@@ -1269,6 +1318,7 @@ def LedgerListView(request):
             messages.error(request, "Invalid ledger group selected.")
             return redirect('ledger')
 
+        company = Company.objects.get(id=company_id)
         # ✅ Create and save Ledger
         Ledger.objects.create(
             ledger_code=ledger_code,
@@ -1276,6 +1326,8 @@ def LedgerListView(request):
             ledger_group=ledger_group,
             opening_balance=opening_balance,
             balance_type=balance_type,
+            company = company,
+            created_by = request.user
         )
 
         messages.success(request, f"Ledger '{ledger_name}' added successfully!")
@@ -1290,8 +1342,11 @@ def ledger_list(request):
     
     search_query = request.GET.get('search', '').strip()
     type = request.GET.get('type', '').strip()
-    ledger_qs = Ledger.objects.all().order_by('-id')
-    ledger_group = LedgerGroup.objects.all().order_by('-id')
+    company_code = request.session.get('active_company_id')
+    ledger_qs = Ledger.objects.filter(created_by=request.user,company__company_code=company_code).order_by('-id')
+    # ledger_qs = Ledger.objects.all().order_by('-id')
+    ledger_group = LedgerGroup.objects.filter(created_by=request.user,company__company_code=company_code).order_by('-id')
+    # ledger_group = LedgerGroup.objects.all().order_by('-id')
 
     if search_query:
         ledger_qs = ledger_qs.filter(
@@ -1332,7 +1387,7 @@ def add_ledger_group(request):
     if request.method == "POST":
         name = request.POST.get('name', '').strip()
         group_type = request.POST.get('type', '').strip()
-        
+        company_id = request.POST.get('company_id')
         # Validation
         if not name or not group_type:
             return HttpResponse("<div class='alert alert-danger'>Group name and type are required!</div>")
@@ -1342,9 +1397,12 @@ def add_ledger_group(request):
             return HttpResponse("<div class='alert alert-warning'>Group name already exists! Please use a different name.</div>")
             
         # Create the ledger group
+        company = Company.objects.get(id=company_id)
         new_group = LedgerGroup.objects.create(
             name=name,
-            type=group_type
+            type=group_type,
+            company=company,
+            created_by = request.user
         )
         
         # Return success response with trigger to close modal and reopen ledger modal
@@ -1485,7 +1543,7 @@ def BomListView(request):
 #     }
 #     return render(request, 'fabzen_app/Purchase/PurchaseIndent/indent.html', context)
 
-
+@login_required(login_url='/')
 def IndentListView(request):
     garment = Garment.objects.all()
     pending = PurchaseIndent.objects.filter(status='Pending').count()
@@ -1563,6 +1621,7 @@ def IndentListView(request):
     }
     return render(request, 'fabzen_app/Purchase/PurchaseIndent/indent.html', context)
 
+@login_required(login_url='/')
 def add_indent(request):
     garment = Garment.objects.all()
     
@@ -1808,7 +1867,7 @@ def indent_list(request):
 #     # return render(request, 'fabzen_app/Purchase/PurchaseIndent/indent_edit.html', context)
 
 from decimal import Decimal
-
+@login_required(login_url='/')
 def edit_indent(request, pk):
     indent = get_object_or_404(PurchaseIndent, pk=pk)
     garment = Garment.objects.all()
@@ -2001,7 +2060,7 @@ from decimal import Decimal
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 from .models import PurchaseOrder, PurchaseOrderItem, PurchaseIndent, PurchaseIndentItem, Garment
-
+@login_required(login_url='/')
 def convert_to_po(request, pk):
     indent = get_object_or_404(PurchaseIndent, pk=pk)
     indent_items = PurchaseIndentItem.objects.filter(indent=indent)
@@ -2160,6 +2219,7 @@ from .models import PurchaseOrder, PurchaseOrderItem, Garment
 
 from decimal import Decimal
 
+@login_required(login_url='/')
 def add_purchase_order(request):
     garment = Garment.objects.all()
 
@@ -2247,6 +2307,7 @@ def add_purchase_order(request):
     return render(request, 'fabzen_app/Purchase/PurchaseOrder/adding_purchase_ordercopy.html', {'garment': garment})
 
 
+@login_required(login_url='/')
 def PurchaseOrderListView(request):
     garment = Garment.objects.all()
     pending = PurchaseIndent.objects.filter(status='Pending').count()
@@ -2390,7 +2451,7 @@ from decimal import Decimal
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from datetime import date
-
+@login_required(login_url='/')
 def edit_purchase_order(request, pk):
     purchase_order = get_object_or_404(PurchaseOrder, pk=pk)
     garment = Garment.objects.all()
@@ -3802,24 +3863,36 @@ def save_preclose_qty(request, pk):
 
 
 # ---------------------------------------------- USER MANAGEMENT --------------------------------
-
+@login_required(login_url='/')
 def Users(request):
     # return render(request, 'fabzen_app/UserManagement/user.html')
     return render(request, 'fabzen_app/UserManagement/user.html')
 
+
 def user_list(request):
     search_query = request.GET.get('search', '').strip()
+    company_code = request.session.get('active_company_id')
+    print("company codess here", company_code)
+
+    companies = Company.objects.filter(company_code=company_code)
+
+    print("Matching Companies:", companies)
+
     
-    #  user_qs = User.object.all().order_by('-id')
+    user_qs = Client.objects.filter(
+        created_by=request.user,
+        company__company_code=company_code
+    )
+    print("user_qs:", user_qs)
 
     # if search_query:
     #     user_qs = user_qs.filter(username__icontains=search_query)
 
-    # context = {
-    #     'user_qs': user_qs,
-    # }
+    context = {
+        'user_qs': user_qs,
+    }
 
-    return render(request, 'fabzen_app/UserManagement/partials/user_list.html')    
+    return render(request, 'fabzen_app/UserManagement/partials/user_list.html',context)    
 
 
 # def add_user(request):
@@ -3858,9 +3931,9 @@ def user_list(request):
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import CustomUser, Company
-
 def add_user(request):
     company = Company.objects.filter(status='active')
+    
     if request.method == "POST":
         username = request.POST.get('username')
         email = request.POST.get('email')
@@ -3868,28 +3941,109 @@ def add_user(request):
         phone = request.POST.get('phone')
         area = request.POST.get('area')
         city = request.POST.get('city')
-        company_id = request.POST.get('company')
+
+        # 👇 MULTIPLE company IDs
+        company_ids = request.POST.getlist('company')
+        print("company idssss",company_ids)
 
         if CustomUser.objects.filter(username=username).exists():
             messages.error(request, "Username already exists.")
             return redirect('users')
 
-        # Create the user with the client role
-        user = CustomUser.objects.create_user(username=username, email=email, password=password, role='client')
-        
-        # Assign the company if provided
-        if company_id:
-            company_obj = get_object_or_404(Company, id=company_id)
-            user.client.company.add(company_obj)
+        # Create user
+        user = CustomUser.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            role='client'
+        )
 
-        # Additional user fields can be set
-        user.city = city
-        user.save()
+        # Assign multiple companies
+        if company_ids:
+            for cid in company_ids:
+                company_obj = get_object_or_404(Company, id=cid)
+                user.client.company.add(company_obj)
+
+
+        # Save other fields
+        user.client.city = city
+        user.client.created_by = request.user
+        user.client.save()
 
         messages.success(request, "User added successfully.")
         return redirect('users')
-    
+
     context = {
         'company': company,
+        
     }
     return render(request, 'fabzen_app/UserManagement/add_user.html', context)
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import CustomUser, Client, Company
+
+def edit_user(request, pk):
+
+    client = get_object_or_404(Client, pk=pk)
+    user = client.user
+    company = Company.objects.filter(status='active')
+
+    if request.method == "POST":
+
+        # Get input fields
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        phone = request.POST.get('phone')
+        area = request.POST.get('area')
+        city = request.POST.get('city')
+
+        company_ids = request.POST.getlist('company')
+
+        # ---------- UPDATE USER ----------
+        user.username = username
+        user.email = email
+        
+        if password.strip():  # Update only if new password entered
+            user.set_password(password)
+
+        user.save()
+
+        # ---------- UPDATE CLIENT ----------
+        client.phone = phone
+        client.area = area
+        client.city = city
+        client.save()
+
+        # ---------- UPDATE MANY2MANY COMPANIES ----------
+        client.company.clear()         # remove old companies
+        for cid in company_ids:
+            company_obj = Company.objects.get(id=cid)
+            client.company.add(company_obj)
+
+        messages.success(request, "User updated successfully.")
+
+        return redirect("users")   # your listing page
+
+    # GET request - show edit form
+    selected_company_ids = client.company.values_list('id', flat=True)
+
+    context = {
+        'client': client,
+        'company': company,
+        'selected_company_ids': list(selected_company_ids),
+        'edit' : True
+    }
+    return render(request, 'fabzen_app/UserManagement/add_user.html', context)
+
+
+
+
+
+from rest_framework import viewsets
+from .models import Client
+from .serializers import ClientSerializer
+
+class ClientViewSet(viewsets.ModelViewSet):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
