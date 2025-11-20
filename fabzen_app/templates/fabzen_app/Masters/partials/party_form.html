@@ -10,6 +10,7 @@
           hx-post="{% if mode == 'edit' %}{% url 'edit_party' id %}{% else %}{% url 'add_party' %}{% endif %}"
           hx-target="tbody"
           hx-swap="innerHTML"
+          hx-include="[name='search'], [name='type']"
           class="row g-3">
 
           {% csrf_token %}

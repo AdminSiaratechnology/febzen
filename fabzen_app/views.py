@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import Client, Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine,Operator,Ledger,LedgerGroup,PurchaseIndent,PurchaseIndentItem,PurchaseOrder,PurchaseOrderItem,GreyPurchase,GreyPurchaseItem,PurchaseReturn,PurchaseReturnItem,CustomUser
+from .models import Client, Party,Company,CompanyBank,Fabric,Size,Garment,Process,Machine,Operator,Ledger,LedgerGroup,PurchaseIndent,PurchaseIndentItem,PurchaseOrder,PurchaseOrderItem,GreyPurchase,GreyPurchaseItem,PurchaseReturn,PurchaseReturnItem,CustomUser,Admin
 from .forms import PartyForm,FabricForm
 from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -12,10 +12,22 @@ from datetime import date
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 # Create your views here.
+def get_all_child_clients(user):
+    result = []
+    stack = list(Client.objects.filter(created_by=user))
 
+    while stack:
+        client = stack.pop()
+        result.append(client)
+        # Client ke through banaye gaye naye clients
+        children = Client.objects.filter(created_by=client.user)
+        stack.extend(children)
+
+    return result
 
 def get_garment_details(request, garment_id):
     """HTMX endpoint to fetch garment description and price"""
+    print("helooooooo indennt")
     try:
         garment = Garment.objects.get(id=garment_id)
         return JsonResponse({
@@ -309,7 +321,7 @@ def party_list(request):
     party_type = request.GET.get('type', '').strip()
     company_code = request.session.get('active_company_id')
 
-    parties_list = Party.objects.filter(created_by = request.user, company__company_code = company_code).order_by('-id')
+    parties_list = Party.objects.filter(company__company_code = company_code).order_by('-id')
     # parties_list = Party.objects.all().order_by('-id')
    
 
@@ -373,7 +385,19 @@ def add_party(request):
             party = Party.objects.create(party_name=party_name,party_type=party_type,contact_person=contact_person,mobile=mobile,address=address,city=city,state=state,pincode=pincode,gst_number=gstno,pan_number=panno,company=company,created_by=request.user)
             party.save()
             
-            parties_list = Party.objects.all().order_by('-id')
+            company_code = request.session.get('active_company_id')
+            search_query = request.POST.get('search', '').strip()
+            party_type = request.POST.get('type', '').strip()
+            parties_list = Party.objects.filter(created_by=request.user, company__company_code=company_code).order_by('-id')
+            if search_query:
+                parties_list = parties_list.filter(
+                    Q(party_name__icontains=search_query) |
+                    Q(city__icontains=search_query) |
+                    Q(gst_number__icontains=search_query) |
+                    Q(contact_person__icontains=search_query)
+                )
+            if party_type:
+                parties_list = parties_list.filter(party_type__iexact=party_type)
             
             # पेजिनेशन लॉजिक
             page = request.GET.get('page', 1)
@@ -409,7 +433,19 @@ def edit_party(request, id):
         if form.is_valid():
             form.save()
             # After successful edit, return updated table and trigger closing modal (HTMX)
-            parties_list = Party.objects.all().order_by('-id')
+            company_code = request.session.get('active_company_id')
+            search_query = request.POST.get('search', '').strip()
+            party_type = request.POST.get('type', '').strip()
+            parties_list = Party.objects.filter(created_by=request.user, company__company_code=company_code).order_by('-id')
+            if search_query:
+                parties_list = parties_list.filter(
+                    Q(party_name__icontains=search_query) |
+                    Q(city__icontains=search_query) |
+                    Q(gst_number__icontains=search_query) |
+                    Q(contact_person__icontains=search_query)
+                )
+            if party_type:
+                parties_list = parties_list.filter(party_type__iexact=party_type)
             page = request.GET.get('page', 1)
             paginator = Paginator(parties_list, 10)
 
@@ -485,7 +521,8 @@ def fabric_list(request):
     category_type = request.GET.get('type', '').strip()
     company_code = request.session.get('active_company_id')
 
-    fabrics_qs = Fabric.objects.filter(created_by=request.user,company__company_code = company_code).order_by('-id')
+    fabrics_qs = Fabric.objects.filter(company__company_code = company_code).order_by('-id')
+    # fabrics_qs = Fabric.objects.filter(created_by=request.user,company__company_code = company_code).order_by('-id')
     # fabrics_qs = Fabric.objects.all().order_by('-id')
     if search_query:
         fabrics_qs = fabrics_qs.filter(
@@ -612,10 +649,10 @@ def SizesListView(request):
 def size_list(request):
     company_code = request.session.get('active_company_id')
     context = {
-        "shirts": Size.objects.filter(created_by=request.user,company__company_code=company_code,size_category="shirts").order_by("display_order"),
-        "pants": Size.objects.filter(created_by=request.user,company__company_code=company_code,size_category="pants").order_by("display_order"),
-        "ladies": Size.objects.filter(created_by=request.user,company__company_code=company_code,size_category="ladies").order_by("display_order"),
-        "kids": Size.objects.filter(created_by=request.user,company__company_code=company_code,size_category="kids").order_by("display_order"),
+        "shirts": Size.objects.filter(company__company_code=company_code,size_category="shirts").order_by("display_order"),
+        "pants": Size.objects.filter(company__company_code=company_code,size_category="pants").order_by("display_order"),
+        "ladies": Size.objects.filter(company__company_code=company_code,size_category="ladies").order_by("display_order"),
+        "kids": Size.objects.filter(company__company_code=company_code,size_category="kids").order_by("display_order"),
     }
 
     return render(request, 'fabzen_app/Masters/sizes/sizelist.html', context)
@@ -739,7 +776,7 @@ def garments_list(request):
     search_query = request.GET.get('search', '').strip()
     category_type = request.GET.get('type', '').strip()
     company_code = request.session.get('active_company_id')
-    garments_qs = Garment.objects.filter(created_by= request.user,company__company_code=company_code ).order_by('-id')
+    garments_qs = Garment.objects.filter(company__company_code=company_code ).order_by('-id')
     # garments_qs = Garment.objects.all().order_by('-id')
 
     if search_query:
@@ -862,7 +899,7 @@ def process_list(request):
     search_query = request.GET.get('search', '').strip()
     category_type = request.GET.get('type', '').strip()
     company_code = request.session.get('active_company_id')
-    process_qs = Process.objects.filter(created_by = request.user, company__company_code=company_code).order_by('-id')
+    process_qs = Process.objects.filter(company__company_code=company_code).order_by('-id')
     # process_qs = Process.objects.all().order_by('-id')
 
     if search_query:
@@ -981,7 +1018,7 @@ def machine_list(request):
     search_query = request.GET.get('search', '').strip()
     type = request.GET.get('type', '').strip()
     company_code = request.session.get('active_company_id')
-    machine_qs = Machine.objects.filter(created_by=request.user,company__company_code=company_code).order_by('-id')
+    machine_qs = Machine.objects.filter(company__company_code=company_code).order_by('-id')
     # machine_qs = Machine.objects.all().order_by('-id')
 
     if search_query:
@@ -1142,7 +1179,7 @@ def operator_list(request):
     search_query = request.GET.get('search', '').strip()
     type = request.GET.get('type', '').strip()
     company_code = request.session.get('active_company_id')
-    operator_qs = Operator.objects.filter(created_by=request.user,company__company_code=company_code).order_by('-id')
+    operator_qs = Operator.objects.filter(company__company_code=company_code).order_by('-id')
     # operator_qs = Operator.objects.all().order_by('-id')
  
 
@@ -1334,7 +1371,11 @@ def LedgerListView(request):
         return redirect('ledger')
 
     # ✅ Fetch all ledger groups for listing
-    ledger_group = LedgerGroup.objects.all().order_by('-id')
+    company_code = request.session.get('active_company_id')
+    
+    ledger_group = LedgerGroup.objects.filter(company__company_code = company_code).order_by('-id')
+    # ledger_group = LedgerGroup.objects.all().order_by('-id')
+    
     return render(request, 'fabzen_app/Masters/ledgers/ledger.html', {'ledger_group': ledger_group})
 
 
@@ -1623,7 +1664,8 @@ def IndentListView(request):
 
 @login_required(login_url='/')
 def add_indent(request):
-    garment = Garment.objects.all()
+    company_code = request.session.get('active_company_id')
+    garment = Garment.objects.filter(company__company_code = company_code)
     
     if request.method == "POST":
         # Get main fields
@@ -1633,6 +1675,7 @@ def add_indent(request):
         requested_by = request.POST.get('requested_by')
         required_date = request.POST.get('required_date')
         remarks = request.POST.get('purpose')
+        company_id = request.POST.get('company_id')
         
 
         # ✅ Generate unique indent number
@@ -1644,6 +1687,7 @@ def add_indent(request):
         indent_no = f"PI-{new_number:04d}"
 
         # ✅ Create main PurchaseIndent record
+        company = Company.objects.get(id=company_id)
         indent = PurchaseIndent.objects.create(
             indent_no=indent_no,
             department=department,
@@ -1652,7 +1696,9 @@ def add_indent(request):
             priority=priority,
             requested_by=requested_by,
             remarks=remarks,
-            status='Pending'
+            status='Pending',
+            created_by = request.user,
+            company = company
         )
 
         # ✅ Get list fields
@@ -1704,8 +1750,9 @@ def indent_list(request):
     search_query = request.GET.get('search', '').strip()
     
     type = request.GET.get('type', '').strip()
-    purchase_qs = PurchaseIndent.objects.all().order_by('-id')
-    garment = Garment.objects.all()
+    company_code = request.session.get('active_company_id')
+    purchase_qs = PurchaseIndent.objects.filter(company__company_code = company_code).order_by('-id')
+    
     # ledger_group = LedgerGroup.objects.all().order_by('-id')
 
     if search_query:
@@ -1735,7 +1782,7 @@ def indent_list(request):
         'paginator': paginator,
         'is_paginated': True,  # Used by your template
         # 'ledger_group':ledger_group
-        'garment':garment
+        
     }
 
     return render(request, 'fabzen_app/Purchase/PurchaseIndent/partials/purchase_list.html', context)
@@ -1870,7 +1917,10 @@ from decimal import Decimal
 @login_required(login_url='/')
 def edit_indent(request, pk):
     indent = get_object_or_404(PurchaseIndent, pk=pk)
-    garment = Garment.objects.all()
+    company_code = request.session.get('active_company_id')
+    garment = Garment.objects.filter(company__company_code = company_code)
+    # garment = Garment.objects.all()
+
 
     if request.method == "POST":
         indent.indent_date = request.POST.get('indent_date')
@@ -2064,7 +2114,8 @@ from .models import PurchaseOrder, PurchaseOrderItem, PurchaseIndent, PurchaseIn
 def convert_to_po(request, pk):
     indent = get_object_or_404(PurchaseIndent, pk=pk)
     indent_items = PurchaseIndentItem.objects.filter(indent=indent)
-    garments = Garment.objects.all()
+    company_code = request.session.get('active_company_id')
+    garments = Garment.objects.filter(company__company_code = company_code)
 
     if request.method == "POST":
         po_no = request.POST.get('po_no')
@@ -2072,6 +2123,10 @@ def convert_to_po(request, pk):
         payment_terms = request.POST.get('payment_terms')
         indent_id = request.POST.get('indent_id')
         terms = request.POST.get('terms')
+
+        company_id = request.POST.get('company_id')
+        company = Company.objects.get(id=company_id)
+
 
         # ✅ Create PO
         po = PurchaseOrder.objects.create(
@@ -2082,6 +2137,8 @@ def convert_to_po(request, pk):
             payment_terms=payment_terms,
             supplier=supplier_id,
             termscondition=terms,
+            created_by = request.user,
+            company = company
         )
 
         # ✅ Fetch all lists safely
@@ -2393,8 +2450,9 @@ def purchaseorder_list(request):
     search_query = request.GET.get('search', '').strip()
     
     type = request.GET.get('type', '').strip()
-    purchase_qs = PurchaseOrder.objects.all().order_by('-id')
-    garment = Garment.objects.all()
+    company_code = request.session.get('active_company_id')
+    purchase_qs = PurchaseOrder.objects.filter(company__company_code = company_code).order_by('-id')
+    garment = Garment.objects.filter(company__company_code = company_code)
     # ledger_group = LedgerGroup.objects.all().order_by('-id')
 
     if search_query:
@@ -3870,18 +3928,22 @@ def Users(request):
 
 
 def user_list(request):
+    # user = request.user
+    # print("usersss id",user.id)
+    # admin = Admin.objects.get(user__id = user.id)
+    # print("adminsssssssssssss",admin.client.id)
     search_query = request.GET.get('search', '').strip()
     company_code = request.session.get('active_company_id')
     print("company codess here", company_code)
-
+    
     companies = Company.objects.filter(company_code=company_code)
 
     print("Matching Companies:", companies)
 
     
     user_qs = Client.objects.filter(
-        created_by=request.user,
-        company__company_code=company_code
+        created_by=request.user
+        # company__company_code=company_code
     )
     print("user_qs:", user_qs)
 
@@ -4047,3 +4109,15 @@ from .serializers import ClientSerializer
 class ClientViewSet(viewsets.ModelViewSet):
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
+
+
+
+
+def ledger_group_options(request):
+    company_id = request.GET.get("company_id")
+
+    groups = LedgerGroup.objects.filter(company_id=company_id)
+
+    return render(request, "fabzen_app/Masters/ledgers/_group_options.html", {
+        "ledger_group": groups
+    })

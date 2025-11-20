@@ -20,7 +20,7 @@ class CustomUser(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']   # username still required for Django admin
-
+    
     def __str__(self):
         return f"{self.email} ({self.role})"
 
@@ -136,7 +136,6 @@ class Client(models.Model):
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
     documents = models.FileField(upload_to='client_documents/', null=True, blank=True)
     created_by = models.ForeignKey(CustomUser,on_delete=models.SET_NULL,null=True,blank=True,related_name="clients_created")
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -525,6 +524,11 @@ class PurchaseIndent(models.Model):
     required_date = models.DateField(auto_now_add=False,null=True,blank=True)
     requested_by = models.CharField(max_length=100, blank=True, null=True)
     priority = models.CharField(max_length=20,choices=[('High', 'High'),('Medium', 'Medium'), ('Low', 'Low')])
+    company = models.ForeignKey(Company,on_delete=models.SET_NULL,null=True,blank=True,related_name="indent_company")
+    created_by = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     
     status = models.CharField(
         max_length=20,
@@ -685,6 +689,8 @@ class PurchaseOrder(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Open')
     converted_status = models.CharField(max_length=20, choices=converted_FROM_INDENT, default='No')
     termscondition = models.TextField(blank=True, null=True)
+    company = models.ForeignKey(Company,on_delete=models.SET_NULL,null=True,blank=True,related_name="po_company")
+    created_by = models.ForeignKey(CustomUser,on_delete=models.CASCADE)
 
     class Meta:
         ordering = ['-po_date']  # ✅ Latest PO appears first in list view

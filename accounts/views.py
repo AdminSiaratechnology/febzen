@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from fabzen_app.models import Company
 
 
 # Create your views here.
@@ -28,7 +29,7 @@ def login_view(request):
                 
                 companies = user.client.company.all()
                 if companies.count() == 1:
-                    request.session['active_company_id'] = companies.first().id
+                    request.session['active_company_id'] = companies.first().company_code
                     request.session['needs_company_select'] = False
                     return redirect('select_company')
                 request.session['needs_company_select'] = True
@@ -69,17 +70,22 @@ def logout_view(request):
 
 # @login_required(login_url='/')
 def select_company(request):
-    # if request.user.role != 'client':
-    #     return redirect('dashboard')
     if request.method == 'POST':
         company_id = request.POST.get('selected_company')
-        qs = request.user.client.company.filter(id=company_id)
+        if request.user.role == 'client':
+            qs = request.user.client.company.filter(id=company_id)
+        else:
+            qs = Company.objects.filter(user=request.user, id=company_id)
         if qs.exists():
             request.session['active_company_id'] = qs.first().company_code
             request.session['needs_company_select'] = False
-            return redirect('dashboard')
+            next_url = request.POST.get('next')
+            return redirect(next_url or 'dashboard')
         messages.error(request, 'Invalid company selection')
-    companies = request.user.client.company.all()
+    if request.user.role == 'client':
+        companies = request.user.client.company.all()
+    else:
+        companies = Company.objects.filter(user=request.user)
     return render(request, 'accounts/select_company.html', {
         'companies': companies
     })

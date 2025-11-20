@@ -4,26 +4,43 @@
       <nav class="navbar navbar-expand gap-3">
          <div class="mobile-toggle-menu"><i class='bx bx-menu'></i>
          </div>
-         <div class="top-menu-left d-none d-lg-block">
+        <div class="top-menu-left d-none d-lg-block">
     <div class="d-flex flex-column">
 
-        <!-- Company Name -->
-        <span class="fw-semibold text-primary fs-6">
-            <i class="bx bx-building"></i> {{ company_name|default:"No Company" }}
-        </span>
+        <div class="input-group align-items-center">
 
-        <!-- Company ID (click to copy) -->
-        {% if company_id %}
-        <span 
-            id="companyIdText" 
-            class="text-muted small copy-company-id" 
-            style="cursor:pointer;"
-            onclick="copyCompanyId()"
-        >
-            ID: {{ company_id }} 
-            <i class="bx bx-copy"></i>
-        </span>
-        {% endif %}
+            <!-- Company ID Badge -->
+            <span 
+                class="badge bg-success-subtle text-success border fw-normal me-2 d-flex align-items-center gap-1 px-2 py-1"
+                id="companyIdText"
+                onclick="copyCompanyId()"
+                style="cursor:pointer; font-size: 0.75rem;"
+            >
+                {{ company_id }}
+                <i class="bx bx-copy fs-6"></i>
+            </span>
+
+            <!-- Company Select -->
+            <form method="post" action="{% url 'select_company' %}" class="flex-grow-1">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+                <select 
+                    name="selected_company" 
+                    class="form-control fw-semibold text-primary fs-6 border-0 shadow-none"
+                    onchange="this.form.submit()"
+                >
+                    {% for comp in company_list %}
+                        <option value="{{ comp.id }}" 
+                            {% if comp.company_code == company_id %}selected{% endif %}
+                        >
+                            {{ comp.company_name_print }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+
+        </div>
 
     </div>
 </div>
@@ -380,7 +397,8 @@
                </div>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-               {% comment %} <li><a class="dropdown-item" href="javascript:;"><i class="bx bx-user"></i><span>Profile</span></a>
+               {% comment %} 
+               <li><a class="dropdown-item" href="javascript:;"><i class="bx bx-user"></i><span>Profile</span></a>
                </li>
                <li><a class="dropdown-item" href="javascript:;"><i class="bx bx-cog"></i><span>Settings</span></a>
                </li>
@@ -392,7 +410,8 @@
                </li>
                <li>
                   <div class="dropdown-divider mb-0"></div>
-               </li> {% endcomment %}
+               </li>
+               {% endcomment %}
                <li><a class="dropdown-item" href="{% url "logout" %}"><i class='bx bx-log-out-circle'></i><span>Logout</span></a>
                </li>
             </ul>
@@ -400,17 +419,16 @@
       </nav>
    </div>
 </header>
-
 <script>
-function copyCompanyId() {
-    const text = document.getElementById("companyIdText").innerText.replace("ID: ", "");
-    navigator.clipboard.writeText(text).then(function() {
-        // Optional: small popup effect
-        const el = document.getElementById("companyIdText");
-        el.innerHTML = `Copied! <i class="bx bx-check-circle text-success"></i>`;
-        setTimeout(() => {
-            el.innerHTML = `ID: ${text} <i class="bx bx-copy"></i>`;
-        }, 1500);
-    });
-}
+   function copyCompanyId() {
+       const text = document.getElementById("companyIdText").innerText.replace("ID: ", "");
+       navigator.clipboard.writeText(text).then(function() {
+           // Optional: small popup effect
+           const el = document.getElementById("companyIdText");
+           el.innerHTML = `Copied! <i class="bx bx-check-circle text-success"></i>`;
+           setTimeout(() => {
+               el.innerHTML = `${text} <i class="bx bx-copy"></i>`;
+           }, 1500);
+       });
+   }
 </script>

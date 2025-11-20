@@ -28,7 +28,7 @@
             </select>
 
           </div>
-          <input type="text" value="{{company.id}}" name="company_id">
+          <input type="hidden" value="{{company.id}}" name="company_id">
           <div id="ledgerGroupResponse"></div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" id="cancelGroupBtn">Close</button>
@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const ledgerGroupForm = document.getElementById('ledgerGroupForm');
   const closeGroupModalBtn = document.getElementById('closeGroupModal');
   const cancelGroupBtn = document.getElementById('cancelGroupBtn');
+  const responseEl = document.getElementById('ledgerGroupResponse');
   
   // Initialize Bootstrap modals
   const mainBsModal = new bootstrap.Modal(mainModal);
@@ -70,81 +71,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
   });
   
-  // Handle successful group addition
-  document.body.addEventListener('htmx:beforeSwap', function(event) {
-    if (event.detail.target.id === 'ledgerGroupResponse') {
-      // Check if the response contains HX-Trigger header
-      const triggerHeader = event.detail.xhr.getResponseHeader('HX-Trigger');
-      if (triggerHeader) {
-        const triggers = JSON.parse(triggerHeader);
-        
-        // If we have a closeGroupModal trigger
-        if (triggers.closeGroupModal) {
-          // Reset the form
-          ledgerGroupForm.reset();
-          
-          // Close the group modal
-          setTimeout(() => {
-            groupBsModal.hide();
-          }, 500);
-          
-          // Reopen the ledger modal
-          if (triggers.reopenLedgerModal) {
-            setTimeout(() => {
-              mainBsModal.show();
-              
-              // Refresh the ledger group dropdown
-              const ledgerGroupSelect = document.getElementById('ledgerGroupSelect');
-              if (ledgerGroupSelect) {
-                // Store the newly added group ID from the response
-                const newGroupId = triggers.newGroupId;
-                
-                fetch('/ledger/')
-                  .then(response => response.text())
-                  .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const newOptions = doc.querySelectorAll('#ledgerGroupSelect option');
-                    
-                    // Clear existing options except the first one
-                    while (ledgerGroupSelect.options.length > 1) {
-                      ledgerGroupSelect.remove(1);
-                    }
-                    
-                    // Add new options and select the newly added one
-                    let newOptionAdded = false;
-                    newOptions.forEach(option => {
-                      if (option.value) {
-                        const newOption = document.createElement('option');
-                        newOption.value = option.value;
-                        newOption.text = option.text;
-                        
-                        // If this is the newly added group, select it
-                        if (newGroupId && newOption.value == newGroupId) {
-                          newOption.selected = true;
-                          newOptionAdded = true;
-                        }
-                        
-                        ledgerGroupSelect.appendChild(newOption);
-                      }
-                    });
-                    
-                    // If we couldn't find the new option in the fetched data,
-                    // add it directly using the data from the form
-                    if (newGroupId && !newOptionAdded) {
-                      const groupName = document.getElementById('groupName').value;
-                      const newOption = document.createElement('option');
-                      newOption.value = newGroupId;
-                      newOption.text = groupName;
-                      newOption.selected = true;
-                      ledgerGroupSelect.appendChild(newOption);
-                    }
-                  });
-              }
-            }, 600);
-          }
-        }
+  // Cache name before HTMX request
+  let cachedGroupName = '';
+  document.body.addEventListener('htmx:beforeRequest', function(event) {
+    if (event.target && event.target.id === 'ledgerGroupForm') {
+      cachedGroupName = document.getElementById('groupName')?.value || '';
+    }
+  });
+
+  // Listen to HX-Trigger custom events sent from server
+  responseEl.addEventListener('closeGroupModal', function() {
+    ledgerGroupForm.reset();
+    setTimeout(() => { groupBsModal.hide(); }, 100);
+  });
+
+  responseEl.addEventListener('reopenLedgerModal', function() {
+    setTimeout(() => { mainBsModal.show(); }, 200);
+  });
+
+  responseEl.addEventListener('newGroupId', function(e) {
+    const payload = e.detail;
+    const idCandidate = typeof payload === 'object' ? (payload.id ?? payload.value ?? payload.newGroupId) : payload;
+    if (idCandidate == null) return;
+    const idStr = String(idCandidate);
+    const newGroupName = (typeof payload === 'object' ? (payload.name ?? payload.text) : '') || cachedGroupName;
+    const ledgerGroupSelect = document.getElementById('ledgerGroupSelect');
+    if (ledgerGroupSelect && idStr) {
+      Array.from(ledgerGroupSelect.options).forEach(opt => { if (opt.value === '[object Object]') opt.remove(); });
+      let existing = Array.from(ledgerGroupSelect.options).find(opt => String(opt.value) === idStr);
+      if (!existing) {
+        const opt = document.createElement('option');
+        opt.value = idStr;
+        opt.text = newGroupName || 'New Group';
+        ledgerGroupSelect.appendChild(opt);
+        existing = opt;
       }
+      existing.selected = true;
     }
   });
   
