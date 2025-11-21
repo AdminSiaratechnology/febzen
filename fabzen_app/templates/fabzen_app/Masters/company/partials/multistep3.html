@@ -106,29 +106,45 @@
                      
                      <div class="row g-3">
                        
-					<div class="col-md-6">
+					{% comment %} <div class="col-md-6">
 						<label class="form-label small fw-bold">Company Name (Street) <span class="text-danger">*</span></label>
-						<input type="text" class="form-control form-control-sm" name="companystreet" value="{{company.company_name_street}}" required>
+						<input type="text" class="form-control form-control-sm" name="companystreet"  required>
 						<div class="invalid-feedback">Company name is required</div>
 					</div>
                   <div class="col-md-6">
                     <label class="form-label small fw-bold">Company Name (Print)</label>
-                    <input type="text" class="form-control form-control-sm" name="cmpprint" value="{{company.company_name_print}}">
-                  </div>
+                    <input type="text" class="form-control form-control-sm" name="cmpprint" >
+                  </div> {% endcomment %}
+                  <div class="col-md-6">
+    <label class="form-label small fw-bold">Company Name (Street) <span class="text-danger">*</span></label>
+    <input type="text" class="form-control form-control-sm"
+           name="companystreet"
+           id="companystreet"
+           required
+           oninput="copyStreetToPrint()">
+    <div class="invalid-feedback">Company name is required</div>
+</div>
+
+<div class="col-md-6">
+    <label class="form-label small fw-bold">Company Name (Print)</label>
+    <input type="text" class="form-control form-control-sm" name="cmpprint" id="cmpprint">
+</div>
+
+
                   
                   <div class="col-md-12">
                     <label class="form-label small fw-bold">Address</label>
                     <div class="input-group input-group-sm mb-1">
                       <span class="input-group-text bg-light"><i class="bx bx-map"></i></span>
-                      <input type="text" class="form-control form-control-sm" placeholder="Address Line 1" name="addressline1" value="{{company.address_line1}}">
+                      <input type="text" class="form-control form-control-sm" placeholder="Address Line 1" name="addressline1" >
                     </div>
                     <div class="input-group input-group-sm mb-1">
                       <span class="input-group-text bg-light"><i class="bx bx-map"></i></span>
-                      <input type="text" class="form-control form-control-sm" placeholder="Address Line 2" name="addressline2" value="{{company.address_line2}}">
+                      <input type="text" class="form-control form-control-sm" placeholder="Address Line 2" name="addressline2" >
                     </div>
                     <div class="input-group input-group-sm">
                       <span class="input-group-text bg-light"><i class="bx bx-map"></i></span>
-                      <input type="text" class="form-control form-control-sm" placeholder="Address Line 3" name="addressline3" value="{{company.address_line3}}">
+                      <input type="text" class="form-control form-control-sm" placeholder="Address Line 3" name="addressline3">
                     </div>
                   </div>
                   
@@ -136,20 +152,20 @@
                     <label class="form-label small fw-bold">Country</label>
                     <div class="input-group input-group-sm">
                       <span class="input-group-text bg-light"><i class="bx bx-globe"></i></span>
-                      <input type="text" class="form-control form-control-sm" name="country" value="{{company.country}}">
+                      <input type="text" class="form-control form-control-sm" name="country" >
                     </div>
                   </div>
                   <div class="col-md-3">
                     <label class="form-label small fw-bold">State</label>
-                    <input type="text" class="form-control form-control-sm" name="state" value="{{company.state}}">
+                    <input type="text" class="form-control form-control-sm" name="state" >
                   </div>
                   <div class="col-md-3">
                     <label class="form-label small fw-bold">City</label>
-                    <input type="text" class="form-control form-control-sm" name="city" value="{{company.city}}">
+                    <input type="text" class="form-control form-control-sm" name="city" >
                   </div>
                   <div class="col-md-3">
                     <label class="form-label small fw-bold">Zip Code</label>
-                    <input type="text" class="form-control form-control-sm" name="zipcode" value="{{company.zip_code}}">
+                    <input type="text" class="form-control form-control-sm" name="zipcode" >
                   </div>
                         <div class="col-12 col-lg-6">
                            {% comment %} <button class="btn btn-primary px-4" onclick="stepper2.next()">Next<i class='bx bx-right-arrow-alt ms-2'></i></button> {% endcomment %}
@@ -168,14 +184,14 @@
                     <label class="form-label small fw-bold">Telephone</label>
                     <div class="input-group input-group-sm">
                       <span class="input-group-text bg-light"><i class="bx bx-phone"></i></span>
-                      <input type="text" class="form-control form-control-sm" name="telephone" value="{{company.telephone}}">
+                      <input type="text" class="form-control form-control-sm" name="telephone" >
                     </div>
                   </div>
                   <div class="col-md-4">
                     <label class="form-label small fw-bold">Mobile <span class="text-danger">*</span></label>
                     <div class="input-group input-group-sm">
                       <span class="input-group-text bg-light"><i class="bx bx-mobile"></i></span>
-                      <input type="text" class="form-control form-control-sm" name="mob_no" value="{{company.mobile_no}}" required>
+                      <input type="text" class="form-control form-control-sm" name="mob_no"  required>
                       <div class="invalid-feedback">Mobile number is required</div>
                     </div>
                   </div>
@@ -183,21 +199,21 @@
                     <label class="form-label small fw-bold">Fax</label>
                     <div class="input-group input-group-sm">
                       <span class="input-group-text bg-light"><i class="bx bx-printer"></i></span>
-                      <input type="text" class="form-control form-control-sm" name="fax_no" value="{{company.fax_no}}">
+                      <input type="text" class="form-control form-control-sm" name="fax_no" >
                     </div>
                   </div>
                   <div class="col-md-6">
                     <label class="form-label small fw-bold">Email</label>
                     <div class="input-group input-group-sm">
                       <span class="input-group-text bg-light"><i class="bx bx-envelope"></i></span>
-                      <input type="email" class="form-control form-control-sm" name="email" value="{{company.email}}">
+                      <input type="email" class="form-control form-control-sm" name="email" >
                     </div>
                   </div>
                   <div class="col-md-6">
                     <label class="form-label small fw-bold">Website</label>
                     <div class="input-group input-group-sm">
                       <span class="input-group-text bg-light"><i class="bx bx-globe"></i></span>
-                      <input type="text" class="form-control form-control-sm" name="website" value="{{company.website}}">
+                      <input type="text" class="form-control form-control-sm" name="website" >
                     </div>
                   </div>
                         <div class="col-12">
@@ -218,7 +234,7 @@
                     <label class="form-label small fw-bold">GST <span class="text-danger">*</span></label>
                     <div class="input-group input-group-sm">
                       <span class="input-group-text bg-light"><i class="bx bx-receipt"></i></span>
-                      <input type="text" class="form-control form-control-sm" name="gstno" value="{{company.gst_no}}" required>
+                      <input type="text" class="form-control form-control-sm" name="gstno"  required>
                       <div class="invalid-feedback">GST number is required</div>
                     </div>
                   </div>
@@ -226,28 +242,28 @@
                     <label class="form-label small fw-bold">PAN</label>
                     <div class="input-group input-group-sm">
                       <span class="input-group-text bg-light"><i class="bx bx-card"></i></span>
-                      <input type="text" class="form-control form-control-sm" name="pan_no" value="{{company.pan_no}}">
+                      <input type="text" class="form-control form-control-sm" name="pan_no" >
                     </div>
                   </div>
                   <div class="col-md-4">
                     <label class="form-label small fw-bold">TAN</label>
                     <div class="input-group input-group-sm">
                       <span class="input-group-text bg-light"><i class="bx bx-card"></i></span>
-                      <input type="text" class="form-control form-control-sm" name="tan_no" value="{{company.tan_no}}">
+                      <input type="text" class="form-control form-control-sm" name="tan_no" >
                     </div>
                   </div>
                   <div class="col-md-6">
                     <label class="form-label small fw-bold">MSME</label>
                     <div class="input-group input-group-sm">
                       <span class="input-group-text bg-light"><i class="bx bx-building"></i></span>
-                      <input type="text" class="form-control form-control-sm" name="msme_no" value="{{company.msme_no}}">
+                      <input type="text" class="form-control form-control-sm" name="msme_no" >
                     </div>
                   </div>
                   <div class="col-md-6">
                     <label class="form-label small fw-bold">Udyan</label>
                     <div class="input-group input-group-sm">
                       <span class="input-group-text bg-light"><i class="bx bx-building"></i></span>
-                      <input type="text" class="form-control form-control-sm" name="udyan_no" value="{{company.udyan_no}}">
+                      <input type="text" class="form-control form-control-sm" name="udyan_no" >
                     </div>
                   </div>
                         <div class="col-12">
@@ -380,4 +396,12 @@
    </div>
   
 </div>
+
+
+<script>
+function copyStreetToPrint() {
+    document.getElementById("cmpprint").value =
+        document.getElementById("companystreet").value;
+}
+</script>
 {% endblock main-content %}

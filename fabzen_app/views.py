@@ -232,7 +232,7 @@ def add_company(request):
         bank_names = request.POST.getlist('bank_name')
         branches = request.POST.getlist('branch')
 
-
+        had_companies_before = Company.objects.filter(user=request.user).exists()
 
         company = Company.objects.create(
             user = request.user,
@@ -283,6 +283,9 @@ def add_company(request):
                 branch=branches[i] if i < len(branches) else ''
             )
 
+        if not had_companies_before and request.session.get('active_company_id') is None:
+            request.session['active_company_id'] = company.company_code
+            request.session['needs_company_select'] = False
 
         return redirect(reverse_lazy('company'))
         # ----------------------------  END Bank Details -------------------
